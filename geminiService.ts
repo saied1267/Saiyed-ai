@@ -1,29 +1,36 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
 import { Subject, ClassLevel, Group } from "./types";
 
 const SYSTEM_INSTRUCTION = `
-# Identity (ULTRA-STRICT)
-- You are ONLY 'সাঈদ এআই' (Saiyed AI). 
-- If someone asks "Who made you?", "Who are you?", or "What model are you?", you MUST answer: "আমি সাঈদ এআই, আপনার পার্সোনাল লার্নিং টিউটর। আমাকে তৈরি করেছে সাঈদ (হাটহাজারী কলেজ)।"
-- NEVER mention: Google, Gemini, OpenAI, or ChatGPT.
-- Your technology: "সাঈদ এআই-এর নিজস্ব ল্যাঙ্গুয়েজ ইঞ্জিন।"
+# Identity & Tone
+- Your name is 'সাঈদ এআই' (Saiyed AI).
+- You were built by সাঈদ (Saiyed), a student from হাটহাজারী কলেজ (Hathazari College).
+- Be honest: You are a learning assistant project created by সাঈদ to help students study more effectively. Do not claim to be human or an all-powerful being. 
+- Tone: Grounded, helpful, respectful, and realistic. 
+- Always answer in Bangla unless specifically asked for English.
 
-# Teaching Rules
-- First response must be: "সালাম/নমস্কার! {Subject} এর ক্লাসে আপনাকে স্বাগতম। আমি সাঈদ এআই।"
-- Explain like a teacher from Bangladesh using simple Bangla.
-- For Math/Science, use step-by-step logic.
-- End long messages with an encouraging quote.
+# Knowledge & Explanation Style
+- NEVER give one-line or short answers. 
+- For every question, perform a "Deep Breakdown":
+  1. Core Concept (মূল ধারণা)
+  2. Step-by-Step Logic (ধাপে ধাপে ব্যাখ্যা)
+  3. Practical Example (বাস্তব উদাহরণ)
+  4. Common Mistakes (সাধারণ ভুলসমূহ)
+
+# Formatting Rules
+- Do NOT use '$' signs.
+- Use Unicode for math: a², b³, x⁴, √x.
+- Formulas: Start with "> " on a new line.
+- Use bullet points for clear readability.
+- Every response MUST end with "[SUGGESTIONS] Topic 1 | Topic 2 | Topic 3" related to the context.
+- Mention "সাঈদ এর বাস্তব পরামর্শ:" at the very end for educational advice.
 `;
 
 const MODEL_NAME = 'gemini-3-flash-preview';
 
-// Netlify-তে এপিআই কি ব্যবহারের জন্য ফাংশন
 const getAIInstance = () => {
   const apiKey = process.env.API_KEY;
-  if (!apiKey) {
-    throw new Error("API Key not found. Please set it in Netlify Environment Variables.");
-  }
+  if (!apiKey) throw new Error("API Key missing");
   return new GoogleGenAI({ apiKey });
 };
 
@@ -41,124 +48,103 @@ export const getTutorResponseStream = async (
       const base64Data = image.includes(',') ? image.split(',')[1] : image;
       currentParts.push({ inlineData: { mimeType: 'image/jpeg', data: base64Data } });
     }
-    
-    currentParts.push({ text: `[Context: ${context.subject}, ${context.classLevel}] ${prompt} \n\n[FOOTER] Add 3 topics after [SUGGESTIONS] using | separator.` });
+    currentParts.push({ text: `Subject: ${context.subject}. Prompt: ${prompt}. \n[Instruction]: Provide a deep breakdown of this topic without exaggeration.` });
 
     const responseStream = await ai.models.generateContentStream({
       model: MODEL_NAME,
       contents: [...history, { role: 'user', parts: currentParts }],
-      config: {
-        systemInstruction: SYSTEM_INSTRUCTION,
-        temperature: 0.3
-      }
+      config: { systemInstruction: SYSTEM_INSTRUCTION, temperature: 0.1 }
     });
 
     let fullText = "";
     for await (const chunk of responseStream) {
       fullText += chunk.text;
-      onChunk(fullText);
+      let formatted = fullText
+        .replace(/\^2/g, '²')
+        .replace(/\^3/g, '³')
+        .replace(/\$/g, '');
+      onChunk(formatted);
     }
     return fullText;
   } catch (error: any) {
-    onChunk(`সার্ভার সংযোগে সমস্যা হচ্ছে। আপনার নেটলিফাই সেটিংস-এ API_KEY ঠিকমতো সেট করা আছে কি না চেক করুন। - সাঈদ এআই`);
+    onChunk(`দুঃখিত, বর্তমানে সার্ভারে সমস্যা হচ্ছে। দয়া করে সাঈদ-কে জানান।`);
     return "";
   }
 };
 
-export const generateMCQs = async (subject: Subject) => {
-  const ai = getAIInstance();
-  const response = await ai.models.generateContent({
-    model: MODEL_NAME,
-    contents: `Generate 5 MCQs for ${subject}.`,
-    config: { 
-      systemInstruction: "You are 'সাঈদ এআই প্রশ্নকর্তা'. Generate JSON MCQs for Bangladeshi curriculum.", 
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.ARRAY,
-        items: {
+export const getTranslationExtended = async (text: string, direction: 'bn-en' | 'en-bn') => {
+  try {
+    const ai = getAIInstance();
+    const response = await ai.models.generateContent({
+      model: MODEL_NAME,
+      contents: `Translate and analyze: "${text}" (${direction}). 
+      Provide: 1. Literal, 2. Contextual, 3. Professional versions. 
+      Also provide a deep line-by-line breakdown.`,
+      config: {
+        systemInstruction: "You are a linguistics professor. Return JSON with 'overall' (literal, contextual, professional) and 'lines' (original, translated, explanation).",
+        responseMimeType: "application/json",
+        responseSchema: {
           type: Type.OBJECT,
           properties: {
-            topic: { type: Type.STRING },
-            question: { type: Type.STRING },
-            options: { type: Type.ARRAY, items: { type: Type.STRING } },
-            correctAnswer: { type: Type.INTEGER },
-            explanation: { type: Type.STRING }
-          }
-        }
-      }
-    }
-  });
-  return JSON.parse(response.text || "[]");
-};
-
-export const getTranslationExtended = async (text: string, direction: 'bn-en' | 'en-bn') => {
-  const ai = getAIInstance();
-  const response = await ai.models.generateContent({
-    model: MODEL_NAME,
-    contents: `Translate and analyze line-by-line: "${text}" (${direction}).`,
-    config: {
-      systemInstruction: "You are 'সাঈদ এআই ট্রান্সলেটর'. Return line-by-line analysis in JSON.",
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.OBJECT,
-        properties: {
-          lines: {
-            type: Type.ARRAY,
-            items: {
+            overall: {
               type: Type.OBJECT,
               properties: {
-                original: { type: Type.STRING },
-                translated: { type: Type.STRING },
-                explanation: { type: Type.STRING },
-                grammarAnalysis: { 
-                  type: Type.ARRAY, 
-                  items: { 
-                    type: Type.OBJECT, 
-                    properties: { word: { type: Type.STRING }, pos: { type: Type.STRING }, explanation: { type: Type.STRING } } 
-                  } 
+                literal: { type: Type.STRING },
+                contextual: { type: Type.STRING },
+                professional: { type: Type.STRING }
+              }
+            },
+            lines: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  original: { type: Type.STRING },
+                  translated: { type: Type.STRING },
+                  explanation: { type: Type.STRING }
                 }
               }
             }
-          },
-          relatedSuggestions: { type: Type.ARRAY, items: { type: Type.STRING } }
+          }
         }
       }
-    }
-  });
-  return JSON.parse(response.text || "{}");
+    });
+    return JSON.parse(response.text || "{}");
+  } catch (err) { return { overall: {}, lines: [] }; }
+};
+
+export const generateMCQs = async (subject: Subject) => {
+  try {
+    const ai = getAIInstance();
+    const response = await ai.models.generateContent({
+      model: MODEL_NAME,
+      contents: `Generate 5 challenging MCQs for ${subject}. Explain why the correct answer is right based on standard textbooks.`,
+      config: { responseMimeType: "application/json" }
+    });
+    return JSON.parse(response.text || "[]");
+  } catch (err) { return []; }
 };
 
 export const getStudyPlan = async (topics: string[]) => {
-  const ai = getAIInstance();
-  const response = await ai.models.generateContent({
-    model: MODEL_NAME,
-    contents: `Study plan for: ${topics.join(',')}`,
-    config: { 
-      systemInstruction: "You are 'সাঈদ এআই মেন্টর'. Create a study routine in JSON.",
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.OBJECT,
-        properties: {
-          dailyGoals: { type: Type.ARRAY, items: { type: Type.STRING } },
-          weakTopics: { type: Type.ARRAY, items: { type: Type.STRING } },
-          nextStudy: { type: Type.STRING }
-        }
-      }
-    }
-  });
-  return JSON.parse(response.text || "{}");
+  try {
+    const ai = getAIInstance();
+    const response = await ai.models.generateContent({
+      model: MODEL_NAME,
+      contents: `Create a realistic study plan for: ${topics.join(',')}. Be honest and practical about timing.`,
+      config: { responseMimeType: "application/json" }
+    });
+    return JSON.parse(response.text || "{}");
+  } catch (err) { return { dailyGoals: [], weakTopics: [], nextStudy: "" }; }
 };
 
 export const getRecentEvents = async (type: 'bn' | 'en') => {
-  const ai = getAIInstance();
-  const prompt = type === 'bn' ? "আজকের সর্বশেষ সংবাদ রিপোর্ট করুন।" : "Report latest news from Bangladesh.";
-  const response = await ai.models.generateContent({
-    model: MODEL_NAME,
-    contents: prompt,
-    config: { tools: [{ googleSearch: {} }] },
-  });
-  return {
-    text: response.text || "",
-    groundingChunks: response.candidates?.[0]?.groundingMetadata?.groundingChunks || []
-  };
-};
+  try {
+    const ai = getAIInstance();
+    const response = await ai.models.generateContent({
+      model: MODEL_NAME,
+      contents: "What are the latest important news updates? Provide neutral and verified information.",
+      config: { tools: [{ googleSearch: {} }] },
+    });
+    return { text: response.text || "", groundingChunks: response.candidates?.[0]?.groundingMetadata?.groundingChunks || [] };
+  } catch (err) { return { text: "Error news", groundingChunks: [] }; }
+        }
