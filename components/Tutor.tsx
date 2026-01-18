@@ -44,6 +44,9 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
       case Subject.BANGLA: 
         specific = [`সন্ধি বিচ্ছেদ`, `সৃজনশীল লেখার কৌশল`, `ব্যাকরণ এর মূল বিষয়`, `গদ্য ও পদ্যের সারসংক্ষেপ` ];
         break;
+        case Subject.EXCEL: 
+        specific = [`Vlookup ফাংশন কিভাবে কাজ করে?`, `IF ফাংশন কিভাবে কাজ করে?`, `Filter এর কাজ কী?`, `সাঈদ কোন কলেজে পড়ে?` ];
+        break;
       default: 
         specific = [`এই বিষয়টি কিভাবে পড়ব?`, `গুরুত্বপূর্ণ কিছু টপিক`, `পড়া মনে রাখার কৌশল` ];
     }
