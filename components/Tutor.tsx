@@ -20,12 +20,37 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const initialSuggestions = [
-    `সাঈদ সম্পর্কে বিস্তারিত জানাও`,
-    `আজকের গুরুত্বপূর্ণ সূত্রগুলো ব্যাখ্যা করো`,
-    `একটি জটিল সৃজনশীল প্রশ্ন সমাধান করো`,
-    `পড়া মনে রাখার বৈজ্ঞানিক টিপস`
-  ];
+  // Subject-specific suggestion map with "About Saiyed" added to each
+  const getSubjectSuggestions = (sub: Subject) => {
+    const common = [`সাঈদ সম্পর্কে জানাও`];
+    let specific: string[] = [];
+    
+    switch (sub) {
+      case Subject.MATH: 
+        specific = [`জটিল জ্যামিতি সমাধান`, `বীজগণিতের মূল সূত্রসমূহ`, `সৃজনশীল প্রশ্নের কাঠামো`, `দ্রুত গণনার টিপস` ];
+        break;
+      case Subject.ENGLISH: 
+        specific = [`Tense এর সহজ নিয়ম`, `প্রফেশনাল ট্রান্সলেশন`, `রাইটিং পার্টে ভালো করার উপায়`, `ভোকাবুলারি বাড়ানোর টিপস` ];
+        break;
+      case Subject.ICT: 
+        specific = [`বাইনারি সংখ্যা পদ্ধতি`, `HTML এর বেসিক`, `ডিজিটাল লজিক গেট`, `প্রোগ্রামিং এর ধারণা` ];
+        break;
+      case Subject.ACCOUNTING: 
+        specific = [`ডেবিট-ক্রেডিট নির্ণয়`, `জাবেদা দাখিলা`, `আর্থিক বিবরণী`, `হিসাববিজ্ঞান কেন প্রয়োজন?` ];
+        break;
+      case Subject.PHYSICS: 
+        specific = [`গতির সূত্রসমূহ`, `নিউটনের ২য় সূত্র`, `কাজ ও শক্তি`, `ভেক্টর এর ধারণা` ];
+        break;
+      case Subject.BANGLA: 
+        specific = [`সন্ধি বিচ্ছেদ`, `সৃজনশীল লেখার কৌশল`, `ব্যাকরণ এর মূল বিষয়`, `গদ্য ও পদ্যের সারসংক্ষেপ` ];
+        break;
+      default: 
+        specific = [`এই বিষয়টি কিভাবে পড়ব?`, `গুরুত্বপূর্ণ কিছু টপিক`, `পড়া মনে রাখার কৌশল` ];
+    }
+    return [...common, ...specific];
+  };
+
+  const currentSuggestions = getSubjectSuggestions(subject);
 
   useEffect(() => {
     const win = window as any;
@@ -71,7 +96,10 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
             cleanDisplay = parts[0].trim();
             suggestions = parts[1].split('|').map(s => s.trim()).filter(s => s.length > 0);
           }
-          cleanDisplay = cleanDisplay.replace(/\$/g, '');
+          // Ensure "Saiyed" stays in suggestions if the response is about identity
+          if (textToSend.includes('সাঈদ')) {
+             suggestions = ['সাঈদ এর লক্ষ্য কি?', 'প্রজেক্টটি কেন তৈরি?', ...suggestions];
+          }
           onUpdateHistory([...updatedHistory, { ...aiPlaceholder, text: cleanDisplay, suggestions }]);
         }
       );
@@ -96,9 +124,6 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
              </div>
           </div>
         </div>
-        <div className="flex items-center space-x-2">
-           <span className="text-base animate-pulse">✨</span>
-        </div>
       </header>
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-2 py-4 space-y-6 scrollbar-hide">
@@ -106,12 +131,22 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
           <div className="flex flex-col items-center justify-center py-8 space-y-4 opacity-90 animate-in fade-in zoom-in duration-500">
             <div className="w-10 h-10 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center text-xl shadow-md">🤖</div>
             <div className="text-center space-y-1">
-              <p className="text-[12px] font-black text-slate-800 dark:text-white">সাঈদ এআই-তে স্বাগতম!</p>
-              <p className="text-[11px] font-bold text-slate-400 px-6 leading-tight">হাটহাজারী কলেজের সাঈদ এর তৈরি আপনার নিজস্ব গৃহশিক্ষক। নিচের যেকোনো বিষয় দিয়ে শুরু করুন।</p>
+              <p className="text-[12px] font-black text-slate-800 dark:text-white">{subject} নিয়ে সাঈদ এআই রেডি!</p>
+              <p className="text-[11px] font-bold text-slate-400 px-6 leading-tight italic">হাটহাজারী কলেজের সাঈদ এর একটি বাস্তব প্রজেক্ট।</p>
             </div>
             <div className="flex flex-wrap gap-1.5 justify-center px-4">
-               {initialSuggestions.map((s, si) => (
-                 <button key={si} onClick={() => handleSend(s)} className="px-3 py-1.5 bg-white dark:bg-slate-800 border dark:border-slate-700 text-blue-600 dark:text-blue-400 font-black text-[9.5px] rounded-lg shadow-sm active:scale-95 transition-all">✨ {s}</button>
+               {currentSuggestions.map((s, si) => (
+                 <button 
+                  key={si} 
+                  onClick={() => handleSend(s)} 
+                  className={`px-3 py-1.5 border font-black text-[9px] rounded-lg shadow-sm active:scale-95 transition-all ${
+                    s.includes('সাঈদ') 
+                    ? 'bg-blue-600 border-blue-700 text-white' 
+                    : 'bg-white dark:bg-slate-800 dark:border-slate-700 text-blue-600 dark:text-blue-400'
+                  }`}
+                 >
+                   ✨ {s}
+                 </button>
                ))}
             </div>
           </div>
@@ -121,8 +156,8 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
           <div key={i} className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'} animate-in slide-in-from-bottom-2`}>
             {m.role === 'model' && m.text && (
                <div className="flex items-center space-x-1.5 ml-2 mb-1">
-                 <div className="w-4 h-0.5 bg-blue-600 rounded-full"></div>
-                 <span className="text-[8px] font-black text-blue-600 uppercase tracking-widest">বিশ্লেষণ ও ব্যাখ্যা</span>
+                 <div className="w-3 h-0.5 bg-blue-600 rounded-full"></div>
+                 <span className="text-[7.5px] font-black text-blue-600 uppercase tracking-widest">বিশ্লেষণ</span>
                </div>
             )}
             <div className={`max-w-[96%] p-0.5 rounded-[1.2rem] ${m.role === 'user' ? 'bg-slate-800' : 'bg-white dark:bg-slate-900 shadow-sm border dark:border-slate-800'}`}>
@@ -130,29 +165,26 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
                 {m.image && <img src={m.image} className="w-full rounded-xl mb-3 shadow-sm max-h-40 object-cover" alt="input" />}
                 <div className="space-y-3 text-[12px] font-bold leading-relaxed">
                   {m.text.split('\n').map((line, lIdx) => {
-                    // Formula Card
                     if (line.trim().startsWith('>') || line.includes('²') || line.includes('³')) {
                       return (
                         <div key={lIdx} className="my-2 bg-slate-50 dark:bg-slate-800 p-2.5 rounded-lg border-l-[3px] border-emerald-500 shadow-xs">
-                          <p className="italic text-slate-700 dark:text-slate-200 text-[12px] font-black leading-tight">{line.replace('>', '').replace(/\$/g, '').trim()}</p>
+                          <p className="italic text-slate-700 dark:text-slate-200 text-[12px] font-black leading-tight">{line.replace('>', '').trim()}</p>
                         </div>
                       );
                     }
-                    // Numbered Badges
                     const numberedMatch = line.match(/^(\d+)\.\s(.*)/);
                     if (numberedMatch) {
                       return (
                         <div key={lIdx} className="flex items-start space-x-2 py-0.5">
-                          <span className="w-4.5 h-4.5 bg-blue-600 text-white rounded-full flex items-center justify-center text-[8.5px] font-black shrink-0 mt-0.5">{numberedMatch[1]}</span>
-                          <p className="flex-1 pt-0.5">{numberedMatch[2].replace(/\$/g, '')}</p>
+                          <span className="w-4 h-4 bg-blue-600 text-white rounded-full flex items-center justify-center text-[8px] font-black shrink-0 mt-0.5">{numberedMatch[1]}</span>
+                          <p className="flex-1 pt-0.5">{numberedMatch[2]}</p>
                         </div>
                       );
                     }
-                    // Special Advice
-                    if (line.includes('সাঈদ এর পরামর্শ')) {
+                    if (line.includes('সাঈদ এর বাস্তব পরামর্শ')) {
                       return <p key={lIdx} className="text-[10px] text-slate-500 dark:text-slate-400 italic mt-3 border-t pt-2 border-dashed dark:border-slate-800">💡 {line.replace(/\*\*/g, '').trim()}</p>;
                     }
-                    return line.trim() ? <p key={lIdx} className="whitespace-pre-wrap">{line.replace(/\$/g, '')}</p> : null;
+                    return line.trim() ? <p key={lIdx} className="whitespace-pre-wrap">{line}</p> : null;
                   })}
                 </div>
               </div>
@@ -177,7 +209,7 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
           <input 
             type="text" value={input} 
             onChange={(e) => setInput(e.target.value)} 
-            placeholder="সাঈদ-কে প্রশ্ন করুন..."
+            placeholder={`${subject} নিয়ে প্রশ্ন করুন...`}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
             className="flex-1 bg-transparent px-2 py-2 outline-none font-bold text-[12px] dark:text-white placeholder-slate-400"
           />
