@@ -63,9 +63,12 @@ export type ChatTheme = 'blue' | 'emerald' | 'purple' | 'orange' | 'pink' | 'whi
 export type ChatBackground = 'plain' | 'dots' | 'grid' | 'mesh' | 'paper' | 'waves';
 
 export interface User {
+  uid?: string;
   email: string;
   name: string;
   isPremium: boolean;
+  interests: string[];
+  photoURL?: string;
 }
 
 export interface ChatMessage {
