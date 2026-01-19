@@ -2,20 +2,12 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 
-/**
- * সাঈদ ভাই, কোড থেকে সব কি (Key) সরিয়ে দেওয়া হয়েছে। 
- * এগুলো এখন আপনার Netlify Environment Variables থেকে আসবে।
- * নেটলিফাইতে নিচের নামগুলোতে ভ্যালুগুলো সেভ করুন:
- * 1. FIREBASE_API_KEY
- * 2. FIREBASE_AUTH_DOMAIN
- * 3. FIREBASE_PROJECT_ID
- */
-
+// Vite এর জন্য process.env ব্যবহার করা হয়েছে যা vite.config.ts এ ডিফাইন করা আছে।
 const firebaseConfig = {
-  apiKey: process.env.FIREBASE_API_KEY,
-  authDomain: process.env.FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.FIREBASE_PROJECT_ID,
-  storageBucket: `${process.env.FIREBASE_PROJECT_ID}.firebasestorage.app`,
+  apiKey: process.env.FIREBASE_API_KEY || "",
+  authDomain: process.env.FIREBASE_AUTH_DOMAIN || "",
+  projectId: process.env.FIREBASE_PROJECT_ID || "",
+  storageBucket: `${process.env.FIREBASE_PROJECT_ID || "saiyed-ai"}.firebasestorage.app`,
   messagingSenderId: "959677024114",
   appId: "1:959677024114:web:b583e68494063dc9d53feb",
 };
@@ -28,3 +20,5 @@ export const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({
   prompt: 'select_account'
 });
+
+export default app;
