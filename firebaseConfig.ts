@@ -1,20 +1,26 @@
 
-import { initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider } from "firebase/auth";
+import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
+import { getAuth, GoogleAuthProvider, Auth } from "firebase/auth";
+import { getFirestore, Firestore } from "firebase/firestore";
 
-// Vite এর মাধ্যমে এনভায়রনমেন্ট ভেরিয়েবল পাওয়ার সঠিক উপায়
+const getEnv = (key: string): string => {
+  return (process.env?.[key] as string) || ((window as any).process?.env?.[key] as string) || "";
+};
+
 const firebaseConfig = {
-  apiKey: (import.meta as any).env.VITE_FIREBASE_API_KEY || (process.env.FIREBASE_API_KEY as string),
-  authDomain: (import.meta as any).env.VITE_FIREBASE_AUTH_DOMAIN || (process.env.FIREBASE_AUTH_DOMAIN as string),
-  projectId: (import.meta as any).env.VITE_FIREBASE_PROJECT_ID || (process.env.FIREBASE_PROJECT_ID as string),
-  storageBucket: `${(process.env.FIREBASE_PROJECT_ID as string) || "saiyed-ai"}.firebasestorage.app`,
+  apiKey: getEnv("FIREBASE_API_KEY") || "AIzaSyDummyKeyForInitialization",
+  authDomain: getEnv("FIREBASE_AUTH_DOMAIN") || "saiyed-ai.firebaseapp.com",
+  projectId: getEnv("FIREBASE_PROJECT_ID") || "saiyed-ai",
+  storageBucket: "saiyed-ai.firebasestorage.app",
   messagingSenderId: "959677024114",
   appId: "1:959677024114:web:b583e68494063dc9d53feb",
 };
 
-const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-export const googleProvider = new GoogleAuthProvider();
+const app: FirebaseApp = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+
+export const auth: Auth = getAuth(app);
+export const db: Firestore = getFirestore(app);
+export const googleProvider: GoogleAuthProvider = new GoogleAuthProvider();
 
 googleProvider.setCustomParameters({
   prompt: 'select_account'
