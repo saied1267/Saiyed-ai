@@ -31,7 +31,9 @@ const SetupGuide: React.FC = () => {
               ১. এআই ইঞ্জিন সেটআপ (Gemini)
             </h2>
             <div className="bg-white p-5 rounded-[2rem] shadow-sm border border-slate-100">
-               <p className="text-[11px] font-bold text-slate-500 mb-3">Netlify > Site Config > Environment Variables-এ গিয়ে এটি যোগ করুন:</p>
+               <p className="text-[11px] font-bold text-slate-500 mb-3">
+                 Netlify {' > '} Site Config {' > '} Environment Variables-এ গিয়ে এটি যোগ করুন:
+               </p>
                <div className="bg-slate-50 p-3 rounded-xl font-mono text-[10px] border space-y-2">
                  <div className="flex justify-between border-b pb-1"><span className="text-blue-600 font-black">Key:</span> <span>API_KEY</span></div>
                  <div className="flex justify-between pt-1"><span className="text-emerald-600 font-black">Value:</span> <span className="truncate">আপনার Gemini Key</span></div>
