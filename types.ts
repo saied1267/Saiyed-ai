@@ -62,8 +62,8 @@ export type AIProvider = 'gemini';
 export type ChatTheme = 'blue' | 'emerald' | 'purple' | 'orange' | 'pink' | 'white' | 'black';
 export type ChatBackground = 'plain' | 'dots' | 'grid' | 'mesh' | 'paper' | 'waves';
 
-export interface User {
-  uid?: string;
+export interface AppUser {
+  uid: string;
   email: string;
   name: string;
   isPremium: boolean;
@@ -92,4 +92,5 @@ export interface StudyPlan {
   dailyGoals: string[];
   weakTopics: string[];
   nextStudy: string;
-}
+  }
+  
