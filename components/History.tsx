@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Subject, ChatMessage } from '../types';
+import { Subject, ChatMessage, View } from '../types';
 
 interface HistoryProps {
   chatHistories: Record<string, ChatMessage[]>;
@@ -25,17 +25,27 @@ const History: React.FC<HistoryProps> = ({ chatHistories, onSelectSubject, onDel
     }
   };
 
+  const getTimeAgo = (timestamp: number) => {
+    const seconds = Math.floor((Date.now() - timestamp) / 1000);
+    if (seconds < 60) return 'এইমাত্র';
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes} মিনিট আগে`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours} ঘণ্টা আগে`;
+    return new Date(timestamp).toLocaleDateString('bn-BD');
+  };
+
   return (
-    <div className="space-y-6 pb-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <header className="flex justify-between items-center">
+    <div className="space-y-8 pb-10 animate-in fade-in slide-in-from-bottom-4 duration-500 font-['Hind_Siliguri']">
+      <header className="flex justify-between items-end px-1">
         <div>
-          <h2 className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">চ্যাট হিস্টোরি</h2>
-          <p className="text-sm opacity-60">আপনার পুরনো পড়ালেখা এবং আলাপচারিতা।</p>
+          <h2 className="text-3xl font-black text-slate-800 dark:text-white">হিস্টোরি</h2>
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">আপনার সব আলাপচারিতা সংরক্ষিত আছে</p>
         </div>
         {subjectsWithHistory.length > 0 && (
           <button 
             onClick={onClearAll}
-            className="text-[10px] font-black uppercase text-red-500 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-xl transition active:scale-95"
+            className="text-[10px] font-black uppercase text-red-500 bg-red-50 dark:bg-red-900/20 px-4 py-2 rounded-2xl border border-red-100 dark:border-red-900/30 transition active:scale-95"
           >
             সব মুছুন
           </button>
@@ -43,47 +53,55 @@ const History: React.FC<HistoryProps> = ({ chatHistories, onSelectSubject, onDel
       </header>
 
       {subjectsWithHistory.length === 0 ? (
-        <div className="py-20 text-center flex flex-col items-center">
-          <div className="w-16 h-16 bg-gray-100 dark:bg-slate-800 rounded-full flex items-center justify-center text-3xl mb-4 grayscale opacity-30">📜</div>
-          <p className="text-gray-400 font-bold">এখনো কোনো হিস্টোরি নেই।</p>
-          <p className="text-xs text-gray-400 mt-1">পড়ালেখা শুরু করলে এখানে দেখা যাবে।</p>
+        <div className="py-24 text-center flex flex-col items-center justify-center bg-white dark:bg-slate-900/50 rounded-[3rem] border-2 border-dashed border-slate-200 dark:border-slate-800">
+          <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center text-4xl mb-6 grayscale opacity-40">📝</div>
+          <h3 className="text-xl font-black text-slate-400">কোনো হিস্টোরি নেই</h3>
+          <p className="text-sm text-slate-400 mt-2 max-w-[200px] leading-relaxed font-medium">পড়ালেখা শুরু করলে আপনার সব চ্যাট এখানে জমা হবে।</p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-4">
           {subjectsWithHistory.map(([subject, messages]) => {
             const lastMessage = messages[messages.length - 1];
             return (
-              <div key={subject} className="relative group">
+              <div key={subject} className="relative group animate-in fade-in slide-in-from-right-4">
                 <button
                   onClick={() => onSelectSubject(subject as Subject)}
-                  className="w-full bg-white dark:bg-slate-800 p-4 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-700 flex items-center space-x-4 active:scale-[0.98] transition-all hover:border-emerald-500/30 text-left"
+                  className="w-full bg-white dark:bg-slate-900 p-5 rounded-[2rem] shadow-sm border border-slate-100 dark:border-slate-800 flex items-center space-x-4 active:scale-[0.98] transition-all hover:border-emerald-500/30 hover:shadow-lg text-left"
                 >
-                  <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0">
+                  <div className="w-14 h-14 bg-slate-50 dark:bg-slate-800 rounded-2xl flex items-center justify-center text-3xl flex-shrink-0 border dark:border-slate-700">
                      {getEmojiForSubject(subject as Subject)}
                   </div>
-                  <div className="flex-1 min-w-0 pr-8">
-                    <div className="flex justify-between items-center mb-0.5">
-                      <h3 className="font-black text-sm text-gray-800 dark:text-gray-100 truncate">{subject.split(' ')[0]}</h3>
-                      <span className="text-[9px] font-black text-gray-400 uppercase">{new Date(lastMessage.timestamp).toLocaleDateString()}</span>
+                  <div className="flex-1 min-w-0 pr-10">
+                    <div className="flex justify-between items-center mb-1">
+                      <h3 className="font-black text-[15px] text-slate-800 dark:text-gray-100 truncate">{subject}</h3>
+                      <span className="text-[9px] font-black text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded-full uppercase">{getTimeAgo(lastMessage.timestamp)}</span>
                     </div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate font-medium">
-                      {lastMessage.role === 'user' ? 'আপনি: ' : 'AI: '}
+                    <p className="text-[13px] text-slate-500 dark:text-slate-400 truncate font-medium">
+                      <span className="opacity-40">{lastMessage.role === 'user' ? 'আপনি: ' : 'সাঈদ এআই: '}</span>
                       {lastMessage.text}
                     </p>
                   </div>
                 </button>
                 <button 
                   onClick={(e) => handleDelete(e, subject)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-red-50 dark:bg-red-900/20 text-red-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity active:scale-90"
+                  className="absolute right-5 top-1/2 -translate-y-1/2 p-3 bg-red-50 dark:bg-red-900/20 text-red-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity active:scale-90 border border-red-100 dark:border-red-900/30"
                   title="ডিলিট করুন"
                 >
-                  <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2.5" fill="none"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                  <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" strokeWidth="2.5" fill="none"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
                 </button>
               </div>
             );
           })}
         </div>
       )}
+      
+      <div className="pt-4 px-2">
+        <div className="p-6 bg-slate-900 dark:bg-black rounded-[2.5rem] border border-slate-800 text-center relative overflow-hidden">
+           <div className="absolute top-0 left-0 w-24 h-24 bg-emerald-500/10 rounded-full blur-3xl -ml-12 -mt-12"></div>
+           <p className="text-[11px] font-black text-emerald-500 uppercase tracking-widest relative z-10">প্রো টিপস</p>
+           <p className="text-[13px] text-slate-400 font-bold mt-2 relative z-10 leading-relaxed">যেকোনো চ্যাটে ক্লিক করে আপনি ঠিক যেখান থেকে পড়া শেষ করেছিলেন, সেখান থেকেই আবার শুরু করতে পারবেন।</p>
+        </div>
+      </div>
     </div>
   );
 };
@@ -96,6 +114,10 @@ const getEmojiForSubject = (sub: Subject): string => {
     case Subject.FINANCE: return '💰';
     case Subject.ENGLISH: return '🔤';
     case Subject.GK: return '🌍';
+    case Subject.PHYSICS: return '⚛️';
+    case Subject.CHEMISTRY: return '🧪';
+    case Subject.BIOLOGY: return '🧬';
+    case Subject.BANGLA: return '🖋️';
     case Subject.WORD: return '📄';
     case Subject.EXCEL: return '📉';
     case Subject.POWERPOINT: return '🎭';
@@ -104,3 +126,4 @@ const getEmojiForSubject = (sub: Subject): string => {
 };
 
 export default History;
+      
