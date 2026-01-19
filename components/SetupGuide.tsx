@@ -18,60 +18,45 @@ const SetupGuide: React.FC = () => {
           </div>
           <h1 className="text-2xl font-black text-slate-800 mt-6">সাঈদ এআই সেটআপ গাইড</h1>
           <p className="text-sm text-slate-500 font-bold mt-2 leading-relaxed">
-            অ্যাপটি সচল করতে Netlify-তে নিচের ভেরিয়েবলগুলো বসান।
+            অ্যাপটি সচল করতে Netlify-তে নিচের ভেরিয়েবলগুলো বসান এবং ফায়ারবেস কনফিগার করুন।
           </p>
         </div>
 
         <div className="space-y-8">
           
-          {/* Section: AI Engine */}
+          {/* Section: Firebase Auth Rules */}
           <section className="space-y-4">
-            <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-600 flex items-center">
-              <span className="w-2 h-2 bg-blue-600 rounded-full mr-2"></span>
-              ১. এআই ইঞ্জিন সেটআপ (Gemini)
+            <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-red-600 flex items-center">
+              <span className="w-2 h-2 bg-red-600 rounded-full mr-2"></span>
+              ধাপ ১: ফায়ারবেস অথেনটিকেশন সেটআপ (আবশ্যক)
             </h2>
-            <div className="bg-white p-5 rounded-[2rem] shadow-sm border border-slate-100">
-               <p className="text-[11px] font-bold text-slate-500 mb-3">
-                 Netlify {' > '} Site Config {' > '} Environment Variables-এ গিয়ে এটি যোগ করুন:
-               </p>
-               <div className="bg-slate-50 p-3 rounded-xl font-mono text-[10px] border space-y-2">
-                 <div className="flex justify-between border-b pb-1"><span className="text-blue-600 font-black">Key:</span> <span>API_KEY</span></div>
-                 <div className="flex justify-between pt-1"><span className="text-emerald-600 font-black">Value:</span> <span className="truncate">আপনার Gemini Key</span></div>
+            <div className="bg-white p-5 rounded-[2rem] shadow-sm border border-slate-100 space-y-4">
+               <div className="space-y-3">
+                 <p className="text-[11px] font-bold text-slate-700">১. ফায়ারবেস কনসোলে গিয়ে **Authentication** সেকশনে যান।</p>
+                 <p className="text-[11px] font-bold text-slate-700">২. **Sign-in method** ট্যাবে গিয়ে **Google** এবং **Email/Password** ইনেবল (Enable) করুন।</p>
+                 <p className="text-[11px] font-bold text-slate-700">৩. **Settings** ট্যাবে গিয়ে **Authorized Domains**-এ আপনার Netlify ইউআরএল (যেমন: `example.netlify.app`) যোগ করুন।</p>
+               </div>
+               <div className="bg-red-50 p-3 rounded-xl border border-red-100">
+                  <p className="text-[9px] font-black text-red-600 leading-tight">⚠️ এটি না করলে গুগল লগইন কাজ করবে না এবং 'Unauthorized Domain' এরর দেখাবে।</p>
                </div>
             </div>
           </section>
 
-          {/* Section: Firebase Auth */}
+          {/* Section: Netlify Environment Variables */}
           <section className="space-y-4">
             <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-600 flex items-center">
               <span className="w-2 h-2 bg-emerald-600 rounded-full mr-2"></span>
-              ২. লগইন সিস্টেম সেটআপ (Firebase)
+              ধাপ ২: Netlify এনভায়রনমেন্ট ভেরিয়েবল
             </h2>
             <div className="bg-white p-5 rounded-[2rem] shadow-sm border border-slate-100 space-y-4">
-               <p className="text-[11px] font-bold text-slate-500">আপনার ফায়ারবেস কনসোল থেকে নিচের ৩টি তথ্য যোগ করুন:</p>
+               <p className="text-[11px] font-bold text-slate-500">আপনার Netlify ড্যাশবোর্ডে গিয়ে এই ভেরিয়েবলগুলো যোগ করুন:</p>
                
-               <div className="bg-slate-50 p-3 rounded-xl font-mono text-[10px] border space-y-3">
-                 <div>
-                    <span className="text-orange-600 font-black block">Variable 1:</span>
-                    <div className="flex justify-between items-center mt-1">
-                      <span className="opacity-60 italic">FIREBASE_API_KEY</span>
-                      <span className="text-[9px] bg-white px-2 rounded border">apiKey</span>
-                    </div>
-                 </div>
-                 <div className="border-t pt-2">
-                    <span className="text-orange-600 font-black block">Variable 2:</span>
-                    <div className="flex justify-between items-center mt-1">
-                      <span className="opacity-60 italic">FIREBASE_AUTH_DOMAIN</span>
-                      <span className="text-[9px] bg-white px-2 rounded border">authDomain</span>
-                    </div>
-                 </div>
-                 <div className="border-t pt-2">
-                    <span className="text-orange-600 font-black block">Variable 3:</span>
-                    <div className="flex justify-between items-center mt-1">
-                      <span className="opacity-60 italic">FIREBASE_PROJECT_ID</span>
-                      <span className="text-[9px] bg-white px-2 rounded border">projectId</span>
-                    </div>
-                 </div>
+               <div className="bg-slate-50 p-3 rounded-xl font-mono text-[9px] border space-y-2">
+                 <div className="flex justify-between border-b pb-1"><span>FIREBASE_API_KEY</span> <span className="text-[8px] bg-white px-1">apiKey</span></div>
+                 <div className="flex justify-between border-b pb-1"><span>FIREBASE_AUTH_DOMAIN</span> <span className="text-[8px] bg-white px-1">authDomain</span></div>
+                 <div className="flex justify-between border-b pb-1"><span>FIREBASE_PROJECT_ID</span> <span className="text-[8px] bg-white px-1">projectId</span></div>
+                 <div className="flex justify-between border-b pb-1"><span>FIREBASE_SENDER_ID</span> <span className="text-[8px] bg-white px-1">messagingSenderId</span></div>
+                 <div className="flex justify-between pt-1"><span>FIREBASE_APP_ID</span> <span className="text-[8px] bg-white px-1">appId</span></div>
                </div>
             </div>
           </section>
@@ -107,3 +92,4 @@ const SetupGuide: React.FC = () => {
 };
 
 export default SetupGuide;
+      
