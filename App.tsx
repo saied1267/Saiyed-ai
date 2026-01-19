@@ -55,22 +55,30 @@ const App: React.FC = () => {
     if (!user?.uid) return;
 
     setIsSyncing(true);
-    // Now we listen to only ONE document in the 'users' collection for everything
+    // Directly syncing with the user document in 'users' collection
     const userDocRef = doc(db, 'users', user.uid);
 
     const unsubUser = onSnapshot(userDocRef, (snapshot) => {
       if (snapshot.exists()) {
         const cloudData = snapshot.data();
-        // Update user profile info
-        setUser(prev => prev ? ({ ...prev, name: cloudData.name, photoURL: cloudData.photoURL, interests: cloudData.interests || [] }) : null);
         
-        // Update chat histories and other data stored in the same doc
+        // Sync chat histories
         if (cloudData.chatHistories) {
           setChatHistories(cloudData.chatHistories);
           localStorage.setItem('saiyed_ai_local_history', JSON.stringify(cloudData.chatHistories));
         }
+        
+        // Sync other metadata
         if (cloudData.weakTopics) setWeakTopics(cloudData.weakTopics);
         if (cloudData.subjectThemes) setSubjectThemes(cloudData.subjectThemes);
+        
+        // Update user profile if changed from another device
+        setUser(prev => prev ? ({ 
+          ...prev, 
+          name: cloudData.name || prev.name, 
+          photoURL: cloudData.photoURL || prev.photoURL,
+          interests: cloudData.interests || prev.interests
+        }) : null);
       }
       setIsSyncing(false);
     });
@@ -84,28 +92,22 @@ const App: React.FC = () => {
     localStorage.setItem('saiyed_ai_dark_mode', darkMode.toString());
   }, [darkMode]);
 
-  const syncChatHistoryToCloud = useCallback(async (newHistories: Record<string, ChatMessage[]>) => {
-    localStorage.setItem('saiyed_ai_local_history', JSON.stringify(newHistories));
-    setLastSyncStatus('syncing');
+  const syncToCloud = useCallback(async (dataToSync: any) => {
+    if (!user?.uid) return;
     
+    setLastSyncStatus('syncing');
     try {
-      if (user?.uid) {
-        // Saving everything to the 'users' collection directly
-        await setDoc(doc(db, 'users', user.uid), {
-          chatHistories: newHistories,
-          weakTopics,
-          subjectThemes,
-          lastUpdated: Date.now()
-        }, { merge: true });
-        setLastSyncStatus('success');
-      }
+      await setDoc(doc(db, 'users', user.uid), {
+        ...dataToSync,
+        lastUpdated: Date.now()
+      }, { merge: true });
+      setLastSyncStatus('success');
     } catch (e) {
       console.error("Cloud Sync Error:", e);
       setLastSyncStatus('error');
     }
-    
     setTimeout(() => setLastSyncStatus('idle'), 2000);
-  }, [user?.uid, weakTopics, subjectThemes]);
+  }, [user?.uid]);
 
   const handleStartTutor = (lvl: ClassLevel, grp: Group, sub: Subject) => {
     setSelectedClass(lvl);
@@ -119,15 +121,13 @@ const App: React.FC = () => {
     const updatedUser = { ...user, interests };
     setUser(updatedUser);
     localStorage.setItem('saiyed_ai_user', JSON.stringify(updatedUser));
-    await setDoc(doc(db, 'users', user.uid), { interests, lastUpdated: Date.now() }, { merge: true });
+    await syncToCloud({ interests });
   };
 
   const handleFlagTopic = (topic: string) => {
     const newTopics = weakTopics.includes(topic) ? weakTopics : [...weakTopics, topic];
     setWeakTopics(newTopics);
-    if (user?.uid) {
-      setDoc(doc(db, 'users', user.uid), { weakTopics: newTopics }, { merge: true });
-    }
+    if (user?.uid) syncToCloud({ weakTopics: newTopics });
   };
 
   const handleLogout = () => {
@@ -172,7 +172,15 @@ const App: React.FC = () => {
         )}
 
         {currentView === View.DASHBOARD && (
-          <Dashboard user={user} onStartTutor={handleStartTutor} onGoToPlanner={() => setCurrentView(View.PLANNER)} onGoToTranslator={() => setCurrentView(View.TRANSLATOR)} onGoToNews={() => setCurrentView(View.NEWS)} onGoToHistory={() => setCurrentView(View.HISTORY)} weakTopics={weakTopics} />
+          <Dashboard 
+            user={user} 
+            onStartTutor={handleStartTutor} 
+            onGoToPlanner={() => setCurrentView(View.PLANNER)} 
+            onGoToTranslator={() => setCurrentView(View.TRANSLATOR)} 
+            onGoToNews={() => setCurrentView(View.NEWS)} 
+            onGoToHistory={() => setCurrentView(View.HISTORY)} 
+            weakTopics={weakTopics} 
+          />
         )}
 
         {currentView === View.TUTOR && selectedSubject && (
@@ -180,26 +188,41 @@ const App: React.FC = () => {
             onUpdateHistory={(msgs: ChatMessage[]) => {
               const newHist = { ...chatHistories, [selectedSubject]: msgs };
               setChatHistories(newHist);
-              syncChatHistoryToCloud(newHist);
+              localStorage.setItem('saiyed_ai_local_history', JSON.stringify(newHist));
+              if (user?.uid) syncToCloud({ chatHistories: newHist });
             }} 
             onBack={() => setCurrentView(View.DASHBOARD)} 
             theme={subjectThemes[selectedSubject] || 'emerald'} 
             onUpdateTheme={(t: ChatTheme) => {
               const newThemes = { ...subjectThemes, [selectedSubject]: t };
               setSubjectThemes(newThemes);
-              if (user?.uid) setDoc(doc(db, 'users', user.uid), { subjectThemes: newThemes }, { merge: true });
+              if (user?.uid) syncToCloud({ subjectThemes: newThemes });
             }}
           />
         )}
 
         {currentView === View.TRANSLATOR && <Translator onBack={() => setCurrentView(View.DASHBOARD)} />}
         {currentView === View.NEWS && <News onBack={() => setCurrentView(View.DASHBOARD)} />}
-        {currentView === View.HISTORY && <History user={user} chatHistories={chatHistories} isSyncing={lastSyncStatus === 'syncing'} onSelectSubject={(s: Subject) => { setSelectedSubject(s); setCurrentView(View.TUTOR); }} onDeleteHistory={(s: string) => {
+        {currentView === View.HISTORY && (
+          <History 
+            user={user} 
+            chatHistories={chatHistories} 
+            isSyncing={lastSyncStatus === 'syncing'} 
+            onSelectSubject={(s: Subject) => { setSelectedSubject(s); setCurrentView(View.TUTOR); }} 
+            onDeleteHistory={(s: string) => {
               const newHist = { ...chatHistories };
               delete newHist[s];
               setChatHistories(newHist);
-              syncChatHistoryToCloud(newHist);
-            }} onClearAll={() => { if (confirm('আপনি কি নিশ্চিত যে সব কনভারসেশন মুছে ফেলতে চান?')) { setChatHistories({}); syncChatHistoryToCloud({}); } }} />}
+              syncToCloud({ chatHistories: newHist });
+            }} 
+            onClearAll={() => { 
+              if (confirm('আপনি কি নিশ্চিত যে সব কনভারসেশন মুছে ফেলতে চান?')) { 
+                setChatHistories({}); 
+                syncToCloud({ chatHistories: {} }); 
+              } 
+            }} 
+          />
+        )}
         {currentView === View.MCQ && <MCQ subject={selectedSubject || Subject.MATH} onFlagTopic={handleFlagTopic} flaggedTopics={weakTopics} />}
         {currentView === View.PLANNER && <Planner initialWeakTopics={weakTopics} onFlagTopic={handleFlagTopic} />}
         {currentView === View.SETTINGS && <Settings user={user} onUpdateInterests={updateInterests} onGoToAuth={() => setCurrentView(View.AUTH)} darkMode={darkMode} setDarkMode={setDarkMode} language="bn" setLanguage={() => {}} chatTheme="blue" setChatTheme={() => {}} chatBackground="plain" setChatBackground={() => {}} isFullscreen={false} onToggleFullscreen={() => {}} onResetAll={() => { if (confirm('এটি আপনার সব লোকাল ডেটা মুছে ফেলবে এবং আপনাকে লগআউট করে দিবে। নিশ্চিত তো?')) handleLogout(); }} />}
@@ -221,4 +244,4 @@ const App: React.FC = () => {
 };
 
 export default App;
-                                 
+        
