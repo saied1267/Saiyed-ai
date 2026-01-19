@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { AppUser } from '../types';
-import { auth, googleProvider, db } from '../firebaseConfig';
+import { auth, googleProvider, db, isFirebaseConfigured } from '../firebaseConfig';
 import { 
   signInWithPopup, 
   sendSignInLinkToEmail, 
@@ -73,6 +73,11 @@ const Auth: React.FC<AuthProps> = ({ onLogin, onBack }) => {
   }, []);
 
   const handleGoogleLogin = async () => {
+    if (!isFirebaseConfigured) {
+      setError({ msg: 'ফায়ারবেস এপিআই কি (API Key) পাওয়া যায়নি। দয়া করে Netlify সেটিংস চেক করুন।', code: 'CONFIG_MISSING' });
+      return;
+    }
+    
     setLoading(true);
     setError(null);
     try {
@@ -84,6 +89,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin, onBack }) => {
       if (err.code === 'auth/popup-closed-by-user') message = 'লগইন উইন্ডোটি বন্ধ করে দেওয়া হয়েছে।';
       if (err.code === 'auth/unauthorized-domain') message = 'এই ডোমেইনটি ফায়ারবেসে অনুমোদিত নয়।';
       if (err.code === 'auth/operation-not-allowed') message = 'গুগল লগইন ফায়ারবেসে ইনেবল করা নেই।';
+      if (err.code === 'auth/api-key-not-valid') message = 'আপনার দেওয়া ফায়ারবেস এপিআই কি-টি সঠিক নয়।';
       
       setError({ msg: message, code: err.code });
     } finally {
@@ -93,6 +99,11 @@ const Auth: React.FC<AuthProps> = ({ onLogin, onBack }) => {
 
   const handleSendMagicLink = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isFirebaseConfigured) {
+      setError({ msg: 'কনফিগারেশন মিসিং। ইমেইল পাঠানো সম্ভব নয়।', code: 'CONFIG_MISSING' });
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -127,6 +138,13 @@ const Auth: React.FC<AuthProps> = ({ onLogin, onBack }) => {
           <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">সাঈদ এআই একাউন্ট</h1>
           <p className="text-slate-400 font-bold text-[10px] uppercase tracking-[0.2em] mt-2">আপনার পার্সোনাল লার্নিং টিউটর</p>
         </div>
+
+        {!isFirebaseConfigured && (
+          <div className="mb-6 p-4 bg-orange-50 border border-orange-200 rounded-2xl text-center">
+             <p className="text-xs font-black text-orange-700">⚠️ কনফিগারেশন সতর্কবার্তা</p>
+             <p className="text-[10px] text-orange-600 font-bold mt-1">Netlify-তে FIREBASE_API_KEY সেট করা নেই অথবা সেটি ভুল।</p>
+          </div>
+        )}
 
         <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 shadow-xl border border-slate-100 dark:border-slate-800">
           {!emailSent ? (
@@ -190,4 +208,4 @@ const Auth: React.FC<AuthProps> = ({ onLogin, onBack }) => {
 };
 
 export default Auth;
-    
+                                           
