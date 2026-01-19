@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { View, Subject, ClassLevel, Group, ChatMessage, ChatTheme } from './types';
 import Dashboard from './components/Dashboard';
@@ -10,6 +9,7 @@ import Navbar from './components/Navbar';
 import History from './components/History';
 import MCQ from './components/MCQ';
 import Planner from './components/Planner';
+import SetupGuide from './components/SetupGuide';
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<View>(View.DASHBOARD);
@@ -17,16 +17,21 @@ const App: React.FC = () => {
   const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
   
-  const [chatHistories, setChatHistories] = useState<Record<string, ChatMessage[]>>(() => JSON.parse(localStorage.getItem('chatHistories') || '{}'));
-  const [subjectThemes, setSubjectThemes] = useState<Record<string, ChatTheme>>(() => JSON.parse(localStorage.getItem('subjectThemes') || '{}'));
-  const [darkMode, setDarkMode] = useState<boolean>(() => JSON.parse(localStorage.getItem('darkMode') || 'false'));
-  const [weakTopics, setWeakTopics] = useState<string[]>(() => JSON.parse(localStorage.getItem('weakTopics') || '[]'));
+  // Ephemeral states - cleared on refresh
+  const [chatHistories, setChatHistories] = useState<Record<string, ChatMessage[]>>({});
+  const [subjectThemes, setSubjectThemes] = useState<Record<string, ChatTheme>>({});
+  const [darkMode, setDarkMode] = useState<boolean>(false);
+  const [weakTopics, setWeakTopics] = useState<string[]>([]);
 
-  useEffect(() => { localStorage.setItem('chatHistories', JSON.stringify(chatHistories)); }, [chatHistories]);
-  useEffect(() => { localStorage.setItem('subjectThemes', JSON.stringify(subjectThemes)); }, [subjectThemes]);
+  // Check if any of the keys are configured
+  const isApiConfigured = !!(process.env.API_KEY || process.env.API_KEY_2 || process.env.API_KEY_3);
+
   useEffect(() => { 
-    darkMode ? document.documentElement.classList.add('dark') : document.documentElement.classList.remove('dark');
-    localStorage.setItem('darkMode', JSON.stringify(darkMode));
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
   }, [darkMode]);
 
   const handleStartTutor = (lvl: ClassLevel, grp: Group, sub: Subject) => {
@@ -43,6 +48,10 @@ const App: React.FC = () => {
   const updateSubjectTheme = (subject: string, theme: ChatTheme) => {
     setSubjectThemes(prev => ({ ...prev, [subject]: theme }));
   };
+
+  if (!isApiConfigured) {
+    return <SetupGuide />;
+  }
 
   const renderView = () => {
     switch (currentView) {
@@ -65,7 +74,7 @@ const App: React.FC = () => {
       case View.HISTORY: return <History chatHistories={chatHistories} onSelectSubject={(s) => { setSelectedSubject(s); setCurrentView(View.TUTOR); }} onDeleteHistory={(s) => setChatHistories(p => { const u = {...p}; delete u[s]; return u; })} onClearAll={() => setChatHistories({})} />;
       case View.MCQ: return <MCQ subject={selectedSubject || Subject.MATH} onFlagTopic={t => setWeakTopics(p => [...new Set([...p, t])])} flaggedTopics={weakTopics} />;
       case View.PLANNER: return <Planner initialWeakTopics={weakTopics} onFlagTopic={t => setWeakTopics(p => [...new Set([...p, t])])} />;
-      case View.SETTINGS: return <Settings darkMode={darkMode} setDarkMode={setDarkMode} language="bn" setLanguage={() => {}} chatTheme="blue" setChatTheme={() => {}} chatBackground="plain" setChatBackground={() => {}} isFullscreen={false} onToggleFullscreen={() => {}} onResetAll={() => { localStorage.clear(); window.location.reload(); }} />;
+      case View.SETTINGS: return <Settings darkMode={darkMode} setDarkMode={setDarkMode} language="bn" setLanguage={() => {}} chatTheme="blue" setChatTheme={() => {}} chatBackground="plain" setChatBackground={() => {}} isFullscreen={false} onToggleFullscreen={() => {}} onResetAll={() => { setChatHistories({}); setWeakTopics([]); }} />;
       default: return null;
     }
   };
