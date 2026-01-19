@@ -1,11 +1,9 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-// Changed User to AppUser to match exported member from ../types
-import { Subject, ChatMessage, ChatTheme, ClassLevel, Group, AppUser } from '../types';
+import { Subject, ChatMessage, ChatTheme, ClassLevel, Group, AppUser, TutorContext } from '../types';
 import { getTutorResponseStream } from '../geminiService';
 
 interface TutorProps {
-  // Changed User to AppUser
   user: AppUser | null;
   classLevel: ClassLevel;
   group: Group;
@@ -17,7 +15,6 @@ interface TutorProps {
   onUpdateTheme: (theme: ChatTheme) => void;
 }
 
-// Updated props type to AppUser
 const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack, theme, onUpdateTheme, classLevel, group, user }) => {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -58,9 +55,12 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
     const aiPlaceholder: ChatMessage = { role: 'model', text: '', timestamp: Date.now() };
     onUpdateHistory([...updatedHistory, aiPlaceholder]);
 
+    const context: TutorContext = { classLevel, group, subject, user };
+
     try {
       await getTutorResponseStream(
-        textToSend, { classLevel, group, subject, user },
+        textToSend, 
+        context,
         updatedHistory.map(m => ({ role: m.role, parts: [{ text: m.text }] })),
         selectedImage || undefined,
         (streamedText) => {
@@ -84,12 +84,10 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
       
       const cleanLine = trimmedLine.replace(/^[*#\s]+|[*#\s]+$/g, '').trim();
 
-      // Headers
       if (trimmedLine.startsWith('###') || (trimmedLine.startsWith('**') && trimmedLine.endsWith('**') && trimmedLine.length < 60)) {
         return <h1 key={idx} className="text-3xl font-black text-slate-900 dark:text-white mt-10 mb-5 leading-tight">{cleanLine}</h1>;
       }
 
-      // Formulas - Grey Box
       const isFormula = trimmedLine.match(/[=+\-*/^²³√∑∫πθαβγ]/) || trimmedLine.includes('$') || trimmedLine.includes('f(x)');
       if (isFormula && trimmedLine.length > 2 && !trimmedLine.includes(' ')) {
         return (
@@ -233,4 +231,4 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
   );
 };
 export default Tutor;
-      
+  
