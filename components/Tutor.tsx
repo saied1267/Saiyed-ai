@@ -149,8 +149,8 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
         {history.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <div className="w-16 h-16 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-full flex items-center justify-center text-3xl mb-8 shadow-xl">S</div>
-            <h1 className="text-4xl font-black text-slate-900 dark:text-white mb-4 tracking-tight">সাঈদ এআই</h1>
-            <p className="text-lg text-slate-500 font-medium max-w-xs mx-auto">শিক্ষা হোক সহজ। আপনার পার্সোনাল টিউটর আপনার অপেক্ষায়।</p>
+            <h1 className="text-3xl font-black text-slate-900 dark:text-white mb-4 tracking-tigh t">সাঈদ এআই</h1>
+            <p className="text-[14px] text-slate-500 font-medium max-w-xs mx-auto">শিক্ষা হোক সহজ। আপনার পার্সোনাল টিউটর আপনার অপেক্ষায়।</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-12 w-full px-4">
                {currentSuggestions.map((s, si) => (
                  <button key={si} onClick={() => handleSend(s)} className="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 font-bold text-sm rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all text-left shadow-sm">
@@ -219,7 +219,7 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
             <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
           </button>
         </div>
-        <p className="text-center text-[10px] font-bold text-slate-400 mt-4 uppercase tracking-widest">সাঈদ এআই - আপনার ব্যক্তিগত শিক্ষা সহযোগী</p>
+       
       </div>
     </div>
   );
