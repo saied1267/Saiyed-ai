@@ -20,30 +20,35 @@ const Auth: React.FC<AuthProps> = ({ onLogin, onBack }) => {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<{msg: string, code?: string} | null>(null);
 
   const syncUserProfile = async (firebaseUser: FirebaseUser) => {
-    const userDocRef = doc(db, 'users', firebaseUser.uid);
-    const userSnap = await getDoc(userDocRef);
-    
-    let userData: AppUser;
-    
-    if (userSnap.exists()) {
-      userData = userSnap.data() as AppUser;
-    } else {
-      userData = {
-        uid: firebaseUser.uid,
-        email: firebaseUser.email || '',
-        name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'ইউজার',
-        isPremium: true,
-        interests: [],
-        photoURL: firebaseUser.photoURL || undefined
-      };
-      await setDoc(userDocRef, userData);
+    try {
+      const userDocRef = doc(db, 'users', firebaseUser.uid);
+      const userSnap = await getDoc(userDocRef);
+      
+      let userData: AppUser;
+      
+      if (userSnap.exists()) {
+        userData = userSnap.data() as AppUser;
+      } else {
+        userData = {
+          uid: firebaseUser.uid,
+          email: firebaseUser.email || '',
+          name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'ইউজার',
+          isPremium: true,
+          interests: [],
+          photoURL: firebaseUser.photoURL || undefined
+        };
+        await setDoc(userDocRef, userData);
+      }
+      
+      localStorage.setItem('saiyed_ai_user', JSON.stringify(userData));
+      onLogin(userData);
+    } catch (err: any) {
+      console.error("Profile Sync Error:", err);
+      setError({ msg: 'প্রোফাইল সিঙ্ক করতে সমস্যা হয়েছে। ডাটাবেস রুলস চেক করুন।', code: err.code });
     }
-    
-    localStorage.setItem('saiyed_ai_user', JSON.stringify(userData));
-    onLogin(userData);
   };
 
   useEffect(() => {
@@ -60,7 +65,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin, onBack }) => {
             await syncUserProfile(result.user);
           })
           .catch((err) => {
-            setError('লিঙ্কটি কাজ করছে না অথবা মেয়াদ শেষ হয়ে গেছে।');
+            setError({ msg: 'লিঙ্কটি কাজ করছে না অথবা মেয়াদ শেষ হয়ে গেছে।', code: err.code });
             setLoading(false);
           });
       }
@@ -74,8 +79,13 @@ const Auth: React.FC<AuthProps> = ({ onLogin, onBack }) => {
       const result = await signInWithPopup(auth, googleProvider);
       await syncUserProfile(result.user);
     } catch (err: any) {
-      setError('লগইন প্রক্রিয়ায় সমস্যা হয়েছে।');
-      console.error(err);
+      console.error("Login Error Details:", err);
+      let message = 'লগইন প্রক্রিয়ায় সমস্যা হয়েছে।';
+      if (err.code === 'auth/popup-closed-by-user') message = 'লগইন উইন্ডোটি বন্ধ করে দেওয়া হয়েছে।';
+      if (err.code === 'auth/unauthorized-domain') message = 'এই ডোমেইনটি ফায়ারবেসে অনুমোদিত নয়।';
+      if (err.code === 'auth/operation-not-allowed') message = 'গুগল লগইন ফায়ারবেসে ইনেবল করা নেই।';
+      
+      setError({ msg: message, code: err.code });
     } finally {
       setLoading(false);
     }
@@ -96,7 +106,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin, onBack }) => {
       window.localStorage.setItem('emailForSignIn', email);
       setEmailSent(true);
     } catch (err: any) {
-      setError('ভেরিফিকেশন ইমেইল পাঠানো সম্ভব হয়নি।');
+      setError({ msg: 'ভেরিফিকেশন ইমেইল পাঠানো সম্ভব হয়নি।', code: err.code });
     } finally {
       setLoading(false);
     }
@@ -122,8 +132,9 @@ const Auth: React.FC<AuthProps> = ({ onLogin, onBack }) => {
           {!emailSent ? (
             <div className="space-y-6">
               {error && (
-                <div className="p-4 bg-red-50 text-red-600 text-[11px] font-bold rounded-2xl border border-red-100 text-center">
-                  ⚠️ {error}
+                <div className="p-4 bg-red-50 text-red-600 rounded-2xl border border-red-100 text-center">
+                  <p className="text-[11px] font-black">⚠️ {error.msg}</p>
+                  {error.code && <p className="text-[8px] opacity-60 mt-1 font-mono uppercase tracking-tighter">এরর কোড: {error.code}</p>}
                 </div>
               )}
 
