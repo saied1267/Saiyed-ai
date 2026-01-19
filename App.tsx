@@ -12,9 +12,12 @@ import MCQ from './components/MCQ';
 import Planner from './components/Planner';
 import SetupGuide from './components/SetupGuide';
 import Auth from './components/Auth';
+import { db } from './firebaseConfig';
+import { doc, setDoc, onSnapshot, getDoc } from 'firebase/firestore';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
+  const [guestId, setGuestId] = useState<string | null>(null);
   const [currentView, setCurrentView] = useState<View>(View.DASHBOARD);
   const [selectedClass, setSelectedClass] = useState<ClassLevel | null>(null);
   const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
@@ -24,25 +27,76 @@ const App: React.FC = () => {
   const [darkMode, setDarkMode] = useState<boolean>(false);
   const [weakTopics, setWeakTopics] = useState<string[]>([]);
   const [showSetup, setShowSetup] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   const isApiConfigured = Boolean(
-    (process.env.API_KEY && process.env.API_KEY !== "") ||
-    (process.env.API_KEY_2 && process.env.API_KEY_2 !== "")
+    (process.env.API_KEY && process.env.API_KEY !== "")
   );
 
-  const isFirebaseConfigured = Boolean(
+  const isAuthEnabled = Boolean(
     process.env.FIREBASE_API_KEY && 
     process.env.FIREBASE_AUTH_DOMAIN && 
     process.env.FIREBASE_PROJECT_ID
   );
 
+  // 1. Initial Load: Auth, Guest ID, and Local History
   useEffect(() => {
+    // Load User
     const savedUser = localStorage.getItem('saiyed_ai_user');
     if (savedUser) {
       setUser(JSON.parse(savedUser));
     }
+
+    // Load or Create Guest ID
+    let gId = localStorage.getItem('saiyed_ai_guest_id');
+    if (!gId) {
+      gId = 'guest_' + Math.random().toString(36).substr(2, 9);
+      localStorage.setItem('saiyed_ai_guest_id', gId);
+    }
+    setGuestId(gId);
+
+    // Load Local History (Fallback for offline/guest)
+    const savedHistory = localStorage.getItem('saiyed_ai_local_history');
+    if (savedHistory) {
+      setChatHistories(JSON.parse(savedHistory));
+    }
   }, []);
 
+  // 2. Sync with Firestore (Real-time for Logged-in Users)
+  useEffect(() => {
+    if (!user?.uid) return;
+
+    setIsSyncing(true);
+    const userDocRef = doc(db, 'users', user.uid);
+    const historyDocRef = doc(db, 'histories', user.uid);
+
+    const unsubUser = onSnapshot(userDocRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const cloudData = snapshot.data() as User;
+        setUser(prev => prev ? ({ ...prev, ...cloudData }) : cloudData);
+      }
+    });
+
+    const unsubHistory = onSnapshot(historyDocRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.data();
+        if (data.chatHistories) {
+          setChatHistories(data.chatHistories);
+          localStorage.setItem('saiyed_ai_local_history', JSON.stringify(data.chatHistories));
+        }
+        if (data.weakTopics) setWeakTopics(data.weakTopics);
+        if (data.subjectThemes) setSubjectThemes(data.subjectThemes);
+      }
+      setIsSyncing(false);
+    });
+
+    return () => {
+      unsubUser();
+      unsubHistory();
+    };
+  }, [user?.uid]);
+
+  // 3. Dark Mode
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add('dark');
@@ -58,13 +112,59 @@ const App: React.FC = () => {
     setCurrentView(View.TUTOR);
   };
 
+  // 4. Centralized Sync Logic (Handles both Logged-in and Guests)
+  const syncChatHistoryToCloud = async (newHistories: Record<string, ChatMessage[]>) => {
+    // Always save to local storage for instant availability
+    localStorage.setItem('saiyed_ai_local_history', JSON.stringify(newHistories));
+    
+    if (!isAuthEnabled) return;
+
+    try {
+      if (user?.uid) {
+        // Logged-in User Sync
+        await setDoc(doc(db, 'histories', user.uid), {
+          chatHistories: newHistories,
+          weakTopics: weakTopics,
+          subjectThemes: subjectThemes,
+          lastUpdated: Date.now(),
+          userEmail: user.email
+        }, { merge: true });
+      } else if (guestId) {
+        // Guest User Sync (Monitorable by Admin/Saiyed in Firebase Console)
+        await setDoc(doc(db, 'guest_sessions', guestId), {
+          chatHistories: newHistories,
+          lastUpdated: Date.now(),
+          deviceInfo: navigator.userAgent,
+          type: 'guest'
+        }, { merge: true });
+      }
+    } catch (e) {
+      console.error("Cloud Sync Error:", e);
+    }
+  };
+
+  const updateInterests = async (interests: string[]) => {
+    if (!user?.uid) return;
+    const updatedUser = { ...user, interests };
+    setUser(updatedUser);
+    localStorage.setItem('saiyed_ai_user', JSON.stringify(updatedUser));
+    await setDoc(doc(db, 'users', user.uid), { interests, lastUpdated: Date.now() }, { merge: true });
+  };
+
   const handleFlagTopic = (topic: string) => {
-    setWeakTopics((prev) => (prev.includes(topic) ? prev : [...prev, topic]));
+    const newTopics = weakTopics.includes(topic) ? weakTopics : [...weakTopics, topic];
+    setWeakTopics(newTopics);
+    if (user?.uid) {
+      setDoc(doc(db, 'histories', user.uid), { weakTopics: newTopics }, { merge: true });
+    }
   };
 
   const handleLogout = () => {
     localStorage.removeItem('saiyed_ai_user');
+    localStorage.removeItem('saiyed_ai_local_history');
     setUser(null);
+    setChatHistories({});
+    setWeakTopics([]);
     setCurrentView(View.DASHBOARD);
   };
 
@@ -84,16 +184,28 @@ const App: React.FC = () => {
 
   return (
     <div className={`flex flex-col fixed inset-0 w-full bg-gray-50 dark:bg-slate-950 transition-colors ${darkMode ? 'dark' : ''}`}>
-      {(!isApiConfigured || !isFirebaseConfigured) && currentView !== View.TUTOR && currentView !== View.AUTH && (
+      {isSyncing && (
+        <div className="absolute top-0 left-0 w-full h-0.5 bg-emerald-500/20 z-[100] overflow-hidden">
+          <div className="h-full bg-emerald-500 animate-[sync_1.5s_infinite_linear] w-1/3 origin-left"></div>
+        </div>
+      )}
+
+      {(!isApiConfigured || !isAuthEnabled) && currentView !== View.TUTOR && currentView !== View.AUTH && (
         <div className="bg-orange-500 text-white text-[10px] py-2 text-center font-black uppercase tracking-widest flex items-center justify-center space-x-2 shadow-md">
-          <span>⚠️ {!isApiConfigured ? 'AI ইঞ্জিন' : 'লগইন সিস্টেম'} সেটআপ করা নেই</span>
-          <button onClick={() => setShowSetup(true)} className="underline ml-2 bg-white/20 px-2 py-0.5 rounded">কিভাবে করবেন?</button>
+          <span>⚠️ সিস্টেম সেটআপ অসম্পূর্ণ</span>
+          <button onClick={() => setShowSetup(true)} className="underline ml-2 bg-white/20 px-2 py-0.5 rounded">নির্দেশনা দেখুন</button>
         </div>
       )}
       
       <main className="flex-1 overflow-y-auto max-w-lg mx-auto w-full px-4 pt-4 scrollbar-hide">
         {currentView === View.AUTH && (
-          <Auth onLogin={(userData: User) => { setUser(userData); setCurrentView(View.DASHBOARD); }} onBack={() => setCurrentView(View.DASHBOARD)} />
+          <Auth 
+            onLogin={(userData: User) => { 
+              setUser(userData); 
+              setCurrentView(View.DASHBOARD); 
+            }} 
+            onBack={() => setCurrentView(View.DASHBOARD)} 
+          />
         )}
 
         {currentView === View.DASHBOARD && (
@@ -107,16 +219,25 @@ const App: React.FC = () => {
           />
         )}
 
-        {currentView === View.TUTOR && selectedSubject && selectedClass && selectedGroup && (
+        {currentView === View.TUTOR && selectedSubject && (
           <Tutor
-            classLevel={selectedClass}
-            group={selectedGroup}
+            user={user}
+            classLevel={selectedClass || ClassLevel.C10}
+            group={selectedGroup || Group.GENERAL}
             subject={selectedSubject}
             history={chatHistories[selectedSubject] || []}
-            onUpdateHistory={(msgs: ChatMessage[]) => setChatHistories({ ...chatHistories, [selectedSubject]: msgs })}
+            onUpdateHistory={(msgs: ChatMessage[]) => {
+              const newHist = { ...chatHistories, [selectedSubject]: msgs };
+              setChatHistories(newHist);
+              syncChatHistoryToCloud(newHist);
+            }}
             onBack={() => setCurrentView(View.DASHBOARD)}
             theme={subjectThemes[selectedSubject] || 'emerald'}
-            onUpdateTheme={(t: ChatTheme) => setSubjectThemes({ ...subjectThemes, [selectedSubject]: t })}
+            onUpdateTheme={(t: ChatTheme) => {
+              const newThemes = { ...subjectThemes, [selectedSubject]: t };
+              setSubjectThemes(newThemes);
+              if (user?.uid) setDoc(doc(db, 'histories', user.uid), { subjectThemes: newThemes }, { merge: true });
+            }}
           />
         )}
 
@@ -132,8 +253,14 @@ const App: React.FC = () => {
               const newHist = { ...chatHistories };
               delete newHist[s];
               setChatHistories(newHist);
+              syncChatHistoryToCloud(newHist);
             }}
-            onClearAll={() => setChatHistories({})}
+            onClearAll={() => {
+              if (confirm('আপনি কি নিশ্চিত যে সব কনভারসেশন মুছে ফেলতে চান?')) {
+                setChatHistories({});
+                syncChatHistoryToCloud({});
+              }
+            }}
           />
         )}
 
@@ -155,6 +282,7 @@ const App: React.FC = () => {
         {currentView === View.SETTINGS && (
           <Settings
             user={user}
+            onUpdateInterests={updateInterests}
             onGoToAuth={() => setCurrentView(View.AUTH)}
             darkMode={darkMode}
             setDarkMode={setDarkMode}
@@ -167,9 +295,9 @@ const App: React.FC = () => {
             isFullscreen={false}
             onToggleFullscreen={() => {}}
             onResetAll={() => {
-              setChatHistories({});
-              setWeakTopics([]);
-              handleLogout();
+              if (confirm('এটি আপনার সব লোকাল ডেটা মুছে ফেলবে এবং আপনাকে লগআউট করে দিবে। নিশ্চিত তো?')) {
+                handleLogout();
+              }
             }}
           />
         )}
@@ -178,6 +306,13 @@ const App: React.FC = () => {
       {currentView !== View.TUTOR && currentView !== View.AUTH && (
         <Navbar currentView={currentView} setCurrentView={setCurrentView} darkMode={darkMode} />
       )}
+      
+      <style>{`
+        @keyframes sync {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(300%); }
+        }
+      `}</style>
     </div>
   );
 };
