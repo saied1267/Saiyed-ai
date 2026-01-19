@@ -1,17 +1,18 @@
 
 import React, { useState, useEffect } from 'react';
-import { User } from '../types';
+import { AppUser } from '../types';
 import { auth, googleProvider, db } from '../firebaseConfig';
 import { 
   signInWithPopup, 
   sendSignInLinkToEmail, 
   isSignInWithEmailLink, 
-  signInWithEmailLink
+  signInWithEmailLink,
+  User as FirebaseUser
 } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 interface AuthProps {
-  onLogin: (user: User) => void;
+  onLogin: (user: AppUser) => void;
   onBack: () => void;
 }
 
@@ -21,16 +22,15 @@ const Auth: React.FC<AuthProps> = ({ onLogin, onBack }) => {
   const [emailSent, setEmailSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const syncUserProfile = async (firebaseUser: any) => {
+  const syncUserProfile = async (firebaseUser: FirebaseUser) => {
     const userDocRef = doc(db, 'users', firebaseUser.uid);
     const userSnap = await getDoc(userDocRef);
     
-    let userData: User;
+    let userData: AppUser;
     
     if (userSnap.exists()) {
-      userData = userSnap.data() as User;
+      userData = userSnap.data() as AppUser;
     } else {
-      // Create new profile
       userData = {
         uid: firebaseUser.uid,
         email: firebaseUser.email || '',
@@ -179,4 +179,4 @@ const Auth: React.FC<AuthProps> = ({ onLogin, onBack }) => {
 };
 
 export default Auth;
-        
+    
