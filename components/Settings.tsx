@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { ChatTheme, ChatBackground } from '../types';
 
@@ -20,6 +19,14 @@ const Settings: React.FC<SettingsProps> = ({
   darkMode, setDarkMode, chatBackground, setChatBackground,
   onToggleFullscreen, isFullscreen, onResetAll
 }) => {
+  const keys = [
+    process.env.API_KEY,
+    process.env.API_KEY_2,
+    process.env.API_KEY_3
+  ].filter(k => k && k !== "undefined" && k !== "");
+  
+  const isApiConfigured = keys.length > 0;
+
   return (
     <div className="space-y-6 pb-20 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <header>
@@ -28,12 +35,16 @@ const Settings: React.FC<SettingsProps> = ({
       </header>
 
       <section className="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-xl border border-emerald-100 dark:border-slate-700">
-        <h3 className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-500 mb-4">অ্যাক্টিভ ইঞ্জিন</h3>
-        <div className="flex items-center space-x-3 p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl border-2 border-emerald-500">
-          <span className="text-3xl">🛡️</span>
+        <h3 className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-500 mb-4">অ্যাক্টিভ ইঞ্জিন স্ট্যাটাস</h3>
+        <div className={`flex items-center space-x-3 p-4 rounded-2xl border-2 ${isApiConfigured ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-500' : 'bg-red-50 dark:bg-red-900/20 border-red-400'}`}>
+          <span className="text-3xl">{isApiConfigured ? '🛡️' : '⚠️'}</span>
           <div>
-            <p className="font-black text-sm text-emerald-700 dark:text-emerald-400">সাঈদ এআই প্রফেশনাল</p>
-            <p className="text-[9px] font-bold opacity-60">আধুনিক প্রযুক্তিতে আপনার পড়ালেখা সহজ করতে প্রস্তুত।</p>
+            <p className={`font-black text-sm ${isApiConfigured ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-700 dark:text-red-400'}`}>
+              {isApiConfigured ? `সাঈদ এআই কানেক্টেড (${keys.length} ইঞ্জিন)` : 'ইঞ্জিন গরম হয়ে গেছে'}
+            </p>
+            <p className="text-[9px] font-bold opacity-60">
+              {isApiConfigured ? `আপনার ${keys.length}টি ইঞ্জিন কাজ করছে` : 'ইঞ্জিন বন্ধ হয়ে'}
+            </p>
           </div>
         </div>
       </section>
@@ -101,7 +112,7 @@ const Settings: React.FC<SettingsProps> = ({
         <h3 className="font-black text-[10px] mb-4 uppercase tracking-[0.25em] text-emerald-500">ডেভলপার তথ্য</h3>
         <div className="space-y-4 text-sm">
           <div className="flex justify-between items-center">
-            <span className="opacity-40 font-black uppercase text-[9px]">তৈরি করেছে</span>
+            <span className="opacity-40 font-black uppercase text-[9px]">এআই এর নির্মাতা</span>
             <span className="text-gray-800 dark:text-white font-black italic">সাঈদ</span>
           </div>
           <div className="flex justify-between items-center">
