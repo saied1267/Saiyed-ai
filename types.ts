@@ -45,6 +45,7 @@ export enum Subject {
 }
 
 export enum View {
+  AUTH = 'auth',
   DASHBOARD = 'dashboard',
   CLASS_SELECT = 'class_select',
   SUBJECT_SELECT = 'subject_select',
@@ -60,6 +61,12 @@ export enum View {
 export type AIProvider = 'gemini';
 export type ChatTheme = 'blue' | 'emerald' | 'purple' | 'orange' | 'pink' | 'white' | 'black';
 export type ChatBackground = 'plain' | 'dots' | 'grid' | 'mesh' | 'paper' | 'waves';
+
+export interface User {
+  email: string;
+  name: string;
+  isPremium: boolean;
+}
 
 export interface ChatMessage {
   role: 'user' | 'model';
@@ -82,17 +89,4 @@ export interface StudyPlan {
   dailyGoals: string[];
   weakTopics: string[];
   nextStudy: string;
-}
-
-export interface AppState {
-  currentView: View;
-  selectedClass: ClassLevel | null;
-  selectedGroup: Group | null;
-  selectedSubject: Subject | null;
-  history: Record<string, ChatMessage[]>;
-  darkMode: boolean;
-  language: 'bn' | 'en';
-  chatTheme: ChatTheme;
-  chatBackground: ChatBackground;
-  aiProvider: AIProvider;
 }
