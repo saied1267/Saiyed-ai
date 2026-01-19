@@ -71,6 +71,13 @@ export interface AppUser {
   photoURL?: string;
 }
 
+export interface TutorContext {
+  classLevel?: ClassLevel;
+  group?: Group;
+  subject?: Subject;
+  user?: AppUser | null;
+}
+
 export interface ChatMessage {
   role: 'user' | 'model';
   text: string;
