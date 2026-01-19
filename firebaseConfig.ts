@@ -3,50 +3,35 @@ import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, Auth } from "firebase/auth";
 import { getFirestore, Firestore } from "firebase/firestore";
 
-const getEnv = (key: string): string => {
-  // Safe environment access
-  try {
-    return process.env[key] || "";
-  } catch (e) {
-    return "";
-  }
-};
-
+// সরাসরি স্ট্যাটিক ভেরিয়েবল এক্সেস
 const firebaseConfig = {
-  apiKey: getEnv("FIREBASE_API_KEY"),
-  authDomain: getEnv("FIREBASE_AUTH_DOMAIN"),
-  projectId: getEnv("FIREBASE_PROJECT_ID"),
-  storageBucket: getEnv("FIREBASE_PROJECT_ID") ? `${getEnv("FIREBASE_PROJECT_ID")}.firebasestorage.app` : "",
-  messagingSenderId: getEnv("FIREBASE_SENDER_ID"),
-  appId: getEnv("FIREBASE_APP_ID"),
+  apiKey: process.env.FIREBASE_API_KEY,
+  authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.FIREBASE_PROJECT_ID,
+  storageBucket: process.env.FIREBASE_PROJECT_ID ? `${process.env.FIREBASE_PROJECT_ID}.firebasestorage.app` : "",
+  messagingSenderId: process.env.FIREBASE_SENDER_ID,
+  appId: process.env.FIREBASE_APP_ID,
 };
 
-// Validating essential config to prevent crash
-const isConfigValid = firebaseConfig.apiKey && firebaseConfig.projectId && firebaseConfig.apiKey !== "";
+// অত্যন্ত গুরুত্বপূর্ণ: যদি API Key না থাকে তবে অ্যাপ ক্রাশ না করে একটি ফ্ল্যাগ সেট করবে
+export const isFirebaseConfigured = !!(firebaseConfig.apiKey && firebaseConfig.apiKey.length > 10);
 
 let app: FirebaseApp;
 
 try {
   if (getApps().length > 0) {
     app = getApp();
-  } else if (isConfigValid) {
-    app = initializeApp(firebaseConfig);
   } else {
-    // Fallback dummy config so the app doesn't go white/crash
-    console.warn("Firebase configuration is missing or invalid. Auth will not work.");
-    app = initializeApp({
-      apiKey: "invalid-key",
-      authDomain: "invalid-domain",
-      projectId: "invalid-project",
-      storageBucket: "",
-      messagingSenderId: "",
-      appId: ""
-    });
+    // যদি কনফিগারেশন ইনভ্যালিড হয়, তবে একটি ডামি কি দিয়ে ইনিশিয়ালাইজ করবে যাতে এরর থ্রো না হয়
+    const finalConfig = isFirebaseConfigured ? firebaseConfig : { 
+      apiKey: "missing-key-check-netlify-settings", 
+      projectId: "missing-project" 
+    };
+    app = initializeApp(finalConfig);
   }
 } catch (error) {
-  console.error("Firebase init failed:", error);
-  // Emergency fallback
-  app = getApps()[0] || initializeApp({ apiKey: "error", projectId: "error" });
+  console.error("Firebase init fail:", error);
+  app = getApps()[0]; 
 }
 
 export const auth: Auth = getAuth(app);
