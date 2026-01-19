@@ -32,7 +32,9 @@ const getAvailableKeys = (): string[] => {
   const keys = [
     process.env.API_KEY,
     process.env.API_KEY_2,
-    process.env.API_KEY_3
+    process.env.API_KEY_3,
+    process.env.API_KEY_4
+    
   ].filter((k): k is string => !!k && k !== "undefined" && k !== "null" && k !== "");
   return keys;
 };
