@@ -131,7 +131,7 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
   return (
     <div className="fixed inset-0 z-[60] flex flex-col bg-white dark:bg-slate-950 font-['Hind_Siliguri']">
       <header className="flex-shrink-0 flex items-center justify-between px-4 py-4 bg-white/90 dark:bg-slate-950/90 backdrop-blur-md border-b dark:border-slate-800 sticky top-0 z-50">
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-3">
           <button onClick={onBack} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-full text-slate-600 transition-all">
             <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" strokeWidth="2.5" fill="none"><polyline points="15 18 9 12 15 6"></polyline></svg>
           </button>
@@ -139,19 +139,19 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
              <h2 className="text-base font-black text-slate-900 dark:text-white leading-none mb-1">{subject}</h2>
              <div className="flex items-center space-x-1">
                 <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">সাঈদ এআই • বিশ্লেষণ মোড</span>
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">সাঈদ এআই •Live server</span>
              </div>
           </div>
         </div>
       </header>
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 md:px-10 py-10 space-y-12 scrollbar-hide max-w-3xl mx-auto w-full">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 md:px-5 py-5 space-y-g5 scrollbar-hide max-w-3xl mx-auto w-full">
         {history.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <div className="w-16 h-16 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-full flex items-center justify-center text-3xl mb-8 shadow-xl">S</div>
             <h1 className="text-3xl font-black text-slate-900 dark:text-white mb-4 tracking-tigh t">সাঈদ এআই</h1>
             <p className="text-[14px] text-slate-500 font-medium max-w-xs mx-auto">শিক্ষা হোক সহজ। আপনার পার্সোনাল টিউটর আপনার অপেক্ষায়।</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-12 w-full px-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-12 w-full px-3">
                {currentSuggestions.map((s, si) => (
                  <button key={si} onClick={() => handleSend(s)} className="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 font-bold text-sm rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all text-left shadow-sm">
                    ✨ {s}
