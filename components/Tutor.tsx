@@ -216,7 +216,7 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
             onClick={() => handleSend()} disabled={!input.trim() && !selectedImage}
             className={`p-3 rounded-2xl transition-all ${input.trim() || selectedImage ? 'bg-blue-600 text-white shadow-lg active:bg-blue-700' : 'text-slate-300'}`}
           >
-            
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
           </button>
         </div>
           </div>
