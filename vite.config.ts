@@ -14,6 +14,8 @@ export default defineConfig({
     'process.env.FIREBASE_API_KEY': JSON.stringify(process.env.FIREBASE_API_KEY || ""),
     'process.env.FIREBASE_AUTH_DOMAIN': JSON.stringify(process.env.FIREBASE_AUTH_DOMAIN || ""),
     'process.env.FIREBASE_PROJECT_ID': JSON.stringify(process.env.FIREBASE_PROJECT_ID || ""),
+    'process.env.FIREBASE_SENDER_ID': JSON.stringify(process.env.FIREBASE_SENDER_ID || ""),
+    'process.env.FIREBASE_APP_ID': JSON.stringify(process.env.FIREBASE_APP_ID || ""),
   },
   build: {
     outDir: 'dist',
@@ -30,3 +32,4 @@ export default defineConfig({
     port: 3000
   }
 });
+  
