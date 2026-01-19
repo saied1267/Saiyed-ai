@@ -47,56 +47,16 @@ const App: React.FC = () => {
     setSubjectThemes(prev => ({ ...prev, [subject]: theme }));
   };
 
-  if (!isApiConfigured) {
-    return <SetupGuide />;
-  }
-
-  const renderView = () => {
-    switch (currentView) {
-      case View.DASHBOARD: return <Dashboard onStartTutor={handleStartTutor} onGoToPlanner={() => setCurrentView(View.PLANNER)} onGoToTranslator={() => setCurrentView(View.TRANSLATOR)} onGoToNews={() => setCurrentView(View.NEWS)} weakTopics={weakTopics} />;
-      case View.TUTOR: 
-        return (
-          <Tutor 
-            classLevel={selectedClass!} 
-            group={selectedGroup!} 
-            subject={selectedSubject!} 
-            history={chatHistories[selectedSubject!] || []} 
-            onUpdateHistory={(msgs) => updateHistory(selectedSubject!, msgs)} 
-            onBack={() => setCurrentView(View.DASHBOARD)} 
-            theme={subjectThemes[selectedSubject!] || 'emerald'} 
-            onUpdateTheme={(t) => updateSubjectTheme(selectedSubject!, t)}
-          />
-        );
-      case View.TRANSLATOR: return <Translator onBack={() => setCurrentView(View.DASHBOARD)} />;
-      case View.NEWS: return <News onBack={() => setCurrentView(View.DASHBOARD)} />;
-      case View.HISTORY: return <History chatHistories={chatHistories} onSelectSubject={(s) => { setSelectedSubject(s); setCurrentView(View.TUTOR); }} onDeleteHistory={(s) => setChatHistories(p => { const u = {...p}; delete u[s]; return u; })} onClearAll={() => setChatHistories({})} />;
-      case View.MCQ: return <MCQ subject={selectedSubject || Subject.MATH} onFlagTopic={t => setWeakTopics(p => [...new Set([...p, t])])} flaggedTopics={weakTopics} />;
-      case View.PLANNER: return <Planner initialWeakTopics={weakTopics} onFlagTopic={t => setWeakTopics(p => [...new Set([...p, t])])} />;
-      case View.SETTINGS: return <Settings darkMode={darkMode} setDarkMode={setDarkMode} language="bn" setLanguage={() => {}} chatTheme="blue" setChatTheme={() => {}} chatBackground="plain" setChatBackground={() => {}} isFullscreen={false} onToggleFullscreen={() => {}} onResetAll={() => { setChatHistories({}); setWeakTopics([]); }} />;
-      default: return null;
-    }
+  const handleFlagTopic = (topic: string) => {
+    setWeakTopics(prev => prev.includes(topic) ? prev : [...prev, topic]);
   };
 
-  return (
-    <div className={`flex flex-col fixed inset-0 w-full bg-gray-50 dark:bg-slate-950 transition-colors ${darkMode ? 'dark' : ''}`}>
-      <main className="flex-1 overflow-y-auto max-w-lg mx-auto w-full px-4 pt-4 scrollbar-hide">{renderView()}</main>
-      {currentView !== View.TUTOR && <Navbar currentView={currentView} setCurrentView={setCurrentView} darkMode={darkMode} />}
-    </div>
-  );
-};
-export default App;  const handleStartTutor = (lvl: ClassLevel, grp: Group, sub: Subject) => {
-    setSelectedClass(lvl);
-    setSelectedGroup(grp);
-    setSelectedSubject(sub);
-    setCurrentView(View.TUTOR);
-  };
-
-  const updateHistory = (subject: string, msgs: ChatMessage[]) => {
-    setChatHistories(prev => ({ ...prev, [subject]: msgs }));
-  };
-
-  const updateSubjectTheme = (subject: string, theme: ChatTheme) => {
-    setSubjectThemes(prev => ({ ...prev, [subject]: theme }));
+  const handleDeleteHistory = (subject: string) => {
+    setChatHistories(prev => {
+      const next = { ...prev };
+      delete next[subject];
+      return next;
+    });
   };
 
   if (!isApiConfigured) {
@@ -104,36 +64,77 @@ export default App;  const handleStartTutor = (lvl: ClassLevel, grp: Group, sub:
   }
 
   const renderView = () => {
+    if (currentView === View.DASHBOARD) {
+      return (
+        <Dashboard 
+          onStartTutor={handleStartTutor} 
+          onGoToPlanner={() => setCurrentView(View.PLANNER)} 
+          onGoToTranslator={() => setCurrentView(View.TRANSLATOR)} 
+          onGoToNews={() => setCurrentView(View.NEWS)} 
+          weakTopics={weakTopics} 
+        />
+      );
+    }
+    
+    if (currentView === View.TUTOR && selectedSubject && selectedClass && selectedGroup) {
+      return (
+        <Tutor 
+          classLevel={selectedClass} 
+          group={selectedGroup} 
+          subject={selectedSubject} 
+          history={chatHistories[selectedSubject] || []} 
+          onUpdateHistory={(msgs) => updateHistory(selectedSubject, msgs)} 
+          onBack={() => setCurrentView(View.DASHBOARD)} 
+          theme={subjectThemes[selectedSubject] || 'emerald'} 
+          onUpdateTheme={(t) => updateSubjectTheme(selectedSubject, t)}
+        />
+      );
+    }
+
     switch (currentView) {
-      case View.DASHBOARD: return <Dashboard onStartTutor={handleStartTutor} onGoToPlanner={() => setCurrentView(View.PLANNER)} onGoToTranslator={() => setCurrentView(View.TRANSLATOR)} onGoToNews={() => setCurrentView(View.NEWS)} weakTopics={weakTopics} />;
-      case View.TUTOR: 
-        return (
-          <Tutor 
-            classLevel={selectedClass!} 
-            group={selectedGroup!} 
-            subject={selectedSubject!} 
-            history={chatHistories[selectedSubject!] || []} 
-            onUpdateHistory={(msgs) => updateHistory(selectedSubject!, msgs)} 
-            onBack={() => setCurrentView(View.DASHBOARD)} 
-            theme={subjectThemes[selectedSubject!] || 'emerald'} 
-            onUpdateTheme={(t) => updateSubjectTheme(selectedSubject!, t)}
-          />
-        );
       case View.TRANSLATOR: return <Translator onBack={() => setCurrentView(View.DASHBOARD)} />;
       case View.NEWS: return <News onBack={() => setCurrentView(View.DASHBOARD)} />;
-      case View.HISTORY: return <History chatHistories={chatHistories} onSelectSubject={(s) => { setSelectedSubject(s); setCurrentView(View.TUTOR); }} onDeleteHistory={(s) => setChatHistories(p => { const u = {...p}; delete u[s]; return u; })} onClearAll={() => setChatHistories({})} />;
-      case View.MCQ: return <MCQ subject={selectedSubject || Subject.MATH} onFlagTopic={t => setWeakTopics(p => [...new Set([...p, t])])} flaggedTopics={weakTopics} />;
-      case View.PLANNER: return <Planner initialWeakTopics={weakTopics} onFlagTopic={t => setWeakTopics(p => [...new Set([...p, t])])} />;
-      case View.SETTINGS: return <Settings darkMode={darkMode} setDarkMode={setDarkMode} language="bn" setLanguage={() => {}} chatTheme="blue" setChatTheme={() => {}} chatBackground="plain" setChatBackground={() => {}} isFullscreen={false} onToggleFullscreen={() => {}} onResetAll={() => { setChatHistories({}); setWeakTopics([]); }} />;
+      case View.HISTORY: 
+        return (
+          <History 
+            chatHistories={chatHistories} 
+            onSelectSubject={(s) => { setSelectedSubject(s); setCurrentView(View.TUTOR); }} 
+            onDeleteHistory={handleDeleteHistory} 
+            onClearAll={() => setChatHistories({})} 
+          />
+        );
+      case View.MCQ: return <MCQ subject={selectedSubject || Subject.MATH} onFlagTopic={handleFlagTopic} flaggedTopics={weakTopics} />;
+      case View.PLANNER: return <Planner initialWeakTopics={weakTopics} onFlagTopic={handleFlagTopic} />;
+      case View.SETTINGS: 
+        return (
+          <Settings 
+            darkMode={darkMode} 
+            setDarkMode={setDarkMode} 
+            language="bn" 
+            setLanguage={() => {}} 
+            chatTheme="blue" 
+            setChatTheme={() => {}} 
+            chatBackground="plain" 
+            setChatBackground={() => {}} 
+            isFullscreen={false} 
+            onToggleFullscreen={() => {}} 
+            onResetAll={() => { setChatHistories({}); setWeakTopics([]); }} 
+          />
+        );
       default: return null;
     }
   };
 
   return (
     <div className={`flex flex-col fixed inset-0 w-full bg-gray-50 dark:bg-slate-950 transition-colors ${darkMode ? 'dark' : ''}`}>
-      <main className="flex-1 overflow-y-auto max-w-lg mx-auto w-full px-4 pt-4 scrollbar-hide">{renderView()}</main>
-      {currentView !== View.TUTOR && <Navbar currentView={currentView} setCurrentView={setCurrentView} darkMode={darkMode} />}
+      <main className="flex-1 overflow-y-auto max-w-lg mx-auto w-full px-4 pt-4 scrollbar-hide">
+        {renderView()}
+      </main>
+      {currentView !== View.TUTOR && (
+        <Navbar currentView={currentView} setCurrentView={setCurrentView} darkMode={darkMode} />
+      )}
     </div>
   );
 };
+
 export default App;
