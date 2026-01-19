@@ -51,7 +51,6 @@ const getAIInstance = (offset: number = 0): GoogleGenAI => {
   return new GoogleGenAI({ apiKey: keys[index] });
 };
 
-// Core function to handle retries and rotations for non-streaming calls
 const callWithRetry = async (fn: (ai: GoogleGenAI) => Promise<any>, retryCount: number = 0): Promise<any> => {
   const availableKeys = getAvailableKeys();
   try {
@@ -60,7 +59,6 @@ const callWithRetry = async (fn: (ai: GoogleGenAI) => Promise<any>, retryCount: 
   } catch (error: any) {
     const isRateLimit = error?.status === 429 || error?.message?.includes("429");
     if (isRateLimit && retryCount < availableKeys.length - 1) {
-      // Rotate the global index for future calls and retry current one
       currentKeyIndex = (currentKeyIndex + 1) % availableKeys.length;
       return callWithRetry(fn, retryCount + 1);
     }
