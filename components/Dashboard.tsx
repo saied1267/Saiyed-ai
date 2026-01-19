@@ -1,8 +1,9 @@
 
 import React from 'react';
-import { Subject, View, Group, ClassLevel } from '../types';
+import { Subject, Group, ClassLevel, User } from '../types';
 
 interface DashboardProps {
+  user: User | null;
   onStartTutor: (classLvl: ClassLevel, group: Group, sub: Subject) => void;
   onGoToPlanner: () => void;
   onGoToTranslator: () => void;
@@ -33,12 +34,46 @@ const SUBJECT_GROUPS = [
   }
 ];
 
-const Dashboard: React.FC<DashboardProps> = ({ onStartTutor, onGoToPlanner, onGoToTranslator, onGoToNews }) => {
+const getEmojiForSub = (s: Subject) => {
+  if (s === Subject.MATH) return '🔢';
+  if (s === Subject.ENGLISH) return '🔤';
+  if (s === Subject.PHYSICS) return '⚛️';
+  if (s === Subject.CHEMISTRY) return '🧪';
+  if (s === Subject.BIOLOGY) return '🧬';
+  if (s === Subject.ACCOUNTING) return '📊';
+  if (s === Subject.ICT) return '💻';
+  if (s === Subject.GK) return '🌍';
+  if (s === Subject.ECONOMICS) return '📉';
+  if (s === Subject.FINANCE) return '💰';
+  if (s === Subject.MANAGEMENT) return '🏢';
+  if (s === Subject.MARKETING) return '📣';
+  if (s === Subject.BUSINESS_ENT) return '🚀';
+  if (s === Subject.WORD) return '📄';
+  if (s === Subject.EXCEL) return '📊';
+  if (s === Subject.POWERPOINT) return '🎭';
+  if (s === Subject.BANGLA) return '🖋️';
+  if (s === Subject.SCIENCE_GEN) return '🔬';
+  if (s === Subject.BGS) return '🏛️';
+  return '📚';
+};
+
+const Dashboard: React.FC<DashboardProps> = ({ 
+  user, onStartTutor, onGoToPlanner, onGoToTranslator, onGoToNews 
+}) => {
+  const firstName = user ? user.name.split(' ')[0] : 'শিক্ষার্থী';
+
   return (
     <div className="space-y-6 pb-24">
-      <header className="py-4">
-        <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-400">সাঈদ এআই</h1>
-        <p className="text-sm font-bold text-gray-400 mt-1">সাঈদ-এর সাথে আপনার পড়ালেখা শুরু করুন।</p>
+      <header className="py-4 flex justify-between items-start">
+        <div>
+          <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-400">সাঈদ এআই</h1>
+          <p className="text-sm font-bold text-gray-500 mt-1 dark:text-gray-400">সালাম, <span className="text-emerald-500">{firstName}</span>! পড়ালেখা শুরু করি?</p>
+        </div>
+        {user && (
+          <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center text-emerald-600 font-black text-sm border border-emerald-200 dark:border-emerald-800">
+            {firstName[0]}
+          </div>
+        )}
       </header>
 
       <div className="flex space-x-2 overflow-x-auto pb-2 scrollbar-hide">
@@ -80,29 +115,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onStartTutor, onGoToPlanner, onGo
       </div>
     </div>
   );
-};
-
-const getEmojiForSub = (s: Subject) => {
-  if (s === Subject.MATH) return '🔢';
-  if (s === Subject.ENGLISH) return '🔤';
-  if (s === Subject.PHYSICS) return '⚛️';
-  if (s === Subject.CHEMISTRY) return '🧪';
-  if (s === Subject.BIOLOGY) return '🧬';
-  if (s === Subject.ACCOUNTING) return '📊';
-  if (s === Subject.ICT) return '💻';
-  if (s === Subject.GK) return '🌍';
-  if (s === Subject.ECONOMICS) return '📉';
-  if (s === Subject.FINANCE) return '💰';
-  if (s === Subject.MANAGEMENT) return '🏢';
-  if (s === Subject.MARKETING) return '📣';
-  if (s === Subject.BUSINESS_ENT) return '🚀';
-  if (s === Subject.WORD) return '📄';
-  if (s === Subject.EXCEL) return '📊';
-  if (s === Subject.POWERPOINT) return '🎭';
-  if (s === Subject.BANGLA) return '🖋️';
-  if (s === Subject.SCIENCE_GEN) return '🔬';
-  if (s === Subject.BGS) return '🏛️';
-  return '📚';
 };
 
 export default Dashboard;
