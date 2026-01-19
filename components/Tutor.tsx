@@ -145,7 +145,7 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
         </div>
       </header>
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 md:px-5 py-5 space-y-g5 scrollbar-hide max-w-3xl mx-auto w-full">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-2 md:px-2 py-2 space-y-g5 scrollbar-hide max-w-3xl mx-auto w-full">
         {history.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <div className="w-16 h-16 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-full flex items-center justify-center text-3xl mb-8 shadow-xl">S</div>
@@ -216,11 +216,10 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
             onClick={() => handleSend()} disabled={!input.trim() && !selectedImage}
             className={`p-3 rounded-2xl transition-all ${input.trim() || selectedImage ? 'bg-blue-600 text-white shadow-lg active:bg-blue-700' : 'text-slate-300'}`}
           >
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+            
           </button>
         </div>
-       
-      </div>
+          </div>
     </div>
   );
 };
