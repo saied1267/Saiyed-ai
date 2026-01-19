@@ -1,9 +1,9 @@
 
 import React from 'react';
-import { Subject, Group, ClassLevel, User } from '../types';
+import { Subject, Group, ClassLevel, AppUser } from '../types';
 
 interface DashboardProps {
-  user: User | null;
+  user: AppUser | null;
   onStartTutor: (classLvl: ClassLevel, group: Group, sub: Subject) => void;
   onGoToPlanner: () => void;
   onGoToTranslator: () => void;
