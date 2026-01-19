@@ -1,10 +1,12 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Subject, ChatMessage, ChatTheme, ClassLevel, Group, User } from '../types';
+// Changed User to AppUser to match exported member from ../types
+import { Subject, ChatMessage, ChatTheme, ClassLevel, Group, AppUser } from '../types';
 import { getTutorResponseStream } from '../geminiService';
 
 interface TutorProps {
-  user: User | null;
+  // Changed User to AppUser
+  user: AppUser | null;
   classLevel: ClassLevel;
   group: Group;
   subject: Subject;
@@ -15,6 +17,7 @@ interface TutorProps {
   onUpdateTheme: (theme: ChatTheme) => void;
 }
 
+// Updated props type to AppUser
 const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack, theme, onUpdateTheme, classLevel, group, user }) => {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -230,4 +233,4 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
   );
 };
 export default Tutor;
-        
+      
