@@ -1,13 +1,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { User } from '../types';
-import { auth, googleProvider } from '../firebaseConfig';
+import { auth, googleProvider, db } from '../firebaseConfig';
 import { 
   signInWithPopup, 
   sendSignInLinkToEmail, 
   isSignInWithEmailLink, 
   signInWithEmailLink
 } from 'firebase/auth';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 interface AuthProps {
   onLogin: (user: User) => void;
@@ -20,6 +21,31 @@ const Auth: React.FC<AuthProps> = ({ onLogin, onBack }) => {
   const [emailSent, setEmailSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const syncUserProfile = async (firebaseUser: any) => {
+    const userDocRef = doc(db, 'users', firebaseUser.uid);
+    const userSnap = await getDoc(userDocRef);
+    
+    let userData: User;
+    
+    if (userSnap.exists()) {
+      userData = userSnap.data() as User;
+    } else {
+      // Create new profile
+      userData = {
+        uid: firebaseUser.uid,
+        email: firebaseUser.email || '',
+        name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'ইউজার',
+        isPremium: true,
+        interests: [],
+        photoURL: firebaseUser.photoURL || undefined
+      };
+      await setDoc(userDocRef, userData);
+    }
+    
+    localStorage.setItem('saiyed_ai_user', JSON.stringify(userData));
+    onLogin(userData);
+  };
+
   useEffect(() => {
     if (isSignInWithEmailLink(auth, window.location.href)) {
       let emailForSignIn = window.localStorage.getItem('emailForSignIn');
@@ -29,16 +55,9 @@ const Auth: React.FC<AuthProps> = ({ onLogin, onBack }) => {
       if (emailForSignIn) {
         setLoading(true);
         signInWithEmailLink(auth, emailForSignIn, window.location.href)
-          .then((result) => {
+          .then(async (result) => {
             window.localStorage.removeItem('emailForSignIn');
-            const user = result.user;
-            const userData: User = {
-              email: user.email || '',
-              name: user.displayName || user.email?.split('@')[0] || 'ইউজার',
-              isPremium: true
-            };
-            localStorage.setItem('saiyed_ai_user', JSON.stringify(userData));
-            onLogin(userData);
+            await syncUserProfile(result.user);
           })
           .catch((err) => {
             setError('লিঙ্কটি কাজ করছে না অথবা মেয়াদ শেষ হয়ে গেছে।');
@@ -53,22 +72,9 @@ const Auth: React.FC<AuthProps> = ({ onLogin, onBack }) => {
     setError(null);
     try {
       const result = await signInWithPopup(auth, googleProvider);
-      const user = result.user;
-      const userData: User = {
-        email: user.email || '',
-        name: user.displayName || 'সাঈদ ইউজার',
-        isPremium: true
-      };
-      localStorage.setItem('saiyed_ai_user', JSON.stringify(userData));
-      onLogin(userData);
+      await syncUserProfile(result.user);
     } catch (err: any) {
-      if (err.code === 'auth/unauthorized-domain') {
-        setError('আপনার সাইটটি ফায়ারবেসে যুক্ত করা নেই (Unauthorized Domain)।');
-      } else if (err.code === 'auth/popup-blocked') {
-        setError('ব্রাউজার পপআপ ব্লক করেছে। অনুগ্রহ করে পপআপ এলাউ করুন।');
-      } else {
-        setError('গুগল লগইন ব্যর্থ হয়েছে। এরর কোড: ' + err.code);
-      }
+      setError('লগইন প্রক্রিয়ায় সমস্যা হয়েছে।');
       console.error(err);
     } finally {
       setLoading(false);
@@ -90,7 +96,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin, onBack }) => {
       window.localStorage.setItem('emailForSignIn', email);
       setEmailSent(true);
     } catch (err: any) {
-      setError('ইমেইল পাঠানো সম্ভব হয়নি। সঠিক ইমেইল দিন।');
+      setError('ভেরিফিকেশন ইমেইল পাঠানো সম্ভব হয়নি।');
     } finally {
       setLoading(false);
     }
@@ -108,7 +114,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin, onBack }) => {
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <div className="w-20 h-20 bg-emerald-600 text-white rounded-[2rem] flex items-center justify-center text-4xl mx-auto shadow-2xl shadow-emerald-500/20 mb-6 font-black">S</div>
-          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">স্বাগতম সাঈদ এআই</h1>
+          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">সাঈদ এআই একাউন্ট</h1>
           <p className="text-slate-400 font-bold text-[10px] uppercase tracking-[0.2em] mt-2">আপনার পার্সোনাল লার্নিং টিউটর</p>
         </div>
 
@@ -166,11 +172,11 @@ const Auth: React.FC<AuthProps> = ({ onLogin, onBack }) => {
             </div>
           )}
         </div>
-        <p className="mt-8 text-center text-[10px] font-black text-slate-300 uppercase tracking-[0.3em]">Hathazari College | Saiyed AI</p>
+        <p className="mt-8 text-center text-[10px] font-black text-slate-300 uppercase tracking-[0.3em]">সুরক্ষিত লগইন প্রযুক্তি | সাঈদ এআই</p>
       </div>
     </div>
   );
 };
 
 export default Auth;
-              
+        
