@@ -1,9 +1,11 @@
 
 import React, { useState } from 'react';
-import { ChatTheme, ChatBackground, User } from '../types';
+// Changed User to AppUser to match exported member from ../types
+import { ChatTheme, ChatBackground, AppUser } from '../types';
 
 interface SettingsProps {
-  user: User | null;
+  // Updated User to AppUser
+  user: AppUser | null;
   onUpdateInterests: (interests: string[]) => void;
   onGoToAuth: () => void;
   darkMode: boolean;
@@ -19,6 +21,7 @@ interface SettingsProps {
   onResetAll: () => void;
 }
 
+// Updated props type to AppUser
 const Settings: React.FC<SettingsProps> = ({ 
   user, onUpdateInterests, onGoToAuth, darkMode, setDarkMode, 
   onToggleFullscreen, isFullscreen, onResetAll
@@ -209,4 +212,4 @@ const Settings: React.FC<SettingsProps> = ({
 };
 
 export default Settings;
-  
+              
