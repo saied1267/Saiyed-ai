@@ -26,10 +26,8 @@ const App: React.FC = () => {
   const [showSetup, setShowSetup] = useState(false);
 
   const isApiConfigured = Boolean(
-    (process.env.API_KEY && process.env.API_KEY !== "undefined" && process.env.API_KEY !== "") ||
-    (process.env.API_KEY_2 && process.env.API_KEY_2 !== "undefined" && process.env.API_KEY_2 !== "") ||
-    (process.env.API_KEY_3 && process.env.API_KEY_3 !== "undefined" && process.env.API_KEY_3 !== "") ||
-    (process.env.API_KEY_4 && process.env.API_KEY_4 !== "undefined" && process.env.API_KEY_4 !== "")
+    (process.env.API_KEY && process.env.API_KEY !== "") ||
+    (process.env.API_KEY_2 && process.env.API_KEY_2 !== "")
   );
 
   const isFirebaseConfigured = Boolean(
@@ -95,7 +93,7 @@ const App: React.FC = () => {
       
       <main className="flex-1 overflow-y-auto max-w-lg mx-auto w-full px-4 pt-4 scrollbar-hide">
         {currentView === View.AUTH && (
-          <Auth onLogin={(userData) => { setUser(userData); setCurrentView(View.DASHBOARD); }} onBack={() => setCurrentView(View.DASHBOARD)} />
+          <Auth onLogin={(userData: User) => { setUser(userData); setCurrentView(View.DASHBOARD); }} onBack={() => setCurrentView(View.DASHBOARD)} />
         )}
 
         {currentView === View.DASHBOARD && (
@@ -115,10 +113,10 @@ const App: React.FC = () => {
             group={selectedGroup}
             subject={selectedSubject}
             history={chatHistories[selectedSubject] || []}
-            onUpdateHistory={(msgs) => setChatHistories({ ...chatHistories, [selectedSubject]: msgs })}
+            onUpdateHistory={(msgs: ChatMessage[]) => setChatHistories({ ...chatHistories, [selectedSubject]: msgs })}
             onBack={() => setCurrentView(View.DASHBOARD)}
             theme={subjectThemes[selectedSubject] || 'emerald'}
-            onUpdateTheme={(t) => setSubjectThemes({ ...subjectThemes, [selectedSubject]: t })}
+            onUpdateTheme={(t: ChatTheme) => setSubjectThemes({ ...subjectThemes, [selectedSubject]: t })}
           />
         )}
 
@@ -129,8 +127,8 @@ const App: React.FC = () => {
         {currentView === View.HISTORY && (
           <History
             chatHistories={chatHistories}
-            onSelectSubject={(s) => { setSelectedSubject(s); setCurrentView(View.TUTOR); }}
-            onDeleteHistory={(s) => {
+            onSelectSubject={(s: Subject) => { setSelectedSubject(s); setCurrentView(View.TUTOR); }}
+            onDeleteHistory={(s: string) => {
               const newHist = { ...chatHistories };
               delete newHist[s];
               setChatHistories(newHist);
