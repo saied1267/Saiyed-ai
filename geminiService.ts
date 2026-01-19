@@ -1,58 +1,65 @@
-import { GoogleGenAI, Type } from "@google/genai";
-import { Subject, ClassLevel, Group } from "./types";
+import { GoogleGenAI } from "@google/genai";
+import { Subject, ClassLevel, Group, ChatMessage } from "./types";
 
 const SYSTEM_INSTRUCTION = `
 # Identity & Tone
 - Your name is 'সাঈদ এআই' (Saiyed AI).
-- You were built by সাঈদ (Saiyed), a student from হাটহাজারী কলেজ (Hathazari College) department of accounting, a computer teacher in আমান বাজার, .
-- Be honest: You are a learning assistant project created by সাঈদ to help students study more effectively. Do not claim to be human or an all-powerful being. 
-- Tone: Grounded, helpful, respectful, and realistic, don't talk adult content, funny conversation . 
+- You were built by সাঈদ (Saiyed), a brilliant student from হাটহাজারী কলেজ (Hathazari College), a computer teacher .
+- Tone: Extremely helpful, polite, and like a friendly elder brother or tutor.
 - Always answer in Bangla unless specifically asked for English.
+
+# Knowledge & Rules
+- Provide "Deep Breakdowns" for every academic question. Never give one-word answers.
+- Use Unicode characters for math: a², b³, x⁴, √x.
+- If a student asks about Hathazari College, mention it with pride.
+- Always encourage students to study hard and stay curious.
 # Strict Focus & Rejection Rule
 - **CRITICAL:** You are an EDUCATIONAL AI. 
 - If the user asks non-academic or abusive questions, refuse politely and suggest focusing on {subject}.
 - For Math and Accounting, always show step-by-step solutions in Bangla.
-
-# Knowledge & Explanation Style
-- NEVER give one-line or short answers. 
-- For every question, perform a "Deep Breakdown":
-  1. Core Concept (মূল ধারণা)
-  2. Step-by-Step Logic (ধাপে ধাপে ব্যাখ্যা)
-  3. Practical Example (বাস্তব উদাহরণ)
-  4. Common Mistakes (সাধারণ ভুলসমূহ)
-
-# Formatting Rules
-- Do NOT use '$' signs.
-- Do NOT use '*' signs.
-- Use Unicode for math: a², b³, x⁴, √x.
-- Formulas: Start with "> " on a new line.
-- Use bullet points for clear readability.
-- Every response MUST end with "[SUGGESTIONS] Topic 1 | Topic 2 | Topic 3" related to the context.
-- Mention "সাঈদ এর বাস্তব পরামর্শ:" at the very end for educational advice.
+- if a students ask about 18+ or adult content then warning him very hard and don't answer this kind of question.
+# Structure of Output
+- Use bold text and large font size for headings.
+- Use bullet points for steps.
+- If the answer is long, provide a "Summary" at the end.
 `;
 
 const MODEL_NAME = 'gemini-3-flash-preview';
 
-// Key Rotation Logic
 let currentKeyIndex = 0;
-const getAvailableKeys = () => {
+
+const getAvailableKeys = (): string[] => {
   const keys = [
     process.env.API_KEY,
     process.env.API_KEY_2,
     process.env.API_KEY_3
-  ].filter(k => k && k !== "undefined" && k !== "");
+  ].filter((k): k is string => !!k && k !== "undefined" && k !== "null" && k !== "");
   return keys;
 };
 
-const getAIInstance = (retryIndex?: number) => {
+// Helper to create a new instance with rotation support
+const getAIInstance = (offset: number = 0): GoogleGenAI => {
   const keys = getAvailableKeys();
-  if (keys.length === 0) {
-    throw new Error("API_KEY_MISSING");
-  }
-  
-  // If a retry index is provided, use it, otherwise use current rotation
-  const index = retryIndex !== undefined ? retryIndex % keys.length : currentKeyIndex % keys.length;
+  if (keys.length === 0) throw new Error("API_KEY_MISSING");
+  const index = (currentKeyIndex + offset) % keys.length;
   return new GoogleGenAI({ apiKey: keys[index] });
+};
+
+// Core function to handle retries and rotations for non-streaming calls
+const callWithRetry = async (fn: (ai: GoogleGenAI) => Promise<any>, retryCount: number = 0): Promise<any> => {
+  const availableKeys = getAvailableKeys();
+  try {
+    const ai = getAIInstance(retryCount);
+    return await fn(ai);
+  } catch (error: any) {
+    const isRateLimit = error?.status === 429 || error?.message?.includes("429");
+    if (isRateLimit && retryCount < availableKeys.length - 1) {
+      // Rotate the global index for future calls and retry current one
+      currentKeyIndex = (currentKeyIndex + 1) % availableKeys.length;
+      return callWithRetry(fn, retryCount + 1);
+    }
+    throw error;
+  }
 };
 
 export const getTutorResponseStream = async (
@@ -61,16 +68,17 @@ export const getTutorResponseStream = async (
   history: {role: 'user' | 'model', parts: {text: string}[]}[],
   image: string | undefined,
   onChunk: (text: string) => void,
-  retryCount = 0
-) => {
+  retryCount: number = 0
+): Promise<string> => {
+  const availableKeys = getAvailableKeys();
   try {
-    const ai = getAIInstance(currentKeyIndex + retryCount);
+    const ai = getAIInstance(retryCount);
     const currentParts: any[] = [];
     if (image) {
       const base64Data = image.includes(',') ? image.split(',')[1] : image;
       currentParts.push({ inlineData: { mimeType: 'image/jpeg', data: base64Data } });
     }
-    currentParts.push({ text: `Subject: ${context.subject}. Prompt: ${prompt}. \n[Instruction]: Provide a deep breakdown of this topic without exaggeration.` });
+    currentParts.push({ text: `Subject: ${context.subject}. Prompt: ${prompt}.` });
 
     const responseStream = await ai.models.generateContentStream({
       model: MODEL_NAME,
@@ -80,7 +88,7 @@ export const getTutorResponseStream = async (
 
     let fullText = "";
     for await (const chunk of responseStream) {
-      fullText += chunk.text;
+      fullText += chunk.text || "";
       let formatted = fullText
         .replace(/\^2/g, '²')
         .replace(/\^3/g, '³')
@@ -89,92 +97,71 @@ export const getTutorResponseStream = async (
     }
     return fullText;
   } catch (error: any) {
-    console.error(`API Error (Key ${currentKeyIndex + 1}):`, error);
-    
-    const errorMessage = error?.message || "";
-    const isRateLimit = error?.status === 429 || errorMessage.includes("429") || errorMessage.includes("exhausted") || errorMessage.includes("quota");
-
-    // If it's a rate limit and we have more keys, try the next key
-    const availableKeys = getAvailableKeys();
+    const isRateLimit = error?.status === 429 || error?.message?.includes("429");
     if (isRateLimit && retryCount < availableKeys.length - 1) {
-      console.log(`Switching to backup API engine... (Retry ${retryCount + 1})`);
       currentKeyIndex = (currentKeyIndex + 1) % availableKeys.length;
       return getTutorResponseStream(prompt, context, history, image, onChunk, retryCount + 1);
     }
-
-    if (errorMessage === "API_KEY_MISSING") {
-      onChunk(`⚠️ সাঈদ এর ইঞ্জিন সমস্যা করছে, দয়া করে সাঈদ সাথে যোগাযোগ করুন`);
-    } else if (isRateLimit) {
-      onChunk(`🚫 **ট্রাফিক জ্যাম!*
-      \n
-     সাঈদ এআই ইঞ্জিনের গরম হয়েছে । অতিরিক্ত ব্যবহারের কারণে এমন হচ্ছে। দয়া করে **১০ মিনিট পর** আবার চেষ্টা করুন।`);
-    } else {
-      onChunk(`⚠️ **সার্ভার বিজি!** \n\n
-       সার্ভারে সমস্যা হচ্ছে। দয়া করে সাঈদ-কে (০১৯৪১৬৫২০৯৭) বিষয়টি জানান।`);
-    }
+    onChunk("⚠️ দুঃখিত, ইঞ্জিন ওভারলোড হয়েছে। দয়া করে কিছুক্ষণ পর আবার চেষ্টা করুন।");
     return "";
   }
 };
 
-// Update rotation index on successful calls to balance load
-const rotateKey = () => {
-  const keys = getAvailableKeys();
-  if (keys.length > 1) {
-    currentKeyIndex = (currentKeyIndex + 1) % keys.length;
-  }
-};
-
-export const getTranslationExtended = async (text: string, direction: 'bn-en' | 'en-bn') => {
-  try {
-    const ai = getAIInstance();
+export const getTranslationExtended = async (text: string, direction: 'bn-en' | 'en-bn'): Promise<any> => {
+  return callWithRetry(async (ai) => {
     const response = await ai.models.generateContent({
       model: MODEL_NAME,
       contents: `Translate and analyze: "${text}" (${direction}).`,
       config: {
-        systemInstruction: "Return JSON only.",
+        systemInstruction: SYSTEM_INSTRUCTION + "\nReturn JSON only with 'overall' (literal, contextual, professional) and 'lines' (original, translated, explanation) fields.",
         responseMimeType: "application/json",
       }
     });
-    rotateKey();
     return JSON.parse(response.text || "{}");
-  } catch (err) { return { overall: {}, lines: [] }; }
+  }).catch(() => ({ overall: {}, lines: [] }));
 };
 
-export const generateMCQs = async (subject: Subject) => {
-  try {
-    const ai = getAIInstance();
+export const generateMCQs = async (subject: Subject): Promise<any[]> => {
+  return callWithRetry(async (ai) => {
     const response = await ai.models.generateContent({
       model: MODEL_NAME,
-      contents: `Generate MCQs for ${subject}.`,
-      config: { responseMimeType: "application/json" }
+      contents: `Generate 5 high-quality MCQs for ${subject} with question, options, correctAnswer (index), and explanation.`,
+      config: { 
+        responseMimeType: "application/json",
+        systemInstruction: SYSTEM_INSTRUCTION + "\nAlways return a JSON array of MCQ objects."
+      }
     });
-    rotateKey();
     return JSON.parse(response.text || "[]");
-  } catch (err) { return []; }
+  }).catch(() => []);
 };
 
-export const getStudyPlan = async (topics: string[]) => {
-  try {
-    const ai = getAIInstance();
+export const getStudyPlan = async (topics: string[]): Promise<any> => {
+  return callWithRetry(async (ai) => {
     const response = await ai.models.generateContent({
       model: MODEL_NAME,
-      contents: `Plan for: ${topics.join(',')}`,
-      config: { responseMimeType: "application/json" }
+      contents: `Create a study plan for: ${topics.join(',')}`,
+      config: { 
+        responseMimeType: "application/json",
+        systemInstruction: SYSTEM_INSTRUCTION + "\nReturn JSON with dailyGoals (array), weakTopics (array), and nextStudy (string)."
+      }
     });
-    rotateKey();
     return JSON.parse(response.text || "{}");
-  } catch (err) { return { dailyGoals: [], weakTopics: [], nextStudy: "" }; }
+  }).catch(() => ({ dailyGoals: [], weakTopics: [], nextStudy: "" }));
 };
 
-export const getRecentEvents = async (type: 'bn' | 'en') => {
-  try {
-    const ai = getAIInstance();
+export const getRecentEvents = async (type: 'bn' | 'en'): Promise<{ text: string; groundingChunks: any[] }> => {
+  return callWithRetry(async (ai) => {
     const response = await ai.models.generateContent({
       model: MODEL_NAME,
-      contents: "Latest news updates.",
-      config: { tools: [{ googleSearch: {} }] },
+      contents: type === 'bn' ? "বাংলাদেশের আজকের প্রধান খবরগুলো বিস্তারিত লিখুন।" : "Write latest global news updates.",
+      config: { 
+        tools: [{ googleSearch: {} }],
+        systemInstruction: SYSTEM_INSTRUCTION
+      },
     });
-    rotateKey();
-    return { text: response.text || "", groundingChunks: response.candidates?.[0]?.groundingMetadata?.groundingChunks || [] };
-  } catch (err) { return { text: "Error news", groundingChunks: [] }; }
-    }
+    return { 
+      text: response.text || "", 
+      groundingChunks: response.candidates?.[0]?.groundingMetadata?.groundingChunks || [] 
+    };
+  }).catch(() => ({ text: "Error loading news", groundingChunks: [] }));
+};
