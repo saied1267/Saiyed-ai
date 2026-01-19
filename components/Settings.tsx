@@ -1,7 +1,10 @@
+
 import React from 'react';
-import { ChatTheme, ChatBackground } from '../types';
+import { ChatTheme, ChatBackground, User } from '../types';
 
 interface SettingsProps {
+  user: User | null;
+  onGoToAuth: () => void;
   darkMode: boolean;
   setDarkMode: (val: boolean) => void;
   language: 'bn' | 'en';
@@ -16,36 +19,75 @@ interface SettingsProps {
 }
 
 const Settings: React.FC<SettingsProps> = ({ 
-  darkMode, setDarkMode, chatBackground, setChatBackground,
+  user, onGoToAuth, darkMode, setDarkMode, 
   onToggleFullscreen, isFullscreen, onResetAll
 }) => {
-  const keys = [
-    process.env.API_KEY,
-    process.env.API_KEY_2,
-    process.env.API_KEY_3,
-    process.env.API_KEY_4,
-  ].filter(k => k && k !== "undefined" && k !== "");
-  
-  const isApiConfigured = keys.length > 0;
+  const isApiConfigured = Boolean(
+    process.env.API_KEY || process.env.API_KEY_2 || process.env.API_KEY_3 || process.env.API_KEY_4
+  );
+
+  const isFirebaseConfigured = Boolean(
+    process.env.FIREBASE_API_KEY && 
+    process.env.FIREBASE_AUTH_DOMAIN && 
+    process.env.FIREBASE_PROJECT_ID
+  );
 
   return (
-    <div className="space-y-6 pb-20 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="space-y-6 pb-20 animate-in fade-in slide-in-from-bottom-4 duration-500 px-1">
       <header>
         <h2 className="text-2xl font-black text-gray-800 dark:text-gray-100">সেটিংস</h2>
         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">সাঈদ এআই কন্ট্রোল প্যানেল</p>
       </header>
 
-      <section className="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-xl border border-emerald-100 dark:border-slate-700">
-        <h3 className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-500 mb-4">অ্যাক্টিভ ইঞ্জিন স্ট্যাটাস</h3>
-        <div className={`flex items-center space-x-3 p-4 rounded-2xl border-2 ${isApiConfigured ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-500' : 'bg-red-50 dark:bg-red-900/20 border-red-400'}`}>
-          <span className="text-3xl">{isApiConfigured ? '🛡️' : '⚠️'}</span>
+      {/* User Profile Card */}
+      <section className="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-xl border dark:border-slate-700">
+        <h3 className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-500 mb-4">ইউজার প্রোফাইল</h3>
+        {user ? (
+          <div className="flex items-center space-x-4">
+            <div className="w-12 h-12 bg-emerald-600 text-white rounded-2xl flex items-center justify-center text-xl font-black shadow-lg shadow-emerald-500/20">
+              {user.name[0]}
+            </div>
+            <div>
+              <p className="font-black text-sm text-slate-800 dark:text-white">{user.name}</p>
+              <p className="text-[10px] font-bold text-slate-400">{user.email}</p>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center py-4 space-y-4">
+            <p className="text-sm font-bold text-slate-400">আপনি বর্তমানে গেস্ট হিসেবে আছেন।</p>
+            <button 
+              onClick={onGoToAuth}
+              disabled={!isFirebaseConfigured}
+              className={`w-full py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg transition-all ${
+                isFirebaseConfigured 
+                  ? 'bg-emerald-600 text-white shadow-emerald-500/20 active:scale-95' 
+                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              }`}
+            >
+              {isFirebaseConfigured ? 'লগইন করুন' : 'লগইন সিস্টেম ডিজেবল'}
+            </button>
+            {!isFirebaseConfigured && <p className="text-[9px] text-red-500 font-bold">⚠️ ফায়ারবেস কনফিগারেশন বাকি আছে</p>}
+          </div>
+        )}
+      </section>
+
+      {/* Status Indicators */}
+      <section className="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-xl border border-emerald-100 dark:border-slate-700 space-y-4">
+        <h3 className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-500 mb-2">সার্ভিস স্ট্যাটাস</h3>
+        
+        <div className={`flex items-center space-x-3 p-3 rounded-2xl border ${isApiConfigured ? 'bg-emerald-50 dark:bg-emerald-900/10 border-emerald-200' : 'bg-red-50 dark:bg-red-900/10 border-red-200'}`}>
+          <span className="text-xl">{isApiConfigured ? '⚡' : '❌'}</span>
           <div>
-            <p className={`font-black text-sm ${isApiConfigured ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-700 dark:text-red-400'}`}>
-              {isApiConfigured ? `সাঈদ এআই কানেক্টেড (${keys.length} ইঞ্জিন)` : 'ইঞ্জিন গরম হয়ে গেছে'}
-            </p>
-            <p className="text-[9px] font-bold opacity-60">
-              {isApiConfigured ? `আপনার ${keys.length}টি ইঞ্জিন কাজ করছে` : 'ইঞ্জিন বন্ধ হয়ে'}
-            </p>
+            <p className="font-black text-[11px] text-slate-700 dark:text-slate-200">AI লার্নিং ইঞ্জিন</p>
+            <p className={`text-[9px] font-bold ${isApiConfigured ? 'text-emerald-600' : 'text-red-500'}`}>{isApiConfigured ? 'সচল (Connected)' : 'অচল (No API Key)'}</p>
+          </div>
+        </div>
+
+        <div className={`flex items-center space-x-3 p-3 rounded-2xl border ${isFirebaseConfigured ? 'bg-blue-50 dark:bg-blue-900/10 border-blue-200' : 'bg-red-50 dark:bg-red-900/10 border-red-200'}`}>
+          <span className="text-xl">{isFirebaseConfigured ? '🔐' : '❌'}</span>
+          <div>
+            <p className="font-black text-[11px] text-slate-700 dark:text-slate-200">লগইন সিস্টেম (Firebase)</p>
+            <p className={`text-[9px] font-bold ${isFirebaseConfigured ? 'text-blue-600' : 'text-red-500'}`}>{isFirebaseConfigured ? 'সচল (Configured)' : 'অচল (Missing Config)'}</p>
           </div>
         </div>
       </section>
@@ -79,41 +121,21 @@ const Settings: React.FC<SettingsProps> = ({
           </button>
         </div>
 
-        <div className="p-4 space-y-4">
-          <div className="flex items-center space-x-3 mb-2">
-            <div className="w-10 h-10 bg-purple-50 dark:bg-purple-900/20 rounded-xl flex items-center justify-center text-xl">🎨</div>
-            <p className="font-black text-sm">ব্যাকগ্রাউন্ড প্যাটার্ন</p>
-          </div>
-          <div className="grid grid-cols-3 gap-2">
-            {(['plain', 'dots', 'grid', 'mesh', 'paper', 'waves'] as ChatBackground[]).map(bg => (
-              <button 
-                key={bg} 
-                onClick={() => setChatBackground(bg)}
-                className={`py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border-2 transition-all ${
-                  chatBackground === bg ? 'border-emerald-500 bg-emerald-50 text-emerald-600' : 'border-gray-100 dark:border-slate-700 text-gray-400'
-                }`}
-              >
-                {bg}
-              </button>
-            ))}
-          </div>
-        </div>
-
         <div className="p-4">
           <button 
             onClick={onResetAll}
-            className="w-full py-3 bg-red-50 dark:bg-red-900/10 text-red-600 rounded-xl font-black text-xs uppercase tracking-widest active:scale-95 transition-all"
+            className="w-full py-4 bg-red-50 dark:bg-red-900/10 text-red-600 rounded-2xl font-black text-xs uppercase tracking-widest active:scale-95 transition-all flex items-center justify-center space-x-2"
           >
-            সব ডেটা রিসেট করুন
+            <span>সব ডেটা রিসেট ও {user ? 'লগআউট' : 'ক্লিন'}</span>
           </button>
         </div>
       </div>
 
       <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-xl border dark:border-slate-700">
-        <h3 className="font-black text-[10px] mb-4 uppercase tracking-[0.25em] text-emerald-500">ডেভলপার তথ্য</h3>
+        <h3 className="font-black text-[10px] mb-4 uppercase tracking-[0.25em] text-emerald-500">ডেভলপার ও সাপোর্ট</h3>
         <div className="space-y-4 text-sm">
           <div className="flex justify-between items-center">
-            <span className="opacity-40 font-black uppercase text-[9px]">এআই এর নির্মাতা</span>
+            <span className="opacity-40 font-black uppercase text-[9px]">তৈরি করেছে</span>
             <span className="text-gray-800 dark:text-white font-black italic">সাঈদ</span>
           </div>
           <div className="flex justify-between items-center">
