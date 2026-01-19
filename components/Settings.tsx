@@ -22,7 +22,8 @@ const Settings: React.FC<SettingsProps> = ({
   const keys = [
     process.env.API_KEY,
     process.env.API_KEY_2,
-    process.env.API_KEY_3
+    process.env.API_KEY_3,
+    process.env.API_KEY_4,
   ].filter(k => k && k !== "undefined" && k !== "");
   
   const isApiConfigured = keys.length > 0;
