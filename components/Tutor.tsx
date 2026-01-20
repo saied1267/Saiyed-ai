@@ -157,7 +157,7 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
               <p className="text-slate-500 font-bold mb-10 text-[13px]">আজ আপনাকে কিভাবে সাহায্য করতে পারি?</p>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 w-full px-4">
-                 {[`${subject} এর গুরুত্বপূর্ণ সূত্র`, `সহজ করে বোঝাও`, `একটি উদাহরণ দাও`, `শর্টকাট টিপস`].map((s, si) => (
+                 {[`${subject} এর গুরুত্বপূর্ণ সূত্র`, `সাঈদ সম্পর্কে জানান`, `একটি উদাহরণ দাও`, `শর্টকাট টিপস`].map((s, si) => (
                    <button key={si} onClick={() => handleSend(s)} className="p-3 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 text-slate-700 dark:text-slate-300 font-bold text-[12px] rounded-xl hover:bg-slate-50 transition-all text-left shadow-sm">
                      {s}
                    </button>
