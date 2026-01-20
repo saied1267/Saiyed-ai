@@ -94,9 +94,6 @@ const History: React.FC<HistoryProps> = ({ chatHistories, onSelectSubject, onDel
           })}
         </div>
       )}
-      
-      
-  );
 };
 
 const getEmojiForSubject = (sub: Subject): string => {
