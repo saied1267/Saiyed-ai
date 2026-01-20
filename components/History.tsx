@@ -95,14 +95,7 @@ const History: React.FC<HistoryProps> = ({ chatHistories, onSelectSubject, onDel
         </div>
       )}
       
-      <div className="pt-4 px-2">
-        <div className="p-6 bg-slate-900 dark:bg-black rounded-[2.5rem] border border-slate-800 text-center relative overflow-hidden">
-           <div className="absolute top-0 left-0 w-24 h-24 bg-emerald-500/10 rounded-full blur-3xl -ml-12 -mt-12"></div>
-           <p className="text-[11px] font-black text-emerald-500 uppercase tracking-widest relative z-10">প্রো টিপস</p>
-           <p className="text-[13px] text-slate-400 font-bold mt-2 relative z-10 leading-relaxed">যেকোনো চ্যাটে ক্লিক করে আপনি ঠিক যেখান থেকে পড়া শেষ করেছিলেন, সেখান থেকেই আবার শুরু করতে পারবেন।</p>
-        </div>
-      </div>
-    </div>
+      
   );
 };
 
