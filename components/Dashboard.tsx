@@ -15,22 +15,18 @@ interface DashboardProps {
 const SUBJECT_GROUPS = [
   {
     name: 'মৌলিক শিক্ষা',
-    color: 'emerald',
     subjects: [Subject.MATH, Subject.ENGLISH, Subject.BANGLA, Subject.ICT, Subject.GK]
   },
   {
     name: 'বিজ্ঞান বিভাগ',
-    color: 'blue',
     subjects: [Subject.PHYSICS, Subject.CHEMISTRY, Subject.BIOLOGY, Subject.SCIENCE_GEN]
   },
   {
     name: 'ব্যবসায় শিক্ষা',
-    color: 'orange',
     subjects: [Subject.ACCOUNTING, Subject.FINANCE, Subject.ECONOMICS, Subject.MANAGEMENT]
   },
   {
     name: 'কম্পিউটার কোর্স',
-    color: 'purple',
     subjects: [Subject.WORD, Subject.EXCEL, Subject.POWERPOINT]
   }
 ];
@@ -59,8 +55,7 @@ const Dashboard: React.FC<DashboardProps> = ({
   const firstName = user ? user.name.split(' ')[0] : 'শিক্ষার্থী';
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-700 font-['Hind_Siliguri'] pb-10">
-      {/* Pure White Header */}
+    <div className="space-y-6 animate-in fade-in duration-700 font-['Hind_Siliguri'] pb-10 bg-white dark:bg-slate-950">
       <header className="flex justify-between items-center py-5 bg-white dark:bg-slate-950 sticky top-0 z-40 border-b border-slate-50 dark:border-slate-900">
         <div>
           <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">
@@ -82,23 +77,19 @@ const Dashboard: React.FC<DashboardProps> = ({
         </div>
       </header>
 
-      {/* Hero Cards */}
       <div className="grid grid-cols-2 gap-4">
         <button onClick={onGoToPlanner} className="flex flex-col items-start p-6 rounded-[2.2rem] bg-slate-900 text-white shadow-2xl active:scale-95 transition-all relative overflow-hidden group">
-           <div className="absolute -right-4 -top-4 w-20 h-20 bg-emerald-500/10 rounded-full group-hover:scale-150 transition-transform"></div>
            <span className="text-2xl mb-4">📅</span>
            <h3 className="font-black text-base">স্টাডি রুটিন</h3>
-           <p className="text-[9px] text-slate-400 font-black uppercase mt-1 tracking-widest">মাস্টার প্ল্যান</p>
+           <p className="text-[9px] text-slate-400 font-black uppercase mt-1">মাস্টার প্ল্যান</p>
         </button>
         <button onClick={onGoToTranslator} className="flex flex-col items-start p-6 rounded-[2.2rem] bg-white dark:bg-slate-900 border-2 border-slate-50 dark:border-slate-800 shadow-xl active:scale-95 transition-all relative overflow-hidden group">
-           <div className="absolute -right-4 -top-4 w-20 h-20 bg-blue-500/5 rounded-full group-hover:scale-150 transition-transform"></div>
            <span className="text-2xl mb-4">🌍</span>
            <h3 className="font-black text-base text-slate-800 dark:text-white">অনুবাদ এআই</h3>
-           <p className="text-[9px] text-blue-500 font-black uppercase mt-1 tracking-widest">গভীর বিশ্লেষণ</p>
+           <p className="text-[9px] text-blue-500 font-black uppercase mt-1">গভীর বিশ্লেষণ</p>
         </button>
       </div>
 
-      {/* Subjects Grid */}
       <div className="space-y-12 pt-4">
         {SUBJECT_GROUPS.map((group, idx) => (
           <div key={idx} className="animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: `${idx * 150}ms` }}>
