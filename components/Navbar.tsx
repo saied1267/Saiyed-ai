@@ -65,8 +65,8 @@ const Navbar: React.FC<NavbarProps> = ({ currentView, setCurrentView, darkMode }
   ];
 
   return (
-    <nav className={`w-full h-[5rem] border-t flex items-center justify-around px-1 z-50 transition-all flex-shrink-0 pb-safe ${
-      darkMode ? 'bg-slate-900 border-slate-800 shadow-[0_-4px_30px_rgba(0,0,0,0.5)]' : 'bg-white border-slate-100 shadow-[0_-10px_35px_rgba(0,0,0,0.05)]'
+    <nav className={`fixed bottom-0 left-0 right-0 w-full h-[4.8rem] border-t flex items-center justify-around px-1 z-[100] transition-all pb-safe ${
+      darkMode ? 'bg-slate-900 border-slate-800 shadow-[0_-4px_30px_rgba(0,0,0,0.5)]' : 'bg-white/95 backdrop-blur-md border-slate-100 shadow-[0_-10px_35px_rgba(0,0,0,0.03)]'
     }`}>
       {navItems.map((item) => {
         const isActive = currentView === item.view;
@@ -81,7 +81,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentView, setCurrentView, darkMode }
             }`}
           >
             {isActive && (
-              <div className="absolute top-0 w-10 h-[3.5px] bg-emerald-500 rounded-b-full shadow-[0_3px_12px_rgba(16,185,129,0.4)] animate-in slide-in-from-top-1" />
+              <div className="absolute top-0 w-10 h-[3.5px] bg-emerald-500 rounded-b-full shadow-[0_3px_12px_rgba(16,185,129,0.3)] animate-in slide-in-from-top-1" />
             )}
             <div className={`transition-all duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`}>
               {item.icon(isActive)}
