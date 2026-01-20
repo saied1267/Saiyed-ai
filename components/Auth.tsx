@@ -208,4 +208,4 @@ const Auth: React.FC<AuthProps> = ({ onLogin, onBack }) => {
 };
 
 export default Auth;
-                                           
+          
