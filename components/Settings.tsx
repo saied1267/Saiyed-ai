@@ -9,12 +9,15 @@ interface SettingsProps {
   darkMode: boolean;
   setDarkMode: (val: boolean) => void;
   onResetAll: () => void;
+  onUpdateName: (name: string) => void;
 }
 
 const Settings: React.FC<SettingsProps> = ({ 
-  user, onUpdateInterests, onGoToAuth, darkMode, setDarkMode, onResetAll
+  user, onUpdateInterests, onGoToAuth, darkMode, setDarkMode, onResetAll, onUpdateName
 }) => {
   const [interestInput, setInterestInput] = useState('');
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [tempName, setTempName] = useState(user?.name || '');
 
   const handleAddInterest = (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,19 +31,26 @@ const Settings: React.FC<SettingsProps> = ({
     setInterestInput('');
   };
 
+  const handleSaveName = () => {
+    if (tempName.trim()) {
+      onUpdateName(tempName.trim());
+      setIsEditingName(false);
+    }
+  };
+
   const removeInterest = (interest: string) => {
     if (!user) return;
     onUpdateInterests(user.interests.filter(i => i !== interest));
   };
 
   return (
-    <div className="space-y-6 pb-20 animate-in fade-in duration-500 font-['Hind_Siliguri'] px-1">
+    <div className="space-y-6 pb-10 animate-in fade-in duration-500 font-['Hind_Siliguri'] px-1">
       <header className="mb-8">
         <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">সেটিংস</h2>
         <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mt-1">প্রোফাইল ও অ্যাপ সেটিংস</p>
       </header>
 
-      <section className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 shadow-sm border border-slate-100 dark:border-slate-800">
+      <section className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 shadow-sm border-2 border-slate-50 dark:border-slate-800">
         <h3 className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 mb-8">পার্সোনাল প্রোফাইল</h3>
         
         {user ? (
@@ -53,9 +63,24 @@ const Settings: React.FC<SettingsProps> = ({
                   user.name[0]
                 )}
               </div>
-              <div>
-                <p className="font-black text-xl text-slate-800 dark:text-white leading-tight">{user.name}</p>
-                <p className="text-[10px] font-bold text-slate-400 uppercase mt-1 tracking-wider">{user.email}</p>
+              <div className="flex-1">
+                {isEditingName ? (
+                  <div className="flex space-x-2">
+                    <input 
+                      type="text" value={tempName} onChange={e => setTempName(e.target.value)}
+                      className="flex-1 bg-slate-50 dark:bg-slate-950 border-2 border-emerald-500 rounded-xl px-3 py-1.5 text-sm font-bold outline-none dark:text-white"
+                    />
+                    <button onClick={handleSaveName} className="bg-emerald-600 text-white px-3 rounded-xl text-[10px] font-black uppercase">সেভ</button>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-black text-xl text-slate-800 dark:text-white leading-tight">{user.name}</p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase mt-1 tracking-wider">{user.email}</p>
+                    </div>
+                    <button onClick={() => setIsEditingName(true)} className="text-[10px] font-black text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1 rounded-full uppercase">নাম বদলান</button>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -67,7 +92,7 @@ const Settings: React.FC<SettingsProps> = ({
               <div className="flex flex-wrap gap-2.5">
                 {user.interests && user.interests.length > 0 ? (
                   user.interests.map((interest, i) => (
-                    <span key={i} className="group px-4 py-2 bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 text-[11px] font-black rounded-2xl border border-slate-100 dark:border-slate-800 flex items-center transition-all hover:border-red-200">
+                    <span key={i} className="group px-4 py-2 bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 text-[11px] font-black rounded-2xl border border-slate-100 dark:border-slate-800 flex items-center transition-all">
                       {interest}
                       <button onClick={() => removeInterest(interest)} className="ml-3 text-red-500/40 hover:text-red-500 transition-colors">✕</button>
                     </span>
@@ -96,10 +121,10 @@ const Settings: React.FC<SettingsProps> = ({
         )}
       </section>
 
-      <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-3 shadow-sm border border-slate-100 dark:border-slate-800">
+      <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-3 shadow-sm border-2 border-slate-50 dark:border-slate-800">
         <div className="flex items-center justify-between p-5 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-3xl transition-colors">
           <div className="flex items-center space-x-5">
-            <div className="w-10 h-10 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center text-lg">🌙</div>
+            <div className="w-10 h-10 bg-slate-50 dark:bg-slate-800 rounded-2xl flex items-center justify-center text-lg">🌙</div>
             <div>
               <p className="font-black text-[15px] text-slate-800 dark:text-slate-200">ডার্ক মোড</p>
               <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">অন্ধকারে পড়ার জন্য</p>
