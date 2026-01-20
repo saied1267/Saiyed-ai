@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Subject, Group, ClassLevel, AppUser } from '../types';
 
@@ -38,7 +37,11 @@ const getSubjectIcon = (s: Subject) => {
     [Subject.PHYSICS]: 'https://cdn-icons-png.flaticon.com/128/2921/2921131.png',
     [Subject.CHEMISTRY]: 'https://cdn-icons-png.flaticon.com/128/2921/2921128.png',
     [Subject.BIOLOGY]: 'https://cdn-icons-png.flaticon.com/128/2921/2921121.png',
+    [Subject.SCIENCE_GEN]: 'https://cdn-icons-png.flaticon.com/128/2921/2921122.png',
     [Subject.ACCOUNTING]: 'https://cdn-icons-png.flaticon.com/128/2611/2611222.png',
+    [Subject.FINANCE]: 'https://cdn-icons-png.flaticon.com/128/3448/3448375.png',
+    [Subject.ECONOMICS]: 'https://cdn-icons-png.flaticon.com/128/2647/2647076.png',
+    [Subject.MANAGEMENT]: 'https://cdn-icons-png.flaticon.com/128/3135/3135715.png',
     [Subject.ICT]: 'https://cdn-icons-png.flaticon.com/128/919/919827.png',
     [Subject.GK]: 'https://cdn-icons-png.flaticon.com/128/2921/2921116.png',
     [Subject.BANGLA]: 'https://cdn-icons-png.flaticon.com/128/2921/2921118.png',
@@ -56,6 +59,7 @@ const Dashboard: React.FC<DashboardProps> = ({
 
   return (
     <div className="space-y-6 animate-in fade-in duration-700 font-['Hind_Siliguri'] pb-10 bg-white dark:bg-slate-950">
+      {/* Header */}
       <header className="flex justify-between items-center py-5 bg-white dark:bg-slate-950 sticky top-0 z-40 border-b border-slate-50 dark:border-slate-900">
         <div>
           <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">
@@ -77,6 +81,7 @@ const Dashboard: React.FC<DashboardProps> = ({
         </div>
       </header>
 
+      {/* Quick Links */}
       <div className="grid grid-cols-2 gap-4">
         <button onClick={onGoToPlanner} className="flex flex-col items-start p-6 rounded-[2.2rem] bg-slate-900 text-white shadow-2xl active:scale-95 transition-all relative overflow-hidden group">
            <span className="text-2xl mb-4">📅</span>
@@ -90,6 +95,7 @@ const Dashboard: React.FC<DashboardProps> = ({
         </button>
       </div>
 
+      {/* Subject Groups */}
       <div className="space-y-12 pt-4">
         {SUBJECT_GROUPS.map((group, idx) => (
           <div key={idx} className="animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: `${idx * 150}ms` }}>
@@ -99,26 +105,20 @@ const Dashboard: React.FC<DashboardProps> = ({
                </h2>
                <div className="h-[1px] flex-1 bg-slate-100 dark:bg-slate-800 rounded-full"></div>
             </div>
-            
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+
+            {/* Grid for subjects: responsive, 3 per row on medium screen */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               {group.subjects.map((sub, sIdx) => (
                 <button 
                   key={sIdx} 
                   onClick={() => onStartTutor(ClassLevel.C10, Group.GENERAL, sub)}
-                  className="flex items-center p-4 bg-white dark:bg-slate-900 rounded-[1.8rem] border-2 border-slate-50 dark:border-slate-800 shadow-sm hover:shadow-xl hover:-translate-y-1 active:scale-[0.98] transition-all group"
+                  className="flex flex-col items-center p-3 bg-white dark:bg-slate-900 rounded-2xl border-2 border-slate-50 dark:border-slate-800 shadow-sm hover:shadow-xl hover:-translate-y-1 active:scale-[0.98] transition-all group"
                 >
-                  <div className="w-12 h-12 bg-slate-50 dark:bg-slate-800 rounded-xl flex items-center justify-center p-2.5 mr-4 group-hover:scale-110 transition-transform">
+                  <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-xl flex items-center justify-center p-2 mb-2 group-hover:scale-110 transition-transform">
                     <img src={getSubjectIcon(sub)} alt={sub} className="w-full h-full object-contain" />
                   </div>
-                  <div className="flex-1 text-left">
-                    <h3 className="text-[15px] font-black text-slate-800 dark:text-slate-100">
-                      {sub}
-                    </h3>
-                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5 opacity-60">শিখতে ক্লিক করুন</p>
-                  </div>
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-slate-200 group-hover:bg-emerald-500 group-hover:text-white transition-all">
-                    <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="3" fill="none"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                  </div>
+                  <h3 className="text-[14px] font-black text-slate-800 dark:text-slate-100 text-center">{sub}</h3>
+                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5 opacity-60 text-center">শিখতে ক্লিক করুন</p>
                 </button>
               ))}
             </div>
