@@ -133,7 +133,7 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
         <button onClick={() => { if(confirm('নতুন চ্যাট?')) onUpdateHistory([]); }} className="p-2.5 bg-slate-100 dark:bg-slate-900 rounded-2xl active:rotate-180 transition-all">🔄</button>
       </header>
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-8 space-y-10 scrollbar-hide max-w-2xl mx-auto w-full">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-8 space-y-10 scrollbar-hide max-w-2xl mx-auto w-full pb-32">
         {history.length === 0 && (
           <div className="flex flex-col items-center justify-center py-12 text-center animate-in fade-in zoom-in-95 duration-700">
             <div className="w-20 h-20 bg-emerald-600 text-white rounded-[2.2rem] flex items-center justify-center text-4xl shadow-2xl font-black mb-8">S</div>
@@ -168,7 +168,12 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
                 {m.image && <img src={m.image} className="w-full rounded-2xl mb-4 max-h-80 object-cover shadow-sm border dark:border-slate-800" alt="at" />}
                 <div className="w-full">
                   {m.role === 'model' ? (
-                    m.text ? renderFormattedText(m.text) : <div className="w-4 h-4 bg-emerald-500 rounded-full animate-bounce"></div>
+                    m.text ? renderFormattedText(m.text) : (
+                      <div className="flex items-center space-x-3 text-emerald-500">
+                        <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></div>
+                        <span className="text-[10px] font-black uppercase tracking-widest animate-pulse">সাঈদ এর এআই গভীর ভাবে বিশ্লেষণ করছে...</span>
+                      </div>
+                    )
                   ) : (
                     <p className="text-[14px] font-bold text-slate-800 dark:text-slate-200 leading-relaxed">{m.text}</p>
                   )}
@@ -177,10 +182,17 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
             </div>
           </div>
         ))}
-        {loading && <div className="ml-8 text-[9px] font-black text-emerald-500 animate-pulse uppercase tracking-widest">সাঈদ এআই ভাবছে...</div>}
+        {loading && history[history.length - 1]?.role === 'user' && (
+          <div className="ml-8 py-2">
+            <div className="flex items-center space-x-3 text-emerald-500">
+               <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></div>
+               <span className="text-[10px] font-black uppercase tracking-widest animate-pulse">সাঈদ এর এআই গভীর ভাবে বিশ্লেষণ করছে...</span>
+            </div>
+          </div>
+        )}
       </div>
 
-      <div className="px-6 py-6 border-t dark:border-slate-900 bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl pb-10">
+      <div className="px-6 py-6 border-t dark:border-slate-900 bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl pb-10 mt-auto">
         {selectedImage && (
           <div className="relative inline-block mb-4 animate-in zoom-in-75">
             <img src={selectedImage} className="w-20 h-20 object-cover rounded-2xl border-2 border-emerald-500 shadow-xl" alt="p" />
