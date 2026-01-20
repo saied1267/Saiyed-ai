@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Subject, Group, ClassLevel, AppUser, View } from '../types';
+import { Subject, Group, ClassLevel, AppUser } from '../types';
 
 interface DashboardProps {
   user: AppUser | null;
@@ -8,7 +8,6 @@ interface DashboardProps {
   onGoToPlanner: () => void;
   onGoToTranslator: () => void;
   onGoToNews: () => void;
-  onGoToHistory: () => void;
   weakTopics: string[];
 }
 
@@ -59,7 +58,7 @@ const getEmojiForSub = (s: Subject) => {
 };
 
 const Dashboard: React.FC<DashboardProps> = ({ 
-  user, onStartTutor, onGoToPlanner, onGoToTranslator, onGoToNews, onGoToHistory
+  user, onStartTutor, onGoToPlanner, onGoToTranslator, onGoToNews 
 }) => {
   const firstName = user ? user.name.split(' ')[0] : 'শিক্ষার্থী';
 
@@ -77,11 +76,7 @@ const Dashboard: React.FC<DashboardProps> = ({
         )}
       </header>
 
-      <div className="flex space-x-2 overflow-x-auto pb-4 scrollbar-hide">
-        <button onClick={onGoToHistory} className="flex-shrink-0 bg-purple-600 p-4 rounded-3xl text-white shadow-lg min-w-[120px] active:scale-95 transition-transform border-4 border-white dark:border-slate-800">
-          <span className="block text-2xl">📜</span>
-          <span className="text-[10px] font-black uppercase tracking-tighter">হিস্টোরি</span>
-        </button>
+      <div className="flex space-x-2 overflow-x-auto pb-2 scrollbar-hide">
         <button onClick={onGoToNews} className="flex-shrink-0 bg-emerald-500 p-4 rounded-3xl text-white shadow-lg min-w-[120px] active:scale-95 transition-transform">
           <span className="block text-2xl">📰</span>
           <span className="text-[10px] font-black uppercase tracking-tighter">সংবাদ</span>
@@ -123,3 +118,4 @@ const Dashboard: React.FC<DashboardProps> = ({
 };
 
 export default Dashboard;
+               
