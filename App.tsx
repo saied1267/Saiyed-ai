@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Subject, ClassLevel, Group, ChatMessage, ChatTheme, AppUser } from './types';
 import Dashboard from './components/Dashboard';
 import Tutor from './components/Tutor';
@@ -25,22 +25,21 @@ const App: React.FC = () => {
   const [darkMode, setDarkMode] = useState<boolean>(false);
   const [weakTopics, setWeakTopics] = useState<string[]>([]);
   const [isSyncing, setIsSyncing] = useState(false);
+  
+  const isInitialMount = useRef(true);
 
-  const isAuthEnabled = isFirebaseConfigured;
-
+  // Initial local load
   useEffect(() => {
     const savedUser = localStorage.getItem('saiyed_ai_user');
     if (savedUser) setUser(JSON.parse(savedUser));
-
-    const savedHistory = localStorage.getItem('saiyed_ai_local_history');
-    if (savedHistory) setChatHistories(JSON.parse(savedHistory));
     
     const savedMode = localStorage.getItem('saiyed_ai_dark_mode');
     if (savedMode === 'true') setDarkMode(true);
   }, []);
 
+  // Sync from Cloud (Real-time)
   useEffect(() => {
-    if (!user?.uid || !isAuthEnabled) return;
+    if (!user?.uid || !isFirebaseConfigured) return;
 
     setIsSyncing(true);
     const userDocRef = doc(db, 'users', user.uid);
@@ -48,35 +47,37 @@ const App: React.FC = () => {
     const unsubUser = onSnapshot(userDocRef, (snapshot) => {
       if (snapshot.exists()) {
         const cloudData = snapshot.data();
+        
+        // Sync everything
         if (cloudData.chatHistories) {
           setChatHistories(cloudData.chatHistories);
           localStorage.setItem('saiyed_ai_local_history', JSON.stringify(cloudData.chatHistories));
         }
         if (cloudData.weakTopics) setWeakTopics(cloudData.weakTopics);
         if (cloudData.subjectThemes) setSubjectThemes(cloudData.subjectThemes);
-        if (cloudData.name && cloudData.name !== user.name) {
-          const updatedUser = { ...user, ...cloudData };
-          setUser(updatedUser);
-          localStorage.setItem('saiyed_ai_user', JSON.stringify(updatedUser));
+        if (cloudData.interests) {
+          setUser(prev => prev ? ({ ...prev, interests: cloudData.interests }) : null);
         }
       }
       setIsSyncing(false);
     }, (error) => {
-      console.error("Firestore Sync Error:", error);
+      console.error("Firebase Sync Error:", error);
       setIsSyncing(false);
     });
 
     return () => unsubUser();
-  }, [user?.uid, isAuthEnabled]);
+  }, [user?.uid]);
 
+  // Handle Dark Mode Class
   useEffect(() => {
     if (darkMode) document.documentElement.classList.add('dark');
     else document.documentElement.classList.remove('dark');
     localStorage.setItem('saiyed_ai_dark_mode', darkMode.toString());
   }, [darkMode]);
 
+  // Centralized Sync Function
   const syncToCloud = useCallback(async (dataToSync: any) => {
-    if (!user?.uid || !isAuthEnabled) return;
+    if (!user?.uid || !isFirebaseConfigured) return;
     try {
       const userDocRef = doc(db, 'users', user.uid);
       await setDoc(userDocRef, {
@@ -84,9 +85,9 @@ const App: React.FC = () => {
         lastUpdated: Date.now()
       }, { merge: true });
     } catch (e) {
-      console.error("Cloud Sync Failed:", e);
+      console.error("Cloud Push Failed:", e);
     }
-  }, [user?.uid, isAuthEnabled]);
+  }, [user?.uid]);
 
   const handleStartTutor = (lvl: ClassLevel, grp: Group, sub: Subject) => {
     setSelectedClass(lvl);
@@ -96,7 +97,7 @@ const App: React.FC = () => {
   };
 
   const updateInterests = async (interests: string[]) => {
-    if (!user?.uid) return;
+    if (!user) return;
     const updatedUser = { ...user, interests };
     setUser(updatedUser);
     localStorage.setItem('saiyed_ai_user', JSON.stringify(updatedUser));
@@ -106,7 +107,7 @@ const App: React.FC = () => {
   const handleFlagTopic = (topic: string) => {
     const newTopics = weakTopics.includes(topic) ? weakTopics : [...weakTopics, topic];
     setWeakTopics(newTopics);
-    if (user?.uid) syncToCloud({ weakTopics: newTopics });
+    syncToCloud({ weakTopics: newTopics });
   };
 
   const handleLogout = () => {
@@ -120,13 +121,15 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className={`flex flex-col fixed inset-0 w-full bg-[#F3F4F6] dark:bg-slate-950 transition-colors ${darkMode ? 'dark' : ''}`}>
-      {/* Discreet Sync Indicator */}
+    <div className={`flex flex-col fixed inset-0 w-full bg-[#F0F2F5] dark:bg-slate-950 transition-colors overflow-hidden ${darkMode ? 'dark' : ''}`}>
+      {/* Premium Loading/Sync Bar */}
       {isSyncing && (
-        <div className="absolute top-2 right-2 w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse z-[100]" title="Syncing..." />
+        <div className="absolute top-0 left-0 w-full h-[2px] bg-emerald-500/10 z-[100] overflow-hidden">
+          <div className="h-full bg-emerald-500 animate-[sync_1.5s_infinite_linear] w-1/3 shadow-[0_0_8px_#10b981]"></div>
+        </div>
       )}
 
-      <main className="flex-1 overflow-y-auto max-w-lg mx-auto w-full px-4 pt-4 scrollbar-hide">
+      <main className="flex-1 overflow-y-auto max-w-lg mx-auto w-full px-4 pt-4 scrollbar-hide pb-20">
         {currentView === View.AUTH && (
           <Auth onLogin={(userData: AppUser) => { setUser(userData); setCurrentView(View.DASHBOARD); }} onBack={() => setCurrentView(View.DASHBOARD)} />
         )}
@@ -141,14 +144,14 @@ const App: React.FC = () => {
               const newHist = { ...chatHistories, [selectedSubject]: msgs };
               setChatHistories(newHist);
               localStorage.setItem('saiyed_ai_local_history', JSON.stringify(newHist));
-              if (user?.uid) syncToCloud({ chatHistories: newHist });
+              syncToCloud({ chatHistories: newHist });
             }} 
             onBack={() => setCurrentView(View.DASHBOARD)} 
             theme={subjectThemes[selectedSubject] || 'emerald'} 
             onUpdateTheme={(t: ChatTheme) => {
               const newThemes = { ...subjectThemes, [selectedSubject]: t };
               setSubjectThemes(newThemes);
-              if (user?.uid) syncToCloud({ subjectThemes: newThemes });
+              syncToCloud({ subjectThemes: newThemes });
             }}
           />
         )}
@@ -162,25 +165,27 @@ const App: React.FC = () => {
               setChatHistories(newHist);
               localStorage.setItem('saiyed_ai_local_history', JSON.stringify(newHist));
               syncToCloud({ chatHistories: newHist });
-            }} onClearAll={() => { if (confirm('সব চ্যাট ইতিহাস মুছে ফেলতে চান?')) { setChatHistories({}); localStorage.setItem('saiyed_ai_local_history', '{}'); syncToCloud({ chatHistories: {} }); } }} />
+            }} onClearAll={() => { if (confirm('সব ইতিহাস মুছবেন?')) { setChatHistories({}); localStorage.setItem('saiyed_ai_local_history', '{}'); syncToCloud({ chatHistories: {} }); } }} />
         )}
         {currentView === View.MCQ && <MCQ subject={selectedSubject || Subject.MATH} onFlagTopic={handleFlagTopic} flaggedTopics={weakTopics} />}
         {currentView === View.PLANNER && <Planner initialWeakTopics={weakTopics} onFlagTopic={handleFlagTopic} />}
         {currentView === View.SETTINGS && (
-          <Settings 
-            user={user} 
-            onUpdateInterests={updateInterests} 
-            onGoToAuth={() => setCurrentView(View.AUTH)} 
-            darkMode={darkMode} 
-            setDarkMode={setDarkMode} 
-            onResetAll={() => { if (confirm('এটি আপনার সব লোকাল ডেটা মুছে ফেলবে এবং আপনাকে লগআউট করে দিবে। নিশ্চিত তো?')) handleLogout(); }} 
-          />
+          <Settings user={user} onUpdateInterests={updateInterests} onGoToAuth={() => setCurrentView(View.AUTH)} darkMode={darkMode} setDarkMode={setDarkMode} onResetAll={handleLogout} />
         )}
       </main>
 
       {currentView !== View.TUTOR && currentView !== View.AUTH && (
         <Navbar currentView={currentView} setCurrentView={setCurrentView} darkMode={darkMode} />
       )}
+      
+      <style>{`
+        @keyframes sync { 
+          0% { transform: translateX(-100%); } 
+          100% { transform: translateX(300%); } 
+        }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+      `}</style>
     </div>
   );
 };
