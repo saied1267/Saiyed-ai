@@ -114,24 +114,25 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
             <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2.5" fill="none"><polyline points="15 18 9 12 15 6"></polyline></svg>
           </button>
           <div>
-             <h2 className="text-[16px] font-black text-slate-900 dark:text-white leading-tight">সাঈদ এআই • {subject}</h2>
-             <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">অনলাইন</p>
+             <h2 className="text-[16px] font-black text-slate-900 dark:text-white leading-tight">{subject}</h2>
+             <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">সাঈদ এআই</p>
           </div>
         </div>
-        <button onClick={() => { if(confirm('চ্যাট ক্লিয়ার করবেন?')) onUpdateHistory([]); }} className="p-2 text-slate-400 hover:text-red-500 transition-colors">
-           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+        <button onClick={() => { if(confirm('নতুন চ্যাট শুরু করবেন?')) onUpdateHistory([]); }} className="flex items-center space-x-1.5 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-200 transition-colors">
+           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"></path></svg>
+           <span className="text-[11px] font-black uppercase">নিউ চ্যাট</span>
         </button>
       </header>
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 md:px-20 py-8 space-y-8 scrollbar-hide">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 md:px-20 py-8 space-y-12 scrollbar-hide">
         {history.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center animate-in fade-in zoom-in-95">
-            <div className="w-16 h-16 bg-slate-900 dark:bg-white text-white dark:text-slate-950 rounded-2xl flex items-center justify-center text-3xl shadow-lg font-black mb-6">S</div>
+            <div className="w-14 h-14 bg-slate-900 dark:bg-white text-white dark:text-slate-950 rounded-2xl flex items-center justify-center text-2xl shadow-lg font-black mb-6">S</div>
             <h1 className="text-3xl font-black text-slate-900 dark:text-white mb-3">সাঈদ এআই টিউটর</h1>
             <p className="text-slate-500 font-bold mb-10">আজ আপনাকে কিভাবে সাহায্য করতে পারি?</p>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full max-w-lg">
-               {[`${subject} সম্পর্কে বেসিক ধারণা দাও`, `এই বিষয়ের গুরুত্বপূর্ণ টপিকগুলো কী?`, `একটি কুইজ নাও`, `সহজ উদাহরণ দিয়ে বোঝাও`].map((s, si) => (
+               {[`${subject} এর গুরুত্বপূর্ণ সূত্রগুলো দাও`, `${subject} সহজ করে বুঝিয়ে দাও`, `এই বিষয়ের উপর একটি কুইজ নাও`, `একটি উদাহরণ দিয়ে বুঝিয়ে বলো`].map((s, si) => (
                  <button key={si} onClick={() => handleSend(s)} className="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 font-bold text-sm rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all text-left">
                    {s}
                  </button>
@@ -145,14 +146,13 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
             <div className={`flex flex-col ${m.role === 'user' ? 'items-end max-w-[85%]' : 'w-full'}`}>
               <div className={`px-4 py-3 rounded-2xl ${
                 m.role === 'user' 
-                ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-tr-none' 
+                ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100' 
                 : 'w-full'
               }`}>
                 {m.image && <img src={m.image} className="w-full rounded-xl mb-3 max-h-72 object-cover border dark:border-slate-800" alt="uploaded" />}
                 
                 {m.role === 'model' ? (
-                  <div className="flex items-start space-x-4">
-                    <div className="w-8 h-8 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 rounded-lg flex-shrink-0 flex items-center justify-center text-[10px] font-black shadow-sm mt-1">S</div>
+                  <div className="flex items-start w-full">
                     <div className="flex-1">
                       {m.text ? (
                         <div className="w-full">
@@ -182,17 +182,14 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
 
         {loading && history.length > 0 && history[history.length - 1].role === 'user' && (
           <div className="flex justify-start animate-in slide-in-from-bottom-2">
-             <div className="flex items-start space-x-4 w-full">
-                <div className="w-8 h-8 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 rounded-lg flex-shrink-0 flex items-center justify-center text-[10px] font-black shadow-sm mt-1">S</div>
-                <div className="flex-1 py-1">
-                   <p className="text-[14px] font-black text-blue-600 dark:text-blue-400 animate-pulse mb-3">
-                     সাঈদ এর এআই গভীর ভাবে বিশ্লেষণ করছে...
-                   </p>
-                   <div className="flex items-center space-x-1.5">
-                      <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce"></div>
-                      <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce delay-700"></div>
-                      <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce delay-1000"></div>
-                   </div>
+             <div className="flex flex-col w-full">
+                <p className="text-[14px] font-black text-blue-600 dark:text-blue-400 animate-pulse mb-3">
+                  সাঈদ এর এআই গভীর ভাবে বিশ্লেষণ করছে...
+                </p>
+                <div className="flex items-center space-x-1.5">
+                   <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce"></div>
+                   <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce delay-700"></div>
+                   <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce delay-1000"></div>
                 </div>
              </div>
           </div>
@@ -246,7 +243,6 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
               <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
             </button>
           </div>
-          <p className="text-[10px] text-center text-slate-400 mt-3 font-bold">সাঈদ এআই নির্ভুল উত্তর প্রদানের চেষ্টা করে। কোনো তথ্যে ভুল থাকতে পারে।</p>
         </div>
       </div>
       
