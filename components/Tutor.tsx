@@ -30,8 +30,6 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
 
   useEffect(() => {
     scrollToBottom();
-    // Re-render KaTeX math after messages update
-    // Use type assertion to access KaTeX auto-render extension on window to fix TS errors
     const win = window as any;
     if (win.renderMathInElement) {
       win.renderMathInElement(document.body, {
@@ -54,21 +52,27 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
       timestamp: Date.now() 
     };
     
+    // Save current history BEFORE adding the new message to pass it as 'previous conversation'
+    const previousHistory = [...history];
     const newHistory = [...history, userMsg];
+    
     onUpdateHistory(newHistory);
     setInput('');
     setSelectedImage(null);
     setLoading(true);
 
     const aiPlaceholder: ChatMessage = { role: 'model', text: '', timestamp: Date.now() };
-    const historyWithPlaceholder = [...newHistory, aiPlaceholder];
-    onUpdateHistory(historyWithPlaceholder);
+    onUpdateHistory([...newHistory, aiPlaceholder]);
 
     try {
       await getTutorResponseStream(
         textToSend, 
         { classLevel, group, subject, user },
-        newHistory.map(m => ({ role: m.role, parts: [{ text: m.text }] })),
+        // Pass only the previous turns. The current turn is handled inside getTutorResponseStream.
+        previousHistory.map(m => ({ 
+          role: m.role, 
+          parts: [{ text: m.text }] 
+        })),
         selectedImage || undefined,
         (streamedText) => {
           onUpdateHistory([...newHistory, { ...aiPlaceholder, text: streamedText }]);
@@ -87,12 +91,10 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
       const trimmed = line.trim();
       if (!trimmed) return <div key={idx} className="h-2"></div>;
       
-      // Formatting headers
       if (trimmed.startsWith('###')) {
         return <h3 key={idx} className="text-lg font-black text-emerald-600 dark:text-emerald-400 mt-5 mb-3">{trimmed.replace('###', '')}</h3>;
       }
       
-      // Basic bold formatting (simple implementation)
       const boldRegex = /\*\*(.*?)\*\*/g;
       const parts = line.split(boldRegex);
       
@@ -121,7 +123,7 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
              </div>
           </div>
         </div>
-        <button onClick={() => { if(confirm('নতুন চ্যাট?')) onUpdateHistory([]); }} className="p-2.5 bg-slate-50 dark:bg-slate-800 rounded-xl active:rotate-90 transition-all">🔄</button>
+        <button onClick={() => { if(confirm('নতুন চ্যাট শুরু করবেন?')) onUpdateHistory([]); }} className="p-2.5 bg-slate-50 dark:bg-slate-800 rounded-xl active:rotate-90 transition-all">🔄</button>
       </header>
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-6 space-y-8 scrollbar-hide">
@@ -165,6 +167,17 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
             </div>
           </div>
         ))}
+        {loading && history.length > 0 && history[history.length - 1].role === 'user' && (
+          <div className="flex justify-start animate-in slide-in-from-bottom-2">
+            <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-2xl rounded-tl-none border border-slate-100 dark:border-slate-800">
+               <div className="flex items-center space-x-2 text-emerald-500 py-2">
+                  <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce"></div>
+                  <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce delay-75"></div>
+                  <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce delay-150"></div>
+                </div>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="flex-shrink-0 px-4 py-4 border-t dark:border-slate-800 bg-white dark:bg-slate-950 pb-8">
