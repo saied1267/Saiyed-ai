@@ -39,6 +39,20 @@ const App: React.FC = () => {
     if (savedWeak) setWeakTopics(JSON.parse(savedWeak));
   }, []);
 
+  // Sync logic for updating cloud
+  const syncToCloud = useCallback(async (dataToSync: any) => {
+    if (!user?.uid || !isFirebaseConfigured || !navigator.onLine) return;
+    try {
+      const userDocRef = doc(db, 'users', user.uid);
+      await setDoc(userDocRef, {
+        ...dataToSync,
+        lastUpdated: Date.now()
+      }, { merge: true });
+    } catch (e) {
+      console.error("Firebase Sync failed:", e);
+    }
+  }, [user?.uid]);
+
   // Sync with Cloud when Online
   useEffect(() => {
     if (!user?.uid || !isFirebaseConfigured || !navigator.onLine) return;
@@ -86,19 +100,6 @@ const App: React.FC = () => {
     if (darkMode) document.documentElement.classList.add('dark');
     else document.documentElement.classList.remove('dark');
   }, [darkMode]);
-
-  const syncToCloud = useCallback(async (dataToSync: any) => {
-    if (!user?.uid || !isFirebaseConfigured || !navigator.onLine) return;
-    try {
-      const userDocRef = doc(db, 'users', user.uid);
-      await setDoc(userDocRef, {
-        ...dataToSync,
-        lastUpdated: Date.now()
-      }, { merge: true });
-    } catch (e) {
-      console.error("Firebase Sync failed:", e);
-    }
-  }, [user?.uid]);
 
   const handleUpdateName = async (newName: string) => {
     if (!user) return;
