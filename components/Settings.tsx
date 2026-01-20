@@ -34,10 +34,10 @@ const Settings: React.FC<SettingsProps> = ({
   };
 
   return (
-    <div className="space-y-6 pb-20 animate-in fade-in duration-500 font-['Hind_Siliguri']">
-      <header className="px-1">
+    <div className="space-y-6 pb-20 animate-in fade-in duration-500 font-['Hind_Siliguri'] px-1">
+      <header className="mb-8">
         <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">সেটিংস</h2>
-        <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mt-1">আপনার প্রোফাইল ও অ্যাপ সেটিংস</p>
+        <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mt-1">প্রোফাইল ও অ্যাপ সেটিংস</p>
       </header>
 
       <section className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 shadow-sm border border-slate-100 dark:border-slate-800">
@@ -111,14 +111,10 @@ const Settings: React.FC<SettingsProps> = ({
         </div>
 
         <div className="p-2 pt-4">
-          <button onClick={onResetAll} className="w-full py-5 bg-red-50 dark:bg-red-900/10 text-red-500 rounded-[1.5rem] font-black text-xs uppercase tracking-[0.2em] active:scale-[0.98] transition-all border border-red-100/50 dark:border-red-900/20">
-            রিসেট ও লগআউট
+          <button onClick={() => { if(confirm('লগআউট করতে চান?')) onResetAll(); }} className="w-full py-5 bg-red-50 dark:bg-red-900/10 text-red-500 rounded-[1.5rem] font-black text-xs uppercase tracking-[0.2em] active:scale-[0.98] transition-all border border-red-100/50 dark:border-red-900/20">
+            লগআউট
           </button>
         </div>
-      </div>
-
-      <div className="text-center pt-6 opacity-30">
-        <p className="text-[9px] font-black uppercase tracking-[0.4em]">Saiyed AI • v2.0.1</p>
       </div>
     </div>
   );
