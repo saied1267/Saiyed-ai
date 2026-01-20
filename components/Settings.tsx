@@ -32,10 +32,10 @@ const Settings: React.FC<SettingsProps> = ({
   };
 
   const handleSaveName = () => {
-    if (tempName.trim()) {
+    if (tempName.trim() && tempName !== user?.name) {
       onUpdateName(tempName.trim());
-      setIsEditingName(false);
     }
+    setIsEditingName(false);
   };
 
   const removeInterest = (interest: string) => {
@@ -44,7 +44,7 @@ const Settings: React.FC<SettingsProps> = ({
   };
 
   return (
-    <div className="space-y-6 pb-10 animate-in fade-in duration-500 font-['Hind_Siliguri'] px-1">
+    <div className="space-y-6 pb-20 animate-in fade-in duration-500 font-['Hind_Siliguri'] px-1">
       <header className="mb-8">
         <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">সেটিংস</h2>
         <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mt-1">প্রোফাইল ও অ্যাপ সেটিংস</p>
@@ -65,12 +65,16 @@ const Settings: React.FC<SettingsProps> = ({
               </div>
               <div className="flex-1">
                 {isEditingName ? (
-                  <div className="flex space-x-2">
+                  <div className="space-y-2">
                     <input 
                       type="text" value={tempName} onChange={e => setTempName(e.target.value)}
-                      className="flex-1 bg-slate-50 dark:bg-slate-950 border-2 border-emerald-500 rounded-xl px-3 py-1.5 text-sm font-bold outline-none dark:text-white"
+                      className="w-full bg-slate-50 dark:bg-slate-950 border-2 border-emerald-500 rounded-xl px-4 py-2 text-sm font-bold outline-none dark:text-white"
+                      autoFocus
                     />
-                    <button onClick={handleSaveName} className="bg-emerald-600 text-white px-3 rounded-xl text-[10px] font-black uppercase">সেভ</button>
+                    <div className="flex space-x-2">
+                      <button onClick={handleSaveName} className="flex-1 bg-emerald-600 text-white py-2 rounded-xl text-[10px] font-black uppercase">সেভ করুন</button>
+                      <button onClick={() => setIsEditingName(false)} className="px-4 bg-slate-100 text-slate-500 py-2 rounded-xl text-[10px] font-black uppercase">বাতিল</button>
+                    </div>
                   </div>
                 ) : (
                   <div className="flex items-center justify-between">
