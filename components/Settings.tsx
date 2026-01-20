@@ -38,11 +38,27 @@ const Settings: React.FC<SettingsProps> = ({
   };
 
   return (
-    <div className="space-y-6 pb-20 animate-in fade-in duration-500 font-['Hind_Siliguri'] px-1 bg-white dark:bg-slate-950 min-h-screen">
+    <div className="space-y-6 pb-24 animate-in fade-in duration-500 font-['Hind_Siliguri'] px-1 bg-white dark:bg-slate-950 min-h-screen">
       <header className="mb-8">
         <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">সেটিংস</h2>
         <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mt-1">প্রোফাইল ও অ্যাপ সেটিংস</p>
       </header>
+
+      {/* Developer Information Card */}
+      <section className="bg-gradient-to-br from-slate-900 to-slate-800 dark:from-emerald-950 dark:to-slate-900 rounded-[2.5rem] p-8 shadow-2xl text-white relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full -mr-16 -mt-16 blur-3xl"></div>
+        <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-400 mb-4 relative z-10">ডেভেলপার তথ্য</h3>
+        <div className="flex items-center space-x-4 relative z-10">
+          <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center text-2xl border border-white/10 backdrop-blur-sm">👨‍💻</div>
+          <div>
+            <h4 className="text-xl font-black leading-tight">সাঈদ (Saiyed)</h4>
+            <p className="text-[11px] font-bold text-emerald-400">হাটহাজারী কলেজ, চট্টগ্রাম</p>
+          </div>
+        </div>
+        <p className="text-[12px] font-medium text-slate-300 mt-4 leading-relaxed relative z-10">
+          "সাঈদ এআই" একটি পার্সোনাল লার্নিং প্রজেক্ট যা বাংলাদেশি শিক্ষার্থীদের জন্য বিশেষভাবে তৈরি করা হয়েছে।
+        </p>
+      </section>
 
       <section className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 shadow-sm border-2 border-slate-50 dark:border-slate-800">
         <h3 className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 mb-8">পার্সোনাল প্রোফাইল</h3>
@@ -111,7 +127,7 @@ const Settings: React.FC<SettingsProps> = ({
           </button>
         </div>
         <div className="p-2 pt-4">
-          <button onClick={onResetAll} className="w-full py-5 bg-red-50 text-red-500 rounded-[1.5rem] font-black text-xs uppercase tracking-[0.2em]">লগআউট</button>
+          <button onClick={() => { if(confirm('লগআউট করতে চান?')) onResetAll(); }} className="w-full py-5 bg-red-50 text-red-500 rounded-[1.5rem] font-black text-xs uppercase tracking-[0.2em]">লগআউট</button>
         </div>
       </div>
     </div>
