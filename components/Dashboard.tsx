@@ -100,7 +100,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                <div className="h-[1px] flex-1 bg-slate-100 dark:bg-slate-800 rounded-full"></div>
             </div>
             
-            <div className="grid grid-cols-1 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
               {group.subjects.map((sub, sIdx) => (
                 <button 
                   key={sIdx} 
