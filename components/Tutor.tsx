@@ -137,7 +137,7 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
           onClick={handleNewChat}
           className="p-2.5 bg-slate-50 dark:bg-slate-900 border dark:border-slate-800 rounded-xl text-[10px] font-black uppercase text-emerald-600 active:scale-95 transition-all shadow-sm"
         >
-          নতুন আলাপ ➕
+          New Chat ➕
         </button>
       </header>
 
@@ -225,8 +225,7 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
             <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
           </button>
         </div>
-        <p className="text-center text-[8px] font-bold text-slate-400 mt-4 uppercase tracking-[0.3em]">AI can make mistakes. Verify important info.</p>
-      </div>
+    </div>
     </div>
   );
 };
