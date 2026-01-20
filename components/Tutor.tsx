@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Subject, ChatMessage, ChatTheme, ClassLevel, Group, AppUser } from '../types';
 import { getTutorResponseStream } from '../geminiService';
@@ -55,10 +54,10 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
       image: selectedImage || undefined, 
       timestamp: Date.now() 
     };
-    
+
     const previousHistory = [...history];
     const newHistory = [...history, userMsg];
-    
+
     onUpdateHistory(newHistory);
     setInput('');
     setSelectedImage(null);
@@ -71,10 +70,7 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
       await getTutorResponseStream(
         textToSend, 
         { classLevel, group, subject, user },
-        previousHistory.map(m => ({ 
-          role: m.role, 
-          parts: [{ text: m.text }] 
-        })),
+        previousHistory.map(m => ({ role: m.role, parts: [{ text: m.text }] })),
         selectedImage || undefined,
         (streamedText) => {
           onUpdateHistory([...newHistory, { ...aiPlaceholder, text: streamedText }]);
@@ -106,7 +102,8 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
       return lines.map((line, lIdx) => {
         const trimmed = line.trim();
         if (!trimmed) return <div key={`${idx}-${lIdx}`} className="h-4"></div>;
-        
+
+        // Heading
         if (trimmed.startsWith('###')) {
           return (
             <h3 key={`${idx}-${lIdx}`} className="text-[16px] font-bold text-slate-900 dark:text-white mt-6 mb-3">
@@ -114,10 +111,30 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
             </h3>
           );
         }
-        
+
+        // Bullet list
+        if (trimmed.startsWith('* ')) {
+          const items = lines.filter(l => l.trim().startsWith('* ')).map(l => l.trim().replace('* ', ''));
+          return (
+            <ul key={`${idx}-${lIdx}`} className="ml-5 list-disc text-[14px] font-medium leading-[1.8] dark:text-slate-200 text-slate-800">
+              {items.map((item, i) => <li key={i}>{item}</li>)}
+            </ul>
+          );
+        }
+
+        // Numbered list
+        if (/^\d+\.\s+/.test(trimmed)) {
+          const items = lines.filter(l => /^\d+\.\s+/.test(l.trim())).map(l => l.trim().replace(/^\d+\.\s+/, ''));
+          return (
+            <ol key={`${idx}-${lIdx}`} className="ml-5 list-decimal text-[14px] font-medium leading-[1.8] dark:text-slate-200 text-slate-800">
+              {items.map((item, i) => <li key={i}>{item}</li>)}
+            </ol>
+          );
+        }
+
+        // Normal paragraph with bold
         const boldRegex = /\*\*(.*?)\*\*/g;
         const lineParts = line.split(boldRegex);
-        
         return (
           <p key={`${idx}-${lIdx}`} className="mb-2 text-[14px] font-medium leading-[1.8] dark:text-slate-200 text-slate-800 break-words">
             {lineParts.map((lp, i) => (
@@ -155,7 +172,7 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
               <div className="w-10 h-10 bg-slate-900 dark:bg-white text-white dark:text-slate-950 rounded-xl flex items-center justify-center text-lg shadow-sm font-black mb-6">S</div>
               <h1 className="text-xl font-black text-slate-900 dark:text-white mb-2">সাঈদ এআই টিউটর</h1>
               <p className="text-slate-500 font-bold mb-10 text-[13px]">আজ আপনাকে কিভাবে সাহায্য করতে পারি?</p>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 w-full px-4">
                  {[`${subject} এর গুরুত্বপূর্ণ সূত্র`, `সাঈদ সম্পর্কে জানান`, `একটি উদাহরণ দাও`, `শর্টকাট টিপস`].map((s, si) => (
                    <button key={si} onClick={() => handleSend(s)} className="p-3 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 text-slate-700 dark:text-slate-300 font-bold text-[12px] rounded-xl hover:bg-slate-50 transition-all text-left shadow-sm">
@@ -176,7 +193,7 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
                     : 'bg-transparent w-full'
                   }`}>
                     {m.image && <img src={m.image} className="w-full rounded-xl mb-4 max-h-80 object-cover border dark:border-slate-800 shadow-sm" alt="uploaded" />}
-                    
+
                     {m.role === 'model' ? (
                       <div className="w-full">
                         {m.text ? (
@@ -225,7 +242,7 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
               <button onClick={() => setSelectedImage(null)} className="absolute -top-2 -right-2 bg-slate-900 text-white w-5 h-5 rounded-full text-[9px] font-black flex items-center justify-center border-2 border-white">✕</button>
             </div>
           )}
-          
+
           <div className="flex items-end bg-slate-50 dark:bg-slate-900/50 p-2 rounded-2xl border dark:border-slate-800 shadow-sm transition-all focus-within:bg-white dark:focus-within:bg-slate-900 focus-within:ring-1 focus-within:ring-slate-200 dark:focus-within:ring-slate-700">
             <button onClick={() => fileInputRef.current?.click()} className="p-2.5 text-slate-400 hover:text-slate-600 transition-colors">
               <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
@@ -238,7 +255,7 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
                 reader.readAsDataURL(file);
               }
             }} />
-            
+
             <textarea 
               rows={1}
               value={input} 
@@ -256,7 +273,7 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
               }}
               className="flex-1 bg-transparent px-2 py-2.5 outline-none font-medium text-[14px] dark:text-white resize-none max-h-32 leading-relaxed"
             />
-            
+
             <button 
               onClick={() => handleSend()} disabled={(!input.trim() && !selectedImage) || loading}
               className={`p-2.5 rounded-xl transition-all ${input.trim() || selectedImage ? 'text-slate-900 dark:text-white active:scale-90' : 'text-slate-200 dark:text-slate-800'}`}
@@ -266,7 +283,7 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
           </div>
         </div>
       </div>
-      
+
       <style>{`
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         textarea { scrollbar-width: none; }
@@ -282,4 +299,5 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
     </div>
   );
 };
+
 export default Tutor;
