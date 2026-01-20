@@ -22,6 +22,17 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const getSuggestionsForSubject = (sub: Subject) => {
+    const subjectSpecific: Record<string, string[]> = {
+      [Subject.MATH]: [`পিথাগোরাসের উপপাদ্য বুঝাও`, `বীজগণিতের সব সূত্র`, `জ্যামিতি সমাধান`],
+      [Subject.ICT]: [`বাইনারি টু ডেসিমাল`, `HTML এর ধারণা`, `কম্পিউটার নেটওয়ার্ক`],
+      [Subject.ENGLISH]: [`Tense মনে রাখার উপায়`, `Vocabulary বাড়ানো`, `Formal Letter`],
+    };
+    return [...(subjectSpecific[sub] || [`সাঈদ সম্পর্কে জানাও`, `পড়া মনে রাখার টিপস`]), `সহজ করে বুঝিয়ে দাও`].slice(0, 4);
+  };
+
+  const currentSuggestions = getSuggestionsForSubject(subject);
+
   useEffect(() => { 
     if (scrollRef.current) scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [history, loading]);
@@ -63,7 +74,7 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
 
   return (
     <div className="fixed inset-0 z-[60] flex flex-col bg-white dark:bg-slate-950 font-['Hind_Siliguri']">
-      <header className="flex-shrink-0 flex items-center justify-between px-6 py-4 border-b dark:border-slate-900 bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl">
+      <header className="flex-shrink-0 flex items-center justify-between px-6 py-4 border-b dark:border-slate-900 bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl sticky top-0 z-50">
         <div className="flex items-center space-x-4">
           <button onClick={onBack} className="p-2.5 bg-slate-100 dark:bg-slate-900 rounded-2xl active:scale-90 transition-all text-slate-600">
             <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" strokeWidth="3" fill="none"><polyline points="15 18 9 12 15 6"></polyline></svg>
@@ -73,9 +84,31 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
              <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest">সাঈদ এআই এক্টিভ</span>
           </div>
         </div>
+        <button onClick={() => { if(confirm('নতুন চ্যাট?')) onUpdateHistory([]); }} className="p-2.5 bg-slate-100 dark:bg-slate-900 rounded-2xl active:rotate-180 transition-all">🔄</button>
       </header>
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-8 space-y-10 scrollbar-hide max-w-2xl mx-auto w-full pb-32">
+        {history.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-12 text-center animate-in fade-in zoom-in-95 duration-700">
+            <div className="w-20 h-20 bg-emerald-600 text-white rounded-[2.2rem] flex items-center justify-center text-4xl shadow-2xl font-black mb-8">S</div>
+            <h1 className="text-3xl font-black text-slate-900 dark:text-white mb-2 tracking-tight">সাঈদ এআই টিউটর</h1>
+            <p className="text-xs text-slate-400 font-bold mb-10 max-w-[220px]">আজ আপনাকে এই বিষয়ে কোন সাহায্য করতে পারি?</p>
+            
+            <div className="grid grid-cols-1 gap-3 w-full max-w-sm">
+               {currentSuggestions.map((s, si) => (
+                 <button 
+                   key={si} 
+                   onClick={() => handleSend(s)} 
+                   className="group p-4 bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 text-slate-800 dark:text-slate-300 font-black text-xs rounded-[1.8rem] hover:border-emerald-500 hover:shadow-lg transition-all text-left flex items-center justify-between"
+                 >
+                   <span>✨ {s}</span>
+                   <span className="text-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity">→</span>
+                 </button>
+               ))}
+            </div>
+          </div>
+        )}
+
         {history.map((m, i) => (
           <div key={i} className={`flex w-full ${m.role === 'user' ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-2`}>
             <div className={`w-full ${m.role === 'user' ? 'max-w-[85%] flex flex-col items-end' : ''}`}>
@@ -114,7 +147,7 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
             <button onClick={() => setSelectedImage(null)} className="absolute -top-2 -right-2 bg-red-500 text-white w-6 h-6 rounded-full text-xs font-black">✕</button>
           </div>
         )}
-        <div className="flex items-center bg-slate-100 dark:bg-slate-900 p-2 rounded-[2.2rem] border dark:border-slate-800">
+        <div className="flex items-center bg-slate-100 dark:bg-slate-900 p-2 rounded-[2.2rem] border dark:border-slate-800 shadow-inner">
           <button onClick={() => fileInputRef.current?.click()} className="p-3 bg-white dark:bg-slate-800 rounded-full shadow-sm active:scale-90 transition-all">📸</button>
           <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={(e) => {
             const file = e.target.files?.[0];
