@@ -41,7 +41,7 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
           throwOnError: false
         });
       }
-    }, 100);
+    }, 150);
     return () => clearTimeout(timer);
   }, [history, loading]);
 
@@ -96,12 +96,8 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
     return parts.map((part, idx) => {
       if (part.startsWith('$$') && part.endsWith('$$')) {
         return (
-          <div key={idx} className="my-5 w-full">
-            <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 overflow-x-auto shadow-sm">
-               <div className="math-container text-[15px] text-slate-900 dark:text-slate-100 py-1">
-                 {part}
-               </div>
-            </div>
+          <div key={idx} className="my-4 py-2 text-center md:text-left overflow-x-auto math-container">
+            {part}
           </div>
         );
       }
@@ -112,7 +108,7 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
         
         if (trimmed.startsWith('###')) {
           return (
-            <h3 key={`${idx}-${lIdx}`} className="text-[17px] font-black text-slate-900 dark:text-white mt-7 mb-4 tracking-tight">
+            <h3 key={`${idx}-${lIdx}`} className="text-[16px] font-bold text-slate-900 dark:text-white mt-6 mb-3 tracking-tight">
               {trimmed.replace('###', '').trim()}
             </h3>
           );
@@ -122,9 +118,9 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
         const lineParts = line.split(boldRegex);
         
         return (
-          <p key={`${idx}-${lIdx}`} className="mb-3 text-[14.5px] font-medium leading-[1.8] dark:text-slate-200 text-slate-800 break-words overflow-visible py-0.5">
+          <p key={`${idx}-${lIdx}`} className="mb-3 text-[14px] font-medium leading-[1.85] dark:text-slate-200 text-slate-800 break-words overflow-visible">
             {lineParts.map((lp, i) => (
-              i % 2 === 1 ? <strong key={i} className="font-black text-slate-950 dark:text-white">{lp}</strong> : lp
+              i % 2 === 1 ? <strong key={i} className="font-bold text-slate-950 dark:text-white">{lp}</strong> : lp
             ))}
           </p>
         );
@@ -134,23 +130,25 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
 
   return (
     <div className="fixed inset-0 z-[60] flex flex-col bg-white dark:bg-slate-950 font-['Hind_Siliguri']">
-      <header className="flex-shrink-0 flex items-center justify-between px-4 py-3 bg-white dark:bg-slate-950 z-50">
-        <div className="flex items-center space-x-2">
-          <button onClick={onBack} className="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all">
+      {/* Header */}
+      <header className="flex-shrink-0 flex items-center justify-between px-4 py-3 bg-white/90 dark:bg-slate-950/90 backdrop-blur-sm z-50 border-b dark:border-slate-900/50">
+        <div className="flex items-center space-x-3">
+          <button onClick={onBack} className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-all">
             <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2.5" fill="none"><polyline points="15 18 9 12 15 6"></polyline></svg>
           </button>
           <div className="flex flex-col">
-             <h2 className="text-[14px] font-black text-slate-900 dark:text-white leading-tight">{subject}</h2>
-             <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">সাঈদ এআই</span>
+             <h2 className="text-[14px] font-bold text-slate-800 dark:text-slate-200 leading-none">{subject}</h2>
+             <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">সাঈদ এআই</span>
           </div>
         </div>
-        <button onClick={() => { if(confirm('নতুন চ্যাট শুরু করবেন?')) onUpdateHistory([]); }} className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
-           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+        <button onClick={() => { if(confirm('নতুন চ্যাট শুরু করবেন?')) onUpdateHistory([]); }} className="p-2 text-slate-400 hover:text-slate-600 transition-colors">
+           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
         </button>
       </header>
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 md:px-0 py-4 scrollbar-hide overflow-x-hidden">
-        <div className="max-w-2xl mx-auto w-full">
+      {/* Chat History */}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 md:px-0 scrollbar-hide">
+        <div className="max-w-2xl mx-auto w-full pt-8 pb-10">
           {history.length === 0 && (
             <div className="flex flex-col items-center justify-center py-20 text-center animate-in fade-in zoom-in-95">
               <div className="w-10 h-10 bg-slate-900 dark:bg-white text-white dark:text-slate-950 rounded-xl flex items-center justify-center text-lg shadow-sm font-black mb-6">S</div>
@@ -159,7 +157,7 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 w-full px-4">
                  {[`${subject} এর গুরুত্বপূর্ণ সূত্র`, `সহজ করে বোঝাও`, `একটি উদাহরণ দাও`, `শর্টকাট টিপস`].map((s, si) => (
-                   <button key={si} onClick={() => handleSend(s)} className="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 font-bold text-[12px] rounded-xl hover:bg-slate-50 transition-all text-left">
+                   <button key={si} onClick={() => handleSend(s)} className="p-3 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 text-slate-700 dark:text-slate-300 font-bold text-[12px] rounded-xl hover:bg-slate-50 transition-all text-left shadow-sm">
                      {s}
                    </button>
                  ))}
@@ -167,16 +165,16 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
             </div>
           )}
 
-          <div className="space-y-10">
+          <div className="space-y-12">
             {history.map((m, i) => (
-              <div key={i} className={`flex w-full ${m.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in duration-300`}>
+              <div key={i} className={`flex w-full ${m.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in duration-500`}>
                 <div className={`${m.role === 'user' ? 'max-w-[85%]' : 'w-full'}`}>
                   <div className={`px-4 py-2 ${
                     m.role === 'user' 
-                    ? 'bg-slate-100 dark:bg-slate-800 rounded-2xl text-slate-900 dark:text-slate-100 shadow-sm' 
+                    ? 'bg-slate-100 dark:bg-slate-800 rounded-2xl text-slate-900 dark:text-slate-100' 
                     : 'bg-transparent w-full'
                   }`}>
-                    {m.image && <img src={m.image} className="w-full rounded-xl mb-4 max-h-72 object-cover border dark:border-slate-800" alt="uploaded" />}
+                    {m.image && <img src={m.image} className="w-full rounded-xl mb-4 max-h-80 object-cover border dark:border-slate-800 shadow-sm" alt="uploaded" />}
                     
                     {m.role === 'model' ? (
                       <div className="w-full">
@@ -185,15 +183,15 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
                             {renderFormattedText(m.text)}
                           </div>
                         ) : (
-                          <div className="flex items-center space-x-2 py-4">
-                             <div className="w-2 h-2 bg-slate-300 rounded-full animate-bounce"></div>
-                             <div className="w-2 h-2 bg-slate-300 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-                             <div className="w-2 h-2 bg-slate-300 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                          <div className="flex items-center space-x-1.5 py-4">
+                             <div className="w-1.5 h-1.5 bg-slate-400 dark:bg-slate-500 rounded-full animate-bounce"></div>
+                             <div className="w-1.5 h-1.5 bg-slate-400 dark:bg-slate-500 rounded-full animate-bounce [animation-delay:0.2s]"></div>
+                             <div className="w-1.5 h-1.5 bg-slate-400 dark:bg-slate-500 rounded-full animate-bounce [animation-delay:0.4s]"></div>
                           </div>
                         )}
                       </div>
                     ) : (
-                      <p className="text-[14.5px] font-medium leading-[1.8] whitespace-pre-wrap break-words py-1">{m.text}</p>
+                      <p className="text-[14px] font-medium leading-[1.8] whitespace-pre-wrap break-words py-1">{m.text}</p>
                     )}
                   </div>
                 </div>
@@ -202,27 +200,28 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
           </div>
 
           {loading && history.length > 0 && history[history.length - 1].role === 'user' && (
-            <div className="flex justify-start px-4 py-6 animate-in fade-in">
-               <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-slate-300 rounded-full animate-bounce"></div>
-                  <div className="w-2 h-2 bg-slate-300 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-                  <div className="w-2 h-2 bg-slate-300 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+            <div className="flex justify-start py-6 animate-in fade-in">
+               <div className="flex items-center space-x-1.5">
+                  <div className="w-1.5 h-1.5 bg-slate-400 dark:bg-slate-500 rounded-full animate-bounce"></div>
+                  <div className="w-1.5 h-1.5 bg-slate-400 dark:bg-slate-500 rounded-full animate-bounce [animation-delay:0.2s]"></div>
+                  <div className="w-1.5 h-1.5 bg-slate-400 dark:bg-slate-500 rounded-full animate-bounce [animation-delay:0.4s]"></div>
                </div>
             </div>
           )}
         </div>
       </div>
 
-      <div className="flex-shrink-0 px-4 py-4 md:py-6 bg-white dark:bg-slate-950 pb-8">
+      {/* Input Area */}
+      <div className="flex-shrink-0 px-4 py-4 bg-white dark:bg-slate-950">
         <div className="max-w-2xl mx-auto">
           {selectedImage && (
             <div className="relative inline-block mb-3 ml-1">
-              <img src={selectedImage} className="w-20 h-20 object-cover rounded-xl border border-slate-200 shadow-sm" alt="preview" />
-              <button onClick={() => setSelectedImage(null)} className="absolute -top-2 -right-2 bg-slate-900 text-white w-6 h-6 rounded-full text-[10px] font-black flex items-center justify-center border-2 border-white">✕</button>
+              <img src={selectedImage} className="w-16 h-16 object-cover rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm" alt="preview" />
+              <button onClick={() => setSelectedImage(null)} className="absolute -top-2 -right-2 bg-slate-900 text-white w-5 h-5 rounded-full text-[9px] font-black flex items-center justify-center border-2 border-white">✕</button>
             </div>
           )}
           
-          <div className="flex items-end bg-slate-50 dark:bg-slate-900 p-2 rounded-2xl border dark:border-slate-800 shadow-sm transition-all focus-within:ring-1 focus-within:ring-slate-300">
+          <div className="flex items-end bg-slate-50 dark:bg-slate-900/50 p-2 rounded-2xl border dark:border-slate-800 shadow-sm transition-all focus-within:bg-white dark:focus-within:bg-slate-900 focus-within:ring-1 focus-within:ring-slate-200 dark:focus-within:ring-slate-700">
             <button onClick={() => fileInputRef.current?.click()} className="p-2.5 text-slate-400 hover:text-slate-600 transition-colors">
               <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
             </button>
@@ -250,23 +249,24 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
                   handleSend();
                 }
               }}
-              className="flex-1 bg-transparent px-2 py-2.5 outline-none font-bold text-[13.5px] dark:text-white resize-none max-h-32 leading-relaxed"
+              className="flex-1 bg-transparent px-2 py-2.5 outline-none font-medium text-[14px] dark:text-white resize-none max-h-32 leading-relaxed"
             />
             
             <button 
               onClick={() => handleSend()} disabled={(!input.trim() && !selectedImage) || loading}
-              className={`p-2.5 rounded-xl transition-all ${input.trim() || selectedImage ? 'text-slate-900 dark:text-white active:scale-95' : 'text-slate-300 dark:text-slate-700'}`}
+              className={`p-2.5 rounded-xl transition-all ${input.trim() || selectedImage ? 'text-slate-900 dark:text-white active:scale-90' : 'text-slate-200 dark:text-slate-800'}`}
             >
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
             </button>
           </div>
+          <p className="text-[9px] text-center text-slate-400 font-bold mt-3 opacity-50">সাঈদ এআই নির্ভুল নাও হতে পারে। গুরুত্বপূর্ণ তথ্য যাচাই করে নিন।</p>
         </div>
       </div>
       
       <style>{`
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         textarea { scrollbar-width: none; }
-        .katex-display { margin: 0.5em 0; overflow-x: auto; overflow-y: hidden; padding: 0.2em 0; }
+        .katex-display { margin: 1em 0; overflow-x: auto; overflow-y: hidden; }
         .math-container::-webkit-scrollbar { height: 3px; }
         .math-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         p, span, h3, div { 
