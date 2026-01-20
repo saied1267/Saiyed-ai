@@ -1,0 +1,8 @@
+{
+  "name": "সাঈদ এআই",
+  "description": "A comprehensive AI-powered learning app for Bangladeshi students (School to University). Offers step-by-step solving, MCQ practice, and personalized study plans in Bangla and English.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
