@@ -34,33 +34,40 @@ const Auth: React.FC<AuthProps> = ({ onLogin, onBack }) => {
         userData = {
           uid: firebaseUser.uid,
           email: firebaseUser.email || '',
-          name: cloudData.name || firebaseUser.displayName || 'ইউজার',
+          name: cloudData.name || firebaseUser.displayName || 'শিক্ষার্থী',
           isPremium: true,
           interests: cloudData.interests || [],
           photoURL: cloudData.photoURL || firebaseUser.photoURL || undefined
         };
         
-        // Critical: Restore cloud histories to local immediately on login
         if (cloudData.chatHistories) {
           localStorage.setItem('saiyed_ai_local_history', JSON.stringify(cloudData.chatHistories));
         }
       } else {
+        // Create full initial document structure
         userData = {
           uid: firebaseUser.uid,
           email: firebaseUser.email || '',
-          name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'ইউজার',
+          name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'শিক্ষার্থী',
           isPremium: true,
           interests: [],
           photoURL: firebaseUser.photoURL || undefined
         };
-        await setDoc(userDocRef, { ...userData, chatHistories: {}, created: Date.now() });
+        
+        await setDoc(userDocRef, { 
+          ...userData, 
+          chatHistories: {}, 
+          weakTopics: [], 
+          subjectThemes: {},
+          created: Date.now() 
+        });
       }
       
       localStorage.setItem('saiyed_ai_user', JSON.stringify(userData));
       onLogin(userData);
     } catch (err: any) {
-      console.error("Auth Data Sync Error:", err);
-      setError({ msg: 'প্রোফাইল সিঙ্ক করতে সমস্যা হয়েছে। ডাটাবেস পারমিশন চেক করুন।', code: err.code });
+      console.error("Auth Sync Error:", err);
+      setError({ msg: 'প্রোফাইল সিঙ্ক করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।', code: err.code });
     }
   };
 
