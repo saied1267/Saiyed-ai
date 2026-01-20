@@ -96,19 +96,20 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
     return parts.map((part, idx) => {
       if (part.startsWith('$$') && part.endsWith('$$')) {
         return (
-          <div key={idx} className="my-4 py-2 text-center md:text-left overflow-x-auto math-container">
+          <div key={idx} className="my-5 py-2 w-full overflow-x-auto math-container text-[15px]">
             {part}
           </div>
         );
       }
 
-      return part.split('\n').map((line, lIdx) => {
+      const lines = part.split('\n');
+      return lines.map((line, lIdx) => {
         const trimmed = line.trim();
-        if (!trimmed) return <div key={`${idx}-${lIdx}`} className="h-3"></div>;
+        if (!trimmed) return <div key={`${idx}-${lIdx}`} className="h-4"></div>;
         
         if (trimmed.startsWith('###')) {
           return (
-            <h3 key={`${idx}-${lIdx}`} className="text-[16px] font-bold text-slate-900 dark:text-white mt-6 mb-3 tracking-tight">
+            <h3 key={`${idx}-${lIdx}`} className="text-[16px] font-bold text-slate-900 dark:text-white mt-6 mb-3">
               {trimmed.replace('###', '').trim()}
             </h3>
           );
@@ -118,7 +119,7 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
         const lineParts = line.split(boldRegex);
         
         return (
-          <p key={`${idx}-${lIdx}`} className="mb-3 text-[14px] font-medium leading-[1.85] dark:text-slate-200 text-slate-800 break-words overflow-visible">
+          <p key={`${idx}-${lIdx}`} className="mb-2 text-[14px] font-medium leading-[1.8] dark:text-slate-200 text-slate-800 break-words">
             {lineParts.map((lp, i) => (
               i % 2 === 1 ? <strong key={i} className="font-bold text-slate-950 dark:text-white">{lp}</strong> : lp
             ))}
@@ -131,14 +132,14 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
   return (
     <div className="fixed inset-0 z-[60] flex flex-col bg-white dark:bg-slate-950 font-['Hind_Siliguri']">
       {/* Header */}
-      <header className="flex-shrink-0 flex items-center justify-between px-4 py-3 bg-white/90 dark:bg-slate-950/90 backdrop-blur-sm z-50 border-b dark:border-slate-900/50">
+      <header className="flex-shrink-0 flex items-center justify-between px-4 py-3 bg-white/95 dark:bg-slate-950/95 backdrop-blur-sm z-50 border-b dark:border-slate-900/50">
         <div className="flex items-center space-x-3">
           <button onClick={onBack} className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-all">
             <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2.5" fill="none"><polyline points="15 18 9 12 15 6"></polyline></svg>
           </button>
           <div className="flex flex-col">
-             <h2 className="text-[14px] font-bold text-slate-800 dark:text-slate-200 leading-none">{subject}</h2>
-             <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">সাঈদ এআই</span>
+             <h2 className="text-[13px] font-bold text-slate-800 dark:text-slate-200 leading-none">{subject}</h2>
+             <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1">সাঈদ এআই</span>
           </div>
         </div>
         <button onClick={() => { if(confirm('নতুন চ্যাট শুরু করবেন?')) onUpdateHistory([]); }} className="p-2 text-slate-400 hover:text-slate-600 transition-colors">
@@ -165,10 +166,10 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
             </div>
           )}
 
-          <div className="space-y-12">
+          <div className="space-y-10">
             {history.map((m, i) => (
               <div key={i} className={`flex w-full ${m.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in duration-500`}>
-                <div className={`${m.role === 'user' ? 'max-w-[85%]' : 'w-full'}`}>
+                <div className={`${m.role === 'user' ? 'max-w-[80%]' : 'w-full'}`}>
                   <div className={`px-4 py-2 ${
                     m.role === 'user' 
                     ? 'bg-slate-100 dark:bg-slate-800 rounded-2xl text-slate-900 dark:text-slate-100' 
@@ -183,10 +184,13 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
                             {renderFormattedText(m.text)}
                           </div>
                         ) : (
-                          <div className="flex items-center space-x-1.5 py-4">
-                             <div className="w-1.5 h-1.5 bg-slate-400 dark:bg-slate-500 rounded-full animate-bounce"></div>
-                             <div className="w-1.5 h-1.5 bg-slate-400 dark:bg-slate-500 rounded-full animate-bounce [animation-delay:0.2s]"></div>
-                             <div className="w-1.5 h-1.5 bg-slate-400 dark:bg-slate-500 rounded-full animate-bounce [animation-delay:0.4s]"></div>
+                          <div className="flex flex-col space-y-3 py-4">
+                             <p className="text-[12px] font-bold text-slate-400 animate-pulse">সাঈদ এর এআই গভীর ভাবে বিশ্লেষণ করছে...</p>
+                             <div className="flex items-center space-x-1.5">
+                                <div className="w-1.5 h-1.5 bg-slate-300 dark:bg-slate-600 rounded-full animate-bounce"></div>
+                                <div className="w-1.5 h-1.5 bg-slate-300 dark:bg-slate-600 rounded-full animate-bounce [animation-delay:0.2s]"></div>
+                                <div className="w-1.5 h-1.5 bg-slate-300 dark:bg-slate-600 rounded-full animate-bounce [animation-delay:0.4s]"></div>
+                             </div>
                           </div>
                         )}
                       </div>
@@ -200,11 +204,12 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
           </div>
 
           {loading && history.length > 0 && history[history.length - 1].role === 'user' && (
-            <div className="flex justify-start py-6 animate-in fade-in">
+            <div className="flex flex-col justify-start px-4 py-8 animate-in fade-in space-y-3">
+               <p className="text-[12px] font-bold text-slate-400 animate-pulse">সাঈদ এর এআই গভীর ভাবে বিশ্লেষণ করছে...</p>
                <div className="flex items-center space-x-1.5">
-                  <div className="w-1.5 h-1.5 bg-slate-400 dark:bg-slate-500 rounded-full animate-bounce"></div>
-                  <div className="w-1.5 h-1.5 bg-slate-400 dark:bg-slate-500 rounded-full animate-bounce [animation-delay:0.2s]"></div>
-                  <div className="w-1.5 h-1.5 bg-slate-400 dark:bg-slate-500 rounded-full animate-bounce [animation-delay:0.4s]"></div>
+                  <div className="w-1.5 h-1.5 bg-slate-300 dark:bg-slate-600 rounded-full animate-bounce"></div>
+                  <div className="w-1.5 h-1.5 bg-slate-300 dark:bg-slate-600 rounded-full animate-bounce [animation-delay:0.2s]"></div>
+                  <div className="w-1.5 h-1.5 bg-slate-300 dark:bg-slate-600 rounded-full animate-bounce [animation-delay:0.4s]"></div>
                </div>
             </div>
           )}
@@ -212,7 +217,7 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
       </div>
 
       {/* Input Area */}
-      <div className="flex-shrink-0 px-4 py-4 bg-white dark:bg-slate-950">
+      <div className="flex-shrink-0 px-4 py-4 bg-white dark:bg-slate-950 pb-8">
         <div className="max-w-2xl mx-auto">
           {selectedImage && (
             <div className="relative inline-block mb-3 ml-1">
@@ -259,7 +264,6 @@ const Tutor: React.FC<TutorProps> = ({ subject, history, onUpdateHistory, onBack
               <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
             </button>
           </div>
-          <p className="text-[9px] text-center text-slate-400 font-bold mt-3 opacity-50">সাঈদ এআই নির্ভুল নাও হতে পারে। গুরুত্বপূর্ণ তথ্য যাচাই করে নিন।</p>
         </div>
       </div>
       
