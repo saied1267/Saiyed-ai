@@ -31,21 +31,24 @@ const History: React.FC<HistoryProps> = ({ user, chatHistories, onSelectSubject,
 
   const getSubjectIcon = (s: string) => {
     const mapping: Record<string, string> = {
-      [Subject.MATH]: 'https://cdn-icons-png.flaticon.com/512/3771/3771278.png',
-      [Subject.ICT]: 'https://cdn-icons-png.flaticon.com/512/919/919827.png',
-      [Subject.ENGLISH]: 'https://cdn-icons-png.flaticon.com/512/3898/3898082.png',
-      [Subject.PHYSICS]: 'https://cdn-icons-png.flaticon.com/512/2921/2921131.png',
-      [Subject.BANGLA]: 'https://cdn-icons-png.flaticon.com/512/2921/2921118.png',
+      [Subject.MATH]: 'https://cdn-icons-png.flaticon.com/128/3771/3771278.png',
+      [Subject.ICT]: 'https://cdn-icons-png.flaticon.com/128/919/919827.png',
+      [Subject.ENGLISH]: 'https://cdn-icons-png.flaticon.com/128/3898/3898082.png',
+      [Subject.PHYSICS]: 'https://cdn-icons-png.flaticon.com/128/2921/2921131.png',
+      [Subject.BANGLA]: 'https://cdn-icons-png.flaticon.com/128/2921/2921118.png',
+      [Subject.WORD]: 'https://cdn-icons-png.flaticon.com/128/732/732228.png',
+      [Subject.EXCEL]: 'https://cdn-icons-png.flaticon.com/128/732/732220.png',
+      [Subject.POWERPOINT]: 'https://cdn-icons-png.flaticon.com/128/732/732224.png',
     };
-    return mapping[s] || 'https://cdn-icons-png.flaticon.com/512/2921/2921124.png';
+    return mapping[s] || 'https://cdn-icons-png.flaticon.com/128/2921/2921124.png';
   };
 
   return (
-    <div className="space-y-8 pb-24 animate-in fade-in duration-500 font-['Hind_Siliguri']">
+    <div className="space-y-8 pb-10 animate-in fade-in duration-500 font-['Hind_Siliguri']">
       <header className="flex justify-between items-end py-4 border-b dark:border-slate-800">
         <div className="space-y-1">
           <h2 className="text-3xl font-black text-slate-800 dark:text-white tracking-tight">ইতিহাস</h2>
-          <p className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">আপনার শেখার অগ্রযাত্রা</p>
+          <p className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">আপনার অগ্রযাত্রা</p>
         </div>
         {subjectsWithHistory.length > 0 && (
           <button 
@@ -58,10 +61,10 @@ const History: React.FC<HistoryProps> = ({ user, chatHistories, onSelectSubject,
       </header>
 
       {subjectsWithHistory.length === 0 ? (
-        <div className="py-24 text-center flex flex-col items-center justify-center bg-white dark:bg-slate-900/50 rounded-[2.5rem] border dark:border-slate-800">
+        <div className="py-24 text-center flex flex-col items-center justify-center bg-white dark:bg-slate-900/50 rounded-[2.5rem] border-2 border-slate-50 dark:border-slate-800">
           <span className="text-5xl mb-6 grayscale opacity-20">📖</span>
           <h3 className="text-xl font-black text-slate-400">কোনো ইতিহাস নেই</h3>
-          <p className="text-[12px] text-slate-400 mt-2 max-w-[200px] leading-relaxed font-bold">আপনি যখন কোনো বিষয়ে পড়বেন, তার তালিকা এখানে দেখা যাবে।</p>
+          <p className="text-[12px] text-slate-400 mt-2 max-w-[200px] leading-relaxed font-bold">পড়া শুরু করলে তার তালিকা এখানে দেখা যাবে।</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -71,9 +74,9 @@ const History: React.FC<HistoryProps> = ({ user, chatHistories, onSelectSubject,
               <div key={subject} className="relative group animate-in slide-in-from-bottom-2">
                 <button
                   onClick={() => onSelectSubject(subject as Subject)}
-                  className="w-full bg-white dark:bg-slate-900 p-4 rounded-[1.5rem] shadow-sm border border-slate-100 dark:border-slate-800 flex items-center space-x-4 active:scale-[0.98] transition-all hover:border-emerald-500/30 text-left"
+                  className="w-full bg-white dark:bg-slate-900 p-4 rounded-[1.5rem] shadow-sm border-2 border-slate-50 dark:border-slate-800 flex items-center space-x-4 active:scale-[0.98] transition-all hover:border-emerald-500/30 text-left"
                 >
-                  <div className="w-12 h-12 bg-slate-50 dark:bg-slate-800/50 rounded-2xl flex items-center justify-center p-2.5 flex-shrink-0">
+                  <div className="w-12 h-12 bg-slate-50 dark:bg-slate-800/50 rounded-xl flex items-center justify-center p-2.5 flex-shrink-0">
                      <img src={getSubjectIcon(subject)} className="w-full h-full object-contain" alt="s" />
                   </div>
                   <div className="flex-1 min-w-0">
