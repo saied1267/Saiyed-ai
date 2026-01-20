@@ -1,17 +1,15 @@
 
 import React from 'react';
-import { Subject, ChatMessage, View, AppUser } from '../types';
+import { Subject, ChatMessage, View } from '../types';
 
 interface HistoryProps {
-  user: AppUser | null;
   chatHistories: Record<string, ChatMessage[]>;
   onSelectSubject: (subject: Subject) => void;
   onDeleteHistory: (subject: string) => void;
   onClearAll: () => void;
-  isSyncing?: boolean;
 }
 
-const History: React.FC<HistoryProps> = ({ user, chatHistories, onSelectSubject, onDeleteHistory, onClearAll, isSyncing }) => {
+const History: React.FC<HistoryProps> = ({ chatHistories, onSelectSubject, onDeleteHistory, onClearAll }) => {
   const subjectsWithHistory = (Object.entries(chatHistories) as [string, ChatMessage[]][])
     .filter(([_, msgs]) => msgs.length > 0)
     .sort((a, b) => {
@@ -42,12 +40,7 @@ const History: React.FC<HistoryProps> = ({ user, chatHistories, onSelectSubject,
       <header className="flex justify-between items-end px-1">
         <div>
           <h2 className="text-3xl font-black text-slate-800 dark:text-white">হিস্টোরি</h2>
-          <div className="flex items-center mt-1 space-x-2">
-            <span className={`w-2 h-2 rounded-full ${isSyncing ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'}`}></span>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-              {isSyncing ? 'ক্লাউডে সিঙ্ক হচ্ছে...' : 'সব তথ্য ক্লাউডে নিরাপদ'}
-            </p>
-          </div>
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">আপনার সব আলাপচারিতা সংরক্ষিত আছে</p>
         </div>
         {subjectsWithHistory.length > 0 && (
           <button 
@@ -59,22 +52,8 @@ const History: React.FC<HistoryProps> = ({ user, chatHistories, onSelectSubject,
         )}
       </header>
 
-      {/* Simplified Database Location Info */}
-      <div className="bg-emerald-600 p-6 rounded-[2.5rem] text-white shadow-xl shadow-emerald-500/20 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl"></div>
-        <h3 className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80 mb-3">ডাটাবেস আপডেট</h3>
-        <p className="text-[12px] font-bold leading-relaxed mb-4">
-          আপনার মেসেজগুলো এখন সরাসরি **users** ফোল্ডারেই সেভ হচ্ছে।
-        </p>
-        <div className="bg-black/20 p-4 rounded-2xl font-mono text-[10px] space-y-2 break-all border border-white/10">
-          <p>১. ফায়ারবেস রিফ্রেশ দিন।</p>
-          <p>২. আপনার আইডিতে ক্লিক করুন।</p>
-          <p>৩. নিচে **chatHistories** ফিল্ডটি খুঁজুন।</p>
-        </div>
-      </div>
-
       {subjectsWithHistory.length === 0 ? (
-        <div className="py-16 text-center flex flex-col items-center justify-center bg-white dark:bg-slate-900/50 rounded-[3rem] border-2 border-dashed border-slate-200 dark:border-slate-800">
+        <div className="py-24 text-center flex flex-col items-center justify-center bg-white dark:bg-slate-900/50 rounded-[3rem] border-2 border-dashed border-slate-200 dark:border-slate-800">
           <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center text-4xl mb-6 grayscale opacity-40">📝</div>
           <h3 className="text-xl font-black text-slate-400">কোনো হিস্টোরি নেই</h3>
           <p className="text-sm text-slate-400 mt-2 max-w-[200px] leading-relaxed font-medium">পড়ালেখা শুরু করলে আপনার সব চ্যাট এখানে জমা হবে।</p>
@@ -103,11 +82,26 @@ const History: React.FC<HistoryProps> = ({ user, chatHistories, onSelectSubject,
                     </p>
                   </div>
                 </button>
+                <button 
+                  onClick={(e) => handleDelete(e, subject)}
+                  className="absolute right-5 top-1/2 -translate-y-1/2 p-3 bg-red-50 dark:bg-red-900/20 text-red-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity active:scale-90 border border-red-100 dark:border-red-900/30"
+                  title="ডিলিট করুন"
+                >
+                  <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" strokeWidth="2.5" fill="none"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                </button>
               </div>
             );
           })}
         </div>
       )}
+      
+      <div className="pt-4 px-2">
+        <div className="p-6 bg-slate-900 dark:bg-black rounded-[2.5rem] border border-slate-800 text-center relative overflow-hidden">
+           <div className="absolute top-0 left-0 w-24 h-24 bg-emerald-500/10 rounded-full blur-3xl -ml-12 -mt-12"></div>
+           <p className="text-[11px] font-black text-emerald-500 uppercase tracking-widest relative z-10">প্রো টিপস</p>
+           <p className="text-[13px] text-slate-400 font-bold mt-2 relative z-10 leading-relaxed">যেকোনো চ্যাটে ক্লিক করে আপনি ঠিক যেখান থেকে পড়া শেষ করেছিলেন, সেখান থেকেই আবার শুরু করতে পারবেন।</p>
+        </div>
+      </div>
     </div>
   );
 };
@@ -132,4 +126,4 @@ const getEmojiForSubject = (sub: Subject): string => {
 };
 
 export default History;
-    
+  
