@@ -26,14 +26,14 @@ const Translator: React.FC<{onBack:()=>void}> = ({ onBack }) => {
           <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" strokeWidth="3" fill="none"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
         <div>
-          <h2 className="text-3xl font-black dark:text-white tracking-tight">অনুবাদ এআই ✨</h2>
+          <h2 className="text-3xl font-black dark:text-white tracking-tight">সাঈদ এআই অনুবাদ ✨</h2>
           <p className="text-[10px] font-black text-indigo-500 uppercase tracking-widest mt-0.5">গভীর ব্যাকরণ বিশ্লেষণসহ</p>
         </div>
       </header>
 
       {!result && !loading && (
         <div className="grid grid-cols-2 gap-3 mb-4">
-          {['আপনি কেমন আছেন?', 'I love learning', 'সাফল্য পরিশ্রমের ফল', 'Hathazari College'].map(t => (
+          {['আপনি কেমন আছেন?', 'I love learning', 'সাফল্য পরিশ্রমের ফল', 'আমি ইংরেজিতে ভালো হতে চায়'].map(t => (
             <button key={t} onClick={() => {setText(t); handleTranslate(t);}} className="p-4 text-[13px] font-bold bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl text-slate-500 text-left hover:border-indigo-500/30 transition-all shadow-sm">{t}</button>
           ))}
         </div>
@@ -54,7 +54,7 @@ const Translator: React.FC<{onBack:()=>void}> = ({ onBack }) => {
           className="w-full h-40 bg-transparent outline-none font-bold text-[20px] dark:text-white resize-none leading-relaxed placeholder:opacity-30"
         />
         <button onClick={() => handleTranslate()} disabled={loading} className="w-full mt-6 py-5 bg-indigo-600 text-white rounded-[2rem] font-black text-[14px] uppercase shadow-xl shadow-indigo-500/30 active:scale-95 transition-all">
-          {loading ? 'সাঈদ এর এআই বিশ্লেষণ করছে...' : 'গভীর অনুবাদ ও গ্রামার চেক'}
+          {loading ? 'সাঈদ এআই গভীর ভাবে বিশ্লেষণ করছে...' : 'গভীর অনুবাদ ও গ্রামার চেক'}
         </button>
       </div>
 
