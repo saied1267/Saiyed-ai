@@ -1,4 +1,4 @@
-‌import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Subject, ChatMessage, AppUser, ClassLevel, Group } from '../types';
 import { getTutorResponseStream } from '../geminiService';
 
@@ -64,7 +64,7 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
       );
     } catch (e) { 
       console.error(e);
-      onUpdateHistory([...newHistory, { ...aiPlaceholder, text: "⚠️ এআই সার্ভারে সংযোগ বিচ্ছিন্ন হয়েছে। দয়া করে সাঈদকে জানান" }]);
+      onUpdateHistory([...newHistory, { ...aiPlaceholder, text: "⚠️ এআই সার্ভারে সংযোগ বিচ্ছিন্ন হয়েছে। সাঈদ এর সাথে যোগাযোগ করুন।" }]);
     }
     finally { setLoading(false); }
   };
@@ -72,11 +72,9 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
   const renderText = (text: string) => {
     if (!text) return null;
 
-    // Clean up unnecessary stars and formatting symbols
     let processedText = text.replace(/\$/g, ''); 
 
     return processedText.split('\n').map((line, i) => {
-      // Big Bold Heading Style (###)
       if (line.trim().startsWith('###')) {
         return (
           <h2 key={i} className="text-[28px] font-black text-slate-900 dark:text-white mt-10 mb-6 leading-tight tracking-tight border-l-8 border-emerald-500 pl-4 py-1">
@@ -163,16 +161,6 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
               </div>
             </div>
           ))}
-
-          {loading && history[history.length-1]?.role === 'user' && (
-            <div className="flex items-center space-x-3 text-emerald-500 py-4">
-               <span className="relative flex h-3 w-3">
-                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                 <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
-               </span>
-               <p className="text-[12px] font-black tracking-[0.2em] uppercase">আপনার উত্তর তৈরি হচ্ছে</p>
-            </div>
-          )}
         </div>
       </div>
 
@@ -193,16 +181,7 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
              <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
            </button>
         </div>
-        
       </div>
-      
-      <style>{`
-        .katex { font-size: 1.2em; color: #10b981; }
-        .katex-display { background: rgba(16, 185, 129, 0.05); padding: 1.5rem; border-radius: 1.5rem; margin: 1.5rem 0; }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
-        .dark ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.05); }
-      `}</style>
     </div>
   );
 };
