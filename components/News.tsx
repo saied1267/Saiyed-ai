@@ -166,8 +166,8 @@ const News: React.FC<NewsProps> = ({ onBack }) => {
         </div>
       ) : (
         <div className="text-center py-20 bg-white dark:bg-slate-800 rounded-3xl border border-dashed dark:border-slate-700">
-          <p className="text-gray-500 font-bold">খবর লোড করা সম্ভব হয়নি।</p>
-          <button onClick={() => fetchNews(newsType)} className="text-emerald-500 font-black underline mt-3">আবার চেষ্টা করুন</button>
+          <p className="text-gray-500 font-bold">সাঈদ এআই সার্ভার গরম হয়ে গেছে! </p>
+          <button onClick={() => fetchNews(newsType)} className="text-emerald-500 font-black underline mt-3"> একটু পর আবার চেষ্টা করুন</button>
         </div>
       )}
     </div>
