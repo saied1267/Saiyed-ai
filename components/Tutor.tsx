@@ -1,4 +1,4 @@
-
+‌
 import React, { useState, useRef, useEffect } from 'react';
 import { Subject, ChatMessage, AppUser, ClassLevel, Group } from '../types';
 import { getTutorResponseStream } from '../geminiService';
@@ -65,7 +65,7 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
       );
     } catch (e) { 
       console.error(e);
-      onUpdateHistory([...newHistory, { ...aiPlaceholder, text: "⚠️ এআই সার্ভারে সংযোগ বিচ্ছিন্ন হয়েছে। আবার চেষ্টা করুন।" }]);
+      onUpdateHistory([...newHistory, { ...aiPlaceholder, text: "⚠️ এআই সার্ভারে সংযোগ বিচ্ছিন্ন হয়েছে। দয়া করে সাঈদকে জানান" }]);
     }
     finally { setLoading(false); }
   };
@@ -129,7 +129,7 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
                <h1 className="text-3xl font-black mb-4 dark:text-white">কি শিখতে চান?</h1>
                <p className="text-slate-400 font-bold mb-10">আপনার যেকোনো প্রশ্ন এখানে করুন।</p>
                <div className="grid grid-cols-1 gap-3">
-                  {[`${subject} এর বেসিক বুঝিয়ে দাও`, 'একটি উদাহরণ দাও', 'গুরুত্বপূর্ণ সূত্রগুলো কী?'].map((s, i) => (
+                  {[`${subject} এর বেসিক বুঝিয়ে দাও`, 'সাঈদ সম্পর্কে বলুন',`${subject} এ ভালো করার উপায়` ].map((s, i) => (
                     <button key={i} onClick={() => handleSend(s)} className="p-5 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-2xl text-[15px] font-bold text-slate-600 dark:text-slate-400 text-left hover:border-emerald-500/50 transition-all">{s}</button>
                   ))}
                </div>
@@ -146,7 +146,7 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
                         <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
                         <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
                      </div>
-                     <p className="text-[13px] font-black text-slate-400 tracking-tight uppercase">সাঈদ এআই প্রসেস করছে...</p>
+                     <p className="text-[13px] font-black text-slate-400 tracking-tight uppercase">সাঈদ এআই গভীরভাবে বিশ্লেষণ করছে...</p>
                    </div>
                 ) : (
                   <div className="prose dark:prose-invert max-w-none">
@@ -194,7 +194,7 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
              <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
            </button>
         </div>
-        <p className="text-center text-[10px] text-slate-400 mt-4 font-bold opacity-40">সাঈদ এআই মাঝে মাঝে ভুল তথ্য দিতে পারে। গুরুত্বপূর্ণ তথ্য যাচাই করে নিন।</p>
+        
       </div>
       
       <style>{`
