@@ -13,7 +13,7 @@ interface TutorProps {
 }
 
 // ==========================================
-// ড্যাশবোর্ডের স্ক্রিনশট অনুযায়ী১০০% নিখুঁত প্রম্পট ব্যাংক
+// ড্যাশবোর্ডের স্ক্রিনশট অনুযায়ী ১০০% নিখুঁত প্রম্পট ব্যাংক
 // ==========================================
 const SAIYED_PROMPTS = [
   "সাঈদ সম্পর্কে বিস্তারিত জানতে চাই",
@@ -76,11 +76,11 @@ const SUBJECT_PROMPTS: Record<string, string[]> = {
   "ফিন্যান্স": [
     "ফিন্যান্স ও ব্যাংকিং এর মূল ধারণাটি বুঝিয়ে দাও",
     "অর্থের সময়মূল্য (Time Value of Money) কী এবং এর গুরুত্ব কী?",
-    "ঝুঁকি ও আয়ের মধ্যে মূল তফাত এবং সম্পর্কটি ব্যাখ্যা করো",
+    "ঝুঁকি ও аয়ের মধ্যে মূল তফাত এবং সম্পর্কটি ব্যাখ্যা করো",
     "সরল মুনাফা এবং চক্রবৃদ্ধি মুনাফার মধ্যে পার্থক্য উদাহরণসহ দাও",
-    "সুযোগ ব্যয় (Opportunity Cost) বলতে ফিন্যান্সে কী বোঝায়?",
+    "সুযোগ ব্যয় (Opportunity Cost) বলতে ফিন্যা্সে কী বোঝায়?",
     "শেয়ার, bond এবং ডিবেঞ্চারের মধ্যে প্রধান পার্থক্যগুলো কী?",
-    "मूलধন বাজেটিং (Capital Budgeting) কেন করা হয় এবং এর পদ্ধতিগুলো কী?",
+    "মূলধন বাজেটিং (Capital Budgeting) কেন করা হয় এবং এর পদ্ধতিগুলো কী?",
     "চলতি মূলধন এবং স্থায়ী মূলধনের মধ্যে পার্থক্য বুঝিয়ে বলো"
   ],
   "বাংলা": [
@@ -98,7 +98,7 @@ const SUBJECT_PROMPTS: Record<string, string[]> = {
     "একটি প্রফেশনাল জীবনবৃত্তান্ত বা Resume মেকিং গাইডলাইন দাও",
     "MS Word-এ টেবিল (Table) এবং কলাম কীভাবে কাস্টমাইজ করতে হয়?",
     "ডকুমেন্টে পেজ নাম্বার এবং হেডার-ফুটার সেট করার নিয়ম কী?",
-    "MS Word-এ হাইপারলিংক এবং বুকমার্ক কীভাবে ব্যবহার করে?",
+    "MS Word-এ যুক্তিযুক্ত হাইপারলিংক এবং বুকমার্ক কীভাবে ব্যবহার করে?",
     "ম্যাক্রো (Macro) ব্যবহার করে কীভাবে কাজ অটোমেট করা যায়?"
   ],
   "MS Excel": [
@@ -134,18 +134,13 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
 
   // ড্যাশবোর্ড থেকে আসা subject প্রপ্স ট্র্যাক করে ডাইনামিকলি সাজেশন মিক্স করার লজিক
   useEffect(() => {
-    // ১. সাঈদ প্রম্পট থেকে র্যান্ডম ২টি নেওয়া
     const shuffledSaiyed = [...SAIYED_PROMPTS].sort(() => 0.5 - Math.random()).slice(0, 2);
-    
-    // ২. ড্যাশবোর্ডে যে কার্ডে ক্লিক করা হয়েছে (যেমন: subject="গণিত"), সেই অনুযায়ী লিস্ট নেওয়া
     const subjectPool = SUBJECT_PROMPTS[subject] || SUBJECT_PROMPTS["default"];
     const shuffledSubject = [...subjectPool].sort(() => 0.5 - Math.random()).slice(0, 2);
-    
-    // ৩. দুটো একসাথে কম্বাইন করে ফাইনাল ওলটপালট (Shuffle) করা
     const finalMixed = [...shuffledSaiyed, ...shuffledSubject].sort(() => 0.5 - Math.random());
-    
+
     setInitialSuggestions(finalMixed);
-  }, [subject, history.length === 0]); // ড্যাশবোর্ড থেকে ভিন্ন সাবজেক্টে ঢুকলে বা চ্যাট ক্লিয়ার হলে আপডেট হবে
+  }, [subject, history.length === 0]);
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -174,6 +169,44 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
     }
     return () => clearInterval(interval);
   }, [loading]);
+
+  // ==========================================
+  // পিডিএফ তৈরীর কাস্টম ফাংশন (কম্পোনেন্টের ভেতরে)
+  // ==========================================
+  const handleDownloadPDF = (messageText: string) => {
+    const element = document.createElement('div');
+    
+    // পিডিএফ ফাইলের জন্য সুন্দর মার্কডাউন ক্লিনিং ও লেআউট প্রসেস
+    let cleanText = messageText.replace(/\*\*/g, '').replace(/###/g, ''); 
+
+    element.innerHTML = `
+      <div style="font-family: 'Hind Siliguri', sans-serif; padding: 40px; color: #1e293b; background-color: #ffffff;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #10b981; padding-bottom: 15px; margin-bottom: 30px;">
+          <div>
+            <h1 style="color: #059669; margin: 0; font-size: 26px; font-weight: 900;">${subject} — লেকচার নোট</h1>
+            <p style="color: #64748b; margin: 5px 0 0 0; font-size: 13px; font-weight: 700;">Saiyed AI Tutor 🟢</p>
+          </div>
+        </div>
+        <div style="font-size: 16px; line-height: 1.9; white-space: pre-wrap; color: #334155;">
+          ${cleanText}
+        </div>
+      </div>
+    `;
+
+    const options = {
+      margin: 15,
+      filename: `${subject}_সাঈদ_এআই_নোট_${Date.now()}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    if ((window as any).html2pdf) {
+      (window as any).html2pdf().from(element).set(options).save();
+    } else {
+      alert("পিডিএফ লাইব্রেরিটি লোড হতে পারছে না। দয়া করে index.html-এ স্ক্রিপ্ট ট্যাগটি চেক করুন।");
+    }
+  };
 
   const handleSend = async (text?: string) => {
     const msgText = text || input;
@@ -298,6 +331,21 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
                   </div>  
                 )}  
 
+                {/* এআই মেসেজ সফলভাবে শেষ হলে কাস্টম PDF ডাউনলোড বাটন */}
+                {m.role === 'model' && m.text && (
+                  <div className="mt-4 flex justify-end">
+                    <button
+                      onClick={() => handleDownloadPDF(m.text)}
+                      className="flex items-center space-x-2 px-4 py-2 bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-emerald-600 dark:bg-white/5 dark:hover:bg-emerald-500/10 dark:text-slate-300 dark:hover:text-emerald-400 text-[13px] font-bold rounded-xl border border-slate-200 dark:border-white/10 hover:border-emerald-500/30 transition-all cursor-pointer"
+                    >
+                      <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" strokeWidth="2.5" fill="none" className="mr-1">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+                      </svg>
+                      PDF ডাউনলোড করুন
+                    </button>
+                  </div>
+                )}
+
                 {m.suggestions && m.suggestions.length > 0 && (  
                    <div className="mt-12 flex flex-wrap gap-3 relative z-10">  
                      {m.suggestions.map((s, si) => (  
@@ -339,43 +387,5 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
     </div>
   );
 };
-//ম
-const handleDownloadPDF = (messageText: string) => {
-  // ১. পিডিএফ-এর জন্য একটি কাস্টম ডিজাইন করা HTML ব্লক তৈরি করা
-  const element = document.createElement('div');
-  
-  // এখানে আপনার অ্যাপের Emerald Green থিম এবং বাংলা ফন্ট সেট করা হয়েছে
-  element.innerHTML = `
-    <div style="font-family: 'Hind Siliguri', sans-serif; padding: 40px; color: #1e293b; background-color: #ffffff;">
-      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #10b981; padding-bottom: 15px; margin-bottom: 30px;">
-        <div>
-          <h1 style="color: #059669; margin: 0; font-size: 26px; font-weight: 900;">${subject} — লেকচার নোট</h1>
-          <p style="color: #64748b; margin: 5px 0 0 0; font-size: 13px; font-weight: 700;">Saiyed AI Tutor 🟢</p>
-        </div>
-      </div>
-      <div style="font-size: 16px; line-height: 1.9; white-space: pre-wrap; color: #334155;">
-        ${messageText}
-      </div>
-    </div>
-  `;
-
-  // ২. পিডিএফ তৈরীর জন্য কিছু জরুরি কনফিগারেশন বা অপশন
-  const options = {
-    margin: 15,
-    filename: `${subject}_সাঈদ_এআই_নোট_${Date.now()}.pdf`, // সাবজেক্টের নামে ফাইল সেভ হবে
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true }, // লেখার রেজোলিউশন বা ক্লিয়ারিটি বাড়ানোর জন্য scale: 2
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } // A4 সাইজ পেপার
-  };
-
-  // ৩. উইন্ডো অবজেক্ট থেকে লাইব্রেরিটি কল করে পিডিএফ ডাউনলোড শুরু করা
-  if ((window as any).html2pdf) {
-    (window as any).html2pdf().from(element).set(options).save();
-  } else {
-    alert("পিডিএফ লাইব্রেরিটি লোড হতে পারছে না। দয়া করে ইন্টারনেট কানেকশন চেক করুন।");
-  }
-};
-
-//ম
 
 export default Tutor;
