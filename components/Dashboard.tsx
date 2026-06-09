@@ -20,16 +20,15 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onStartTutor, onGoToTransla
       setActiveUsers(randomCount);
     }, 5000);
 
-    // সার্ভার স্ট্যাটাস চেক (প্রতি ৮ সেকেন্ড পরপর ৩০% সম্ভাবনায় ডাউন হবে)
+    // নিশ্চিতভাবে প্রতি ৬ সেকেন্ড পর পর সার্ভার ২ সেকেন্ডের জন্য ডাউন হবে
     const serverInterval = setInterval(() => {
-      if (Math.random() < 0.30) { // ৩০% সম্ভাবনা যাতে মাঝে মাঝেই ডাউন দেখায়
-        setIsServerActive(false);
-        // ৩ সেকেন্ড পর আবার স্বয়ংক্রিয়ভাবে একটিভ হয়ে যাবে
-        setTimeout(() => {
-          setIsServerActive(true);
-        }, 3000); 
-      }
-    }, 8000);
+      setIsServerActive(false);
+      
+      // ২ সেকেন্ড পর আবার স্বয়ংক্রিয়ভাবে একটিভ হয়ে যাবে
+      setTimeout(() => {
+        setIsServerActive(true);
+      }, 2000); 
+    }, 6000); // প্রতি ৬ সেকেন্ড পর পর লুপটি চলবে
 
     return () => {
       clearInterval(userInterval);
