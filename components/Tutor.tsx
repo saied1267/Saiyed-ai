@@ -387,7 +387,7 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
                   className="w-full text-left px-4 py-2.5 text-sm hover:bg-red-50 dark:hover:bg-red-950 text-red-600 dark:text-red-400 flex items-center space-x-2"
                 >
                   <span>🗑️</span>
-                  <span>সব মুছুন</span>
+                  <span>Clear Chat</span>
                 </button>
               </div>
             )}
@@ -399,7 +399,7 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
       {showSettings && (
         <div className="px-4 py-3 border-b dark:border-zinc-800 bg-white dark:bg-zinc-900 space-y-3 animate-in slide-in-from-top">
           <div className="flex items-center justify-between">
-            <label className="text-sm font-medium">ফন্ট সাইজ:</label>
+            <label className="text-sm font-medium">Font Size </label>
             <div className="flex space-x-2">
               {['sm', 'base', 'lg'].map(size => (
                 <button
