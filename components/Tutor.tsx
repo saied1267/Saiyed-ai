@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Subject, ChatMessage, AppUser, ClassLevel, Group } from '../types';
 import { getTutorResponseStream } from '../geminiService';
 
@@ -15,7 +15,12 @@ interface TutorProps {
 interface ChatMessageExtended extends ChatMessage {
   suggestions?: string[];
   isBookmarked?: boolean;
-  isCopied?: boolean;
+}
+
+interface Toast {
+  id: number;
+  message: string;
+  type: 'success' | 'info' | 'error';
 }
 
 const SAIYED_PROMPTS = [
@@ -49,13 +54,12 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
   const [bookmarks, setBookmarks] = useState<number[]>([]);
   const [fontSize, setFontSize] = useState<'sm' | 'base' | 'lg'>('base');
   const [showSettings, setShowSettings] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filteredHistory, setFilteredHistory] = useState<ChatMessageExtended[]>([]);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editingText, setEditingText] = useState('');
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const [toasts, setToasts] = useState<Toast[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const toastIdRef = useRef(0);
 
   // ফন্ট ইনজেকশন
   useEffect(() => {
@@ -95,17 +99,15 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
     return () => clearInterval(interval);
   }, [loading]);
 
-  // Search filtering
-  useEffect(() => {
-    if (searchQuery.trim()) {
-      const filtered = history.filter(msg =>
-        msg.text.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-      setFilteredHistory(filtered as ChatMessageExtended[]);
-    } else {
-      setFilteredHistory(history as ChatMessageExtended[]);
-    }
-  }, [searchQuery, history]);
+  const showToast = (message: string, type: 'success' | 'info' | 'error' = 'success') => {
+    const id = toastIdRef.current++;
+    const newToast: Toast = { id, message, type };
+    setToasts(prev => [...prev, newToast]);
+    
+    setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== id));
+    }, 3000);
+  };
 
   const autoWrapMathDelimiters = (text: string): string => {
     if (!text) return '';
@@ -153,7 +155,7 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
   const handleDownloadPDF = async (messageText: string) => {
     const win = window as any;
     if (!win.html2pdf) {
-      showToast("PDF লাইব্রেরি লোড হয়নি");
+      showToast("PDF লাইব্রেরি লোড হয়নি", "error");
       return;
     }
 
@@ -193,28 +195,6 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
     showToast("PDF ডাউনলোড শুরু হয়েছে");
   };
 
-  const handleExportChat = (format: 'json' | 'markdown') => {
-    let content = '';
-    let filename = '';
-
-    if (format === 'json') {
-      content = JSON.stringify(history, null, 2);
-      filename = `chat_${subject}_${Date.now()}.json`;
-    } else {
-      content = history.map(msg => `**${msg.role === 'user' ? 'আপনি' : 'সাঈদ এআই'}:**\n${msg.text}\n`).join('\n---\n\n');
-      filename = `chat_${subject}_${Date.now()}.md`;
-    }
-
-    const element = document.createElement('a');
-    element.setAttribute('href', `data:text/plain;charset=utf-8,${encodeURIComponent(content)}`);
-    element.setAttribute('download', filename);
-    element.style.display = 'none';
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
-    showToast(`${format.toUpperCase()} এ এক্সপোর্ট সম্পন্ন`);
-  };
-
   const handleCopyMessage = (text: string, index: number) => {
     navigator.clipboard.writeText(text);
     setCopiedIndex(index);
@@ -252,12 +232,6 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
     }
   };
 
-  const showToast = (message: string) => {
-    if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
-    // In a real app, you'd use a toast library
-    console.log('Toast:', message);
-  };
-
   const handleSend = async (text?: string) => {
     const msgText = text || input;
     if (!msgText.trim() || loading) return;
@@ -281,6 +255,7 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
       });
     } catch (e) {
       onUpdateHistory([...currentHistory, { ...aiPlaceholder, text: "⚠️ সমস্যা হয়েছে। আবার চেষ্টা করুন।" }]);
+      showToast("কিছু ত্রুটি ঘটেছে", "error");
     } finally {
       setLoading(false);
     }
@@ -288,6 +263,24 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
 
   return (
     <div className="fixed inset-0 z-[60] flex flex-col bg-slate-50 dark:bg-[#09090b]">
+      {/* Toast Notifications */}
+      <div className="fixed top-4 right-4 z-[100] space-y-2 pointer-events-none">
+        {toasts.map((toast) => (
+          <div
+            key={toast.id}
+            className={`p-3 rounded-lg shadow-lg text-white text-sm font-medium animate-in slide-in-from-top pointer-events-auto ${
+              toast.type === 'success'
+                ? 'bg-emerald-500'
+                : toast.type === 'error'
+                ? 'bg-red-500'
+                : 'bg-blue-500'
+            }`}
+          >
+            {toast.message}
+          </div>
+        ))}
+      </div>
+
       {/* Header */}
       <header className="px-4 py-3.5 flex items-center justify-between border-b border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#09090b] sticky top-0 z-50">
         <div className="flex items-center space-x-3">
@@ -338,34 +331,11 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
 
           <div className="flex items-center justify-between gap-2">
             <button
-              onClick={() => handleExportChat('markdown')}
-              className="flex-1 px-2 py-2 text-xs font-bold bg-blue-500 text-white rounded hover:bg-blue-600"
-            >
-              Markdown এ এক্সপোর্ট
-            </button>
-            <button
-              onClick={() => handleExportChat('json')}
-              className="flex-1 px-2 py-2 text-xs font-bold bg-purple-500 text-white rounded hover:bg-purple-600"
-            >
-              JSON এ এক্সপোর্ট
-            </button>
-            <button
               onClick={handleClearHistory}
               className="flex-1 px-2 py-2 text-xs font-bold bg-red-500 text-white rounded hover:bg-red-600"
             >
               সব মুছুন
             </button>
-          </div>
-
-          {/* Search */}
-          <div className="pt-2">
-            <input
-              type="text"
-              placeholder="চ্যাট খুঁজুন..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-3 py-2 bg-slate-100 dark:bg-zinc-800 rounded-lg text-sm outline-none"
-            />
           </div>
         </div>
       )}
@@ -373,7 +343,7 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
       {/* Chat Area */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-6 space-y-6">
         <div className="max-w-2xl mx-auto space-y-6">
-          {filteredHistory.length === 0 && history.length === 0 && (
+          {history.length === 0 && (
             <div className="py-12 text-center">
               <h1 className="text-2xl font-bold mb-8 text-slate-800 dark:text-white">আজকে কী শিখতে চান?</h1>
               <div className="flex flex-col space-y-3">
@@ -405,8 +375,7 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
           )}
 
           {/* Chat Messages */}
-          {(searchQuery.trim() ? filteredHistory : history).map((m, originalIdx) => {
-            const actualIdx = history.findIndex(msg => msg === m);
+          {history.map((m, actualIdx) => {
             const isBookmarked = bookmarks.includes(actualIdx);
             const isEditing = editingIndex === actualIdx;
 
@@ -439,8 +408,13 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
                   ) : (
                     <>
                       {m.role === 'model' && actualIdx === history.length - 1 && loading && !m.text ? (
-                        <div className="flex items-center space-x-3 py-3 text-emerald-500 font-bold animate-pulse">
-                          <span>{LOADING_MESSAGES[loadingStep]}</span>
+                        <div className="flex items-center space-x-2 py-3">
+                          <div className="flex space-x-1">
+                            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                          </div>
+                          <span className="text-emerald-500 font-bold text-sm">{LOADING_MESSAGES[loadingStep]}</span>
                         </div>
                       ) : (
                         <div className={`prose dark:prose-invert max-w-none ${m.role === 'user' ? 'text-white' : 'text-slate-800 dark:text-zinc-200'}`}>
@@ -486,7 +460,7 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
                   </div>
                 )}
 
-                {/* PDF Download & Suggestions */}
+                {/* PDF Download */}
                 {m.role === 'model' && m.text && (
                   <div className="mt-4 pt-3 border-t dark:border-zinc-800 flex justify-end">
                     <button
@@ -498,20 +472,6 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
                       </svg>
                       <span>PDF ডাউনলোড</span>
                     </button>
-                  </div>
-                )}
-
-                {(m as ChatMessageExtended).suggestions && (m as ChatMessageExtended).suggestions!.length > 0 && (
-                  <div className="mt-3 flex flex-wrap gap-2 w-full">
-                    {(m as ChatMessageExtended).suggestions!.map((s, si) => (
-                      <button
-                        key={si}
-                        onClick={() => handleSend(s)}
-                        className="px-3.5 py-2 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 text-[13px] font-bold rounded-xl hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition"
-                      >
-                        {renderLineContent(s)}
-                      </button>
-                    ))}
                   </div>
                 )}
               </div>
