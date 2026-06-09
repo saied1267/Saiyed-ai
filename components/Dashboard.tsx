@@ -29,8 +29,8 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onStartTutor, onGoToTransla
       <header className="flex justify-between items-center pt-2">
         <div className="space-y-1">
           <h1 className="text-3xl font-black text-slate-900 dark:text-white flex items-center">
-            সাঈদ <span className="text-emerald-500 ml-1">এআই</span>
-            <span className="ml-2 px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 text-[9px] rounded-full font-black uppercase tracking-tighter">Pro</span>
+            Saiyed <span className="text-emerald-500 ml-1">AI</span>
+            <span className="ml-2 px-2 py-0.5 bg-black-900 dark:bg-emerald-900/30 text-emerald-600 text-[9px] rounded-full font-black uppercase tracking-tighter">Pro</span>
           </h1>
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
             {user.college} • {user.department}
