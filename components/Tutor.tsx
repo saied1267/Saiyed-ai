@@ -303,7 +303,7 @@ const handleDownloadPDF = async (messageText: string) => {
         onUpdateHistory([...currentHistory, enhancedMessage]);
       });
     } catch (e) {
-      onUpdateHistory([...currentHistory, { ...aiPlaceholder, text: "⚠️ সমস্যা হয়েছে। আবার চেষ্টা করুন।" }]);
+      onUpdateHistory([...currentHistory, { ...aiPlaceholder, text: "⚠️ সার্ভার ডাউন হয়েছে। পরে আবার চেষ্টা করুন।" }]);
       showToast("কিছু ত্রুটি ঘটেছে", "error");
     } finally {
       setLoading(false);
