@@ -14,7 +14,8 @@ interface TutorProps {
 
 interface ChatMessageExtended extends ChatMessage {
   suggestions?: string[];
-  isBookmarked?: boolean;
+  followUpQuestions?: string[];
+  importantTopics?: string[];
 }
 
 interface Toast {
@@ -33,9 +34,9 @@ const SAIYED_PROMPTS = [
 ];
 
 const SUBJECT_PROMPTS: Record<string, string[]> = {
-  "গণিত": ["গণিতের বেসিক ভয় দূর করার কিছু উপায় বলো", "বীজগণিতের সূত্রগুলো সহজে শিখার কৌশল"],
-  "ইংরেজি": ["ইংরেজি গ্রামারের টেন্স (Tense) সহজে চেনার উপায় কী?", "সহজে নতুন নতুন ইংরেজি শব্দ শিখার উপায়"],
-  "default": ["এই বিষয়ের মূল সিলেবাস এবং রোডম্যাপটি দাও", "পরীক্ষার জন্য কোন কোন অধ্যায় সবচেয়ে গুরুত্বপূর্ণ?"],
+  "গণিত": ["গণিতের বেসিক ভয় দূর করার কিছু উপায় বলো", "বীজগণিতের সূত্রগুলো সহজে চেনার উপায় কী?", "ত্রিকোণমিতি কেন গুরুত্বপূর্ণ?"],
+  "ইংরেজি": ["ইংরেজি গ্রামারের টেন্স (Tense) সহজে চেনার উপায় কী?", "সহজে নতুন নতুন ইংরেজি শব্দ মনে রাখার কৌশল", "রিডিং কম্প্রিহেনশন উন্নত করার টিপস"],
+  "default": ["এই বিষয়ের মূল সিলেবাস এবং রোডম্যাপটি দাও", "পরীক্ষার জন্য কোন কোন অধ্যায় গুরুত্বপূর্ণ?", "এই বিষয়ের ভিত্তিগত ধারণা বুঝিয়ে দিন"],
 };
 
 const LOADING_MESSAGES = [
@@ -51,7 +52,6 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
   const [initialSuggestions, setInitialSuggestions] = useState<string[]>([]);
-  const [bookmarks, setBookmarks] = useState<number[]>([]);
   const [fontSize, setFontSize] = useState<'sm' | 'base' | 'lg'>('base');
   const [showSettings, setShowSettings] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
@@ -69,6 +69,17 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
       style.innerHTML = `
         @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap');
         .katex { font-size: 1.1em !important; }
+        .important-highlight {
+          background: linear-gradient(120deg, #fef3c7 0%, #fde68a 100%);
+          padding: 2px 6px;
+          border-radius: 3px;
+          font-weight: 600;
+          color: #92400e;
+        }
+        .dark .important-highlight {
+          background: linear-gradient(120deg, #78350f 0%, #92400e 100%);
+          color: #fef3c7;
+        }
       `;
       document.head.appendChild(style);
     }
@@ -109,6 +120,31 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
     }, 3000);
   };
 
+  const extractImportantTopics = (text: string): string[] => {
+    // গুরুত্বপূর্ণ টপিক আপটিক করা (** দিয়ে চিহ্নিত)
+    const matches = text.match(/\*\*([^*]+)\*\*/g) || [];
+    return matches.map(m => m.replace(/\*\*/g, '')).slice(0, 3);
+  };
+
+  const extractFollowUpQuestions = (text: string): string[] => {
+    // প্রেক্ষাপট থেকে অনুসিদ্ধান্ত প্রশ্ন উৎপন্ন করুন
+    const lines = text.split('\n');
+    const keywordQuestions: Record<string, string[]> = {
+      'সূত্র': ['এই সূত্রটি কিভাবে কাজ করে?', 'এর প্রমাণ কী?', 'এর প্রয়োগ দেখান'],
+      'সংজ্ঞা': ['এর বাস্তব জীবনের উদাহরণ কী?', 'এটি কেন গুরুত্বপূর্ণ?', 'এর বিপরীত কী?'],
+      'তত্ত্ব': ['এটি কিভাবে প্রমাণিত হয়?', 'এর ব্যবহার কোথায়?', 'এর ব্যতিক্রম আছে?'],
+      'প্রক্রিয়া': ['পরবর্তী ধাপ কী?', 'এর বৈকল্পিক পদ্ধতি আছে?', 'এতে কোন ত্রুটি থাকতে পারে?'],
+    };
+
+    for (const [keyword, questions] of Object.entries(keywordQuestions)) {
+      if (text.toLowerCase().includes(keyword)) {
+        return questions;
+      }
+    }
+
+    return ['এই বিষয়ে আরও জানতে চান?', 'এর উপর কোন প্রশ্ন আছে?', 'আরও গভীরভাবে বুঝতে চান?'];
+  };
+
   const autoWrapMathDelimiters = (text: string): string => {
     if (!text) return '';
     return text.split('\n').map(line => {
@@ -136,7 +172,13 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
         return <span key={idx} dangerouslySetInnerHTML={{ __html: html }} className="inline-block mx-0.5" />;
       }
       const boldParts = token.split(/\*\*(.*?)\*\*/g);
-      return boldParts.map((part, pi) => pi % 2 === 1 ? <strong key={`${idx}-${pi}`} className="text-emerald-600 dark:text-emerald-400 font-bold">{part}</strong> : part);
+      return boldParts.map((part, pi) => 
+        pi % 2 === 1 ? (
+          <span key={`${idx}-${pi}`} className="important-highlight">
+            {part}
+          </span>
+        ) : part
+      );
     });
   };
 
@@ -168,7 +210,7 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
       const lineHtml = tokens.map((token) => {
         if (token.startsWith('$$') && token.endsWith('$$')) return win.katex ? win.katex.renderToString(token.slice(2, -2), { displayMode: true }) : token;
         if (token.startsWith('$') && token.endsWith('$')) return win.katex ? win.katex.renderToString(token.slice(1, -1), { displayMode: false }) : token;
-        return token.replace(/\*\*(.*?)\*\*/g, '<strong style="color: #059669; font-weight: 700;">$1</strong>');
+        return token.replace(/\*\*(.*?)\*\*/g, '<span style="background: #fef3c7; color: #92400e; font-weight: 700; padding: 2px 6px; border-radius: 3px;">$1</span>');
       }).join('');
       return `<p style="font-size: 16px; margin-bottom: 15px; line-height: 1.8; color: #1e293b; font-family: 'Hind Siliguri', sans-serif;">${lineHtml}</p>`;
     }).join('');
@@ -202,13 +244,6 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
     setTimeout(() => setCopiedIndex(null), 2000);
   };
 
-  const handleBookmark = (index: number) => {
-    setBookmarks(prev =>
-      prev.includes(index) ? prev.filter(i => i !== index) : [...prev, index]
-    );
-    showToast(bookmarks.includes(index) ? "বুকমার্ক সরানো হয়েছে" : "বুকমার্ক করা হয়েছে");
-  };
-
   const handleEditMessage = (index: number, text: string) => {
     setEditingIndex(index);
     setEditingText(text);
@@ -227,7 +262,6 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
   const handleClearHistory = () => {
     if (window.confirm("আপনি কি চ্যাট হিস্টরি মুছতে চান?")) {
       onUpdateHistory([]);
-      setBookmarks([]);
       showToast("চ্যাট হিস্টরি মুছে দেওয়া হয়েছে");
     }
   };
@@ -251,7 +285,18 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
           cleanText = streamedText.replace(sugMatch[0], '').trim();
           suggestions = sugMatch[1].split(',').map(s => s.trim());
         }
-        onUpdateHistory([...currentHistory, { ...aiPlaceholder, text: cleanText, suggestions }]);
+        
+        const importantTopics = extractImportantTopics(cleanText);
+        const followUpQuestions = extractFollowUpQuestions(cleanText);
+        
+        const enhancedMessage: any = { 
+          ...aiPlaceholder, 
+          text: cleanText, 
+          suggestions,
+          importantTopics,
+          followUpQuestions
+        };
+        onUpdateHistory([...currentHistory, enhancedMessage]);
       });
     } catch (e) {
       onUpdateHistory([...currentHistory, { ...aiPlaceholder, text: "⚠️ সমস্যা হয়েছে। আবার চেষ্টা করুন।" }]);
@@ -360,28 +405,15 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
             </div>
           )}
 
-          {/* Bookmarks Section */}
-          {bookmarks.length > 0 && (
-            <div className="bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-900 rounded-lg p-4">
-              <h3 className="font-bold text-yellow-800 dark:text-yellow-200 mb-2">📌 বুকমার্ক করা ({bookmarks.length})</h3>
-              <div className="space-y-2">
-                {bookmarks.slice(0, 3).map(idx => (
-                  <div key={idx} className="text-sm text-yellow-700 dark:text-yellow-300 bg-yellow-100 dark:bg-yellow-900/30 p-2 rounded">
-                    {history[idx]?.text?.substring(0, 100)}...
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
           {/* Chat Messages */}
           {history.map((m, actualIdx) => {
-            const isBookmarked = bookmarks.includes(actualIdx);
             const isEditing = editingIndex === actualIdx;
+            const hasImportantTopics = (m as any).importantTopics && (m as any).importantTopics.length > 0;
+            const followUpQuestions = (m as any).followUpQuestions || [];
 
             return (
-              <div key={actualIdx} className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'} space-y-1`}>
-                <div className={`${m.role === 'user' ? 'max-w-[85%] bg-emerald-600 text-white p-4 rounded-2xl rounded-br-sm' : 'w-full bg-white dark:bg-zinc-900 border dark:border-zinc-800 p-5 rounded-2xl'}`}>
+              <div key={actualIdx} className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'} space-y-2`}>
+                <div className={`${m.role === 'user' ? 'max-w-[85%] bg-emerald-600 text-white p-4 rounded-2xl rounded-br-sm' : 'w-full bg-white dark:bg-zinc-900 border dark:border-zinc-800 p-5 rounded-xl'}`}>
                   {isEditing && m.role === 'user' ? (
                     <div className="space-y-2">
                       <textarea
@@ -425,47 +457,67 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
                   )}
                 </div>
 
+                {/* Important Topics Highlight */}
+                {m.role === 'model' && hasImportantTopics && (
+                  <div className="w-full bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+                    <p className="text-xs font-bold text-amber-900 dark:text-amber-200 mb-2">⭐ গুরুত্বপূর্ণ বিষয়গুলো:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {(m as any).importantTopics.map((topic: string, idx: number) => (
+                        <span key={idx} className="text-xs bg-amber-200 dark:bg-amber-900 text-amber-900 dark:text-amber-100 px-3 py-1 rounded-full font-semibold">
+                          {topic}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Message Actions */}
                 {!isEditing && (
-                  <div className="flex space-x-2 mt-2">
+                  <div className="flex space-x-2 mt-1">
                     <button
                       onClick={() => handleCopyMessage(m.text, actualIdx)}
-                      className="px-2 py-1 text-xs bg-slate-200 dark:bg-zinc-800 hover:bg-slate-300 dark:hover:bg-zinc-700 rounded"
+                      className="px-2 py-1 text-xs bg-slate-200 dark:bg-zinc-800 hover:bg-slate-300 dark:hover:bg-zinc-700 rounded transition"
                       title="কপি"
                     >
-                      {copiedIndex === actualIdx ? '✓ copied' : 'Copy'}
+                      {copiedIndex === actualIdx ? '✓ কপি হয়েছে' : '📋 কপি'}
                     </button>
 
                     {m.role === 'user' && (
                       <button
                         onClick={() => handleEditMessage(actualIdx, m.text)}
-                        className="px-2 py-1 text-xs bg-slate-200 dark:bg-zinc-800 hover:bg-slate-300 dark:hover:bg-zinc-700 rounded"
+                        className="px-2 py-1 text-xs bg-slate-200 dark:bg-zinc-800 hover:bg-slate-300 dark:hover:bg-zinc-700 rounded transition"
                         title="সম্পাদনা"
                       >
                         ✏️ সম্পাদনা
                       </button>
                     )}
+                  </div>
+                )}
 
-                    <button
-                      onClick={() => handleBookmark(actualIdx)}
-                      className={`px-2 py-1 text-xs rounded ${
-                        isBookmarked
-                          ? 'bg-yellow-400 text-slate-800'
-                          : 'bg-slate-200 dark:bg-zinc-800 hover:bg-slate-300 dark:hover:bg-zinc-700'
-                      }`}
-                      title="বুকমার্ক"
-                    >
-                      {isBookmarked ? '📌 বুকমার্ক করা' : 'Bookmark'}
-                    </button>
+                {/* Follow-Up Questions */}
+                {m.role === 'model' && m.text && followUpQuestions.length > 0 && (
+                  <div className="w-full mt-3 space-y-2">
+                    <p className="text-xs font-bold text-slate-600 dark:text-slate-400">💡 পরবর্তী প্রশ্ন:</p>
+                    <div className="flex flex-col gap-2">
+                      {followUpQuestions.slice(0, 2).map((question: string, idx: number) => (
+                        <button
+                          key={idx}
+                          onClick={() => handleSend(question)}
+                          className="text-left text-xs px-3 py-2 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition"
+                        >
+                          {question}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 )}
 
                 {/* PDF Download */}
                 {m.role === 'model' && m.text && (
-                  <div className="mt-4 pt-3 border-t dark:border-zinc-800 flex justify-end">
+                  <div className="mt-2 pt-2 border-t dark:border-zinc-800 flex justify-end">
                     <button
                       onClick={() => handleDownloadPDF(m.text)}
-                      className="flex items-center space-x-2 px-3 py-1.5 bg-emerald-500 text-white text-[12px] font-bold rounded-lg hover:bg-emerald-600"
+                      className="flex items-center space-x-2 px-3 py-1.5 bg-emerald-500 text-white text-[12px] font-bold rounded-lg hover:bg-emerald-600 transition"
                     >
                       <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="3" fill="none">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" />
