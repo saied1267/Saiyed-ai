@@ -15,7 +15,7 @@ interface TutorProps {
 const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, onBack, classLevel, group }) => {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [loadingStep, setLoadingStep] = useState(0); // নতুন ধাপের জন্য স্টেট
+  const [loadingStep, setLoadingStep] = useState(0); // ৫টি পর্যায়ক্রমিক টেক্সটের স্টেট
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -35,14 +35,14 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
     }
   }, [history, loading]);
 
-  // ৫টি ধাপের মেসেজ পরিবর্তন করার টাইমার
+  // ৫টি ধাপের মেসেজ পরিবর্তন করার টাইমার লজিক
   useEffect(() => {
     let interval: any;
     if (loading) {
       setLoadingStep(0);
       interval = setInterval(() => {
         setLoadingStep((prev) => (prev < 4 ? prev + 1 : 0));
-      }, 1500);
+      }, 1500); // প্রতি ১.৫ সেকেন্ড পর পর লেখা পরিবর্তন হবে
     }
     return () => clearInterval(interval);
   }, [loading]);
@@ -52,14 +52,13 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
     if (!msgText.trim() || loading) return;
 
     const userMsg: ChatMessage = { role: 'user', text: msgText, timestamp: Date.now() };  
-    const currentHistory = [...history, userMsg];  // লেটেস্ট হিস্ট্রি স্টোর করা
+    const currentHistory = [...history, userMsg];  // লেটেস্ট হিস্ট্রি সুরক্ষিত রাখা হলো
     onUpdateHistory(currentHistory);  
     setInput('');  
     setLoading(true);  
 
     const aiPlaceholder: ChatMessage = { role: 'model', text: '', timestamp: Date.now() };  
-    const newHistoryWithAi = [...currentHistory, aiPlaceholder];
-    onUpdateHistory(newHistoryWithAi);  
+    onUpdateHistory([...currentHistory, aiPlaceholder]);  
 
     try {  
       await getTutorResponseStream(  
@@ -68,41 +67,48 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
         (streamedText) => {  
           let cleanText = streamedText;  
           let suggestions: string[] = [];  
-          const sugMatch = streamedText.match(/SUGGESTIONS: (.*?)/);  
+          
+          // স্ক্রিনশটের থার্ড ব্র্যাকেট মিলানোর জন্য ফিক্সড রেজেক্স (Regex)
+          const sugMatch = streamedText.match(/\[SUGGESTIONS:\s*(.*?)\]/i); 
           if (sugMatch) {  
             cleanText = streamedText.replace(sugMatch[0], '').trim();  
             suggestions = sugMatch[1].split(',').map(s => s.trim());  
           }  
-          // এখানে currentHistory ব্যবহার করা হয়েছে যাতে স্টেট আপডেট সঠিক থাকে
+          
           onUpdateHistory([...currentHistory, { ...aiPlaceholder, text: cleanText, suggestions }]);  
         }  
       );  
     } catch (e) {   
       console.error(e);  
-      onUpdateHistory([...currentHistory, { ...aiPlaceholder, text: "⚠️ এআই সার্ভারে সংযোগ বিচ্ছিন্ন হয়েছে।" }]);  
+      onUpdateHistory([...currentHistory, { ...aiPlaceholder, text: "⚠️ এআই সার্ভারে সংযোগ বিচ্ছিন্ন হয়েছে। সাঈদ এর সাথে যোগাযোগ করুন।" }]);  
     }  
     finally { setLoading(false); }
   };
 
   const renderText = (text: string) => {
     if (!text) return null;
+
     let processedText = text.replace(/\$/g, '');   
 
     return processedText.split('\n').map((line, i) => {  
       if (line.trim().startsWith('###')) {  
         return (  
-          <h2 key={i} className="text-[28px] font-black text-slate-900 dark:text-white mt-10 mb-6 border-l-8 border-emerald-500 pl-4">  
+          <h2 key={i} className="text-[28px] font-black text-slate-900 dark:text-white mt-10 mb-6 leading-tight tracking-tight border-l-8 border-emerald-500 pl-4 py-1">  
             {line.replace('###', '').trim()}  
           </h2>  
         );  
       }  
+
       const isBullet = line.trim().startsWith('-') || line.trim().startsWith('•') || /^\d+\./.test(line.trim());  
+
       const processBold = (content: string) => {  
         return content.split(/\*\*(.*?)\*\*/g).map((part, pi) =>   
           pi % 2 === 1 ? <strong key={pi} className="font-black text-emerald-600 dark:text-emerald-400">{part}</strong> : part  
         );  
       };  
+
       if (!line.trim()) return <div key={i} className="h-4" />;  
+
       return (  
         <p key={i} className={`text-[18px] font-medium leading-[1.8] text-slate-700 dark:text-slate-300 mb-4 ${isBullet ? 'pl-6 relative before:content-["•"] before:absolute before:left-0 before:text-emerald-500 before:font-black' : ''}`}>  
           {processBold(line)}  
@@ -134,8 +140,9 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
             <div className="py-24 text-center animate-in fade-in zoom-in-95">  
                <div className="w-20 h-20 bg-emerald-600 text-white rounded-[2.5rem] flex items-center justify-center text-4xl font-black mx-auto mb-8 shadow-2xl">S</div>  
                <h1 className="text-3xl font-black mb-4 dark:text-white">কি শিখতে চান?</h1>  
+               <p className="text-slate-400 font-bold mb-10">আপনার যেকোনো প্রশ্ন এখানে করুন।</p>  
                <div className="grid grid-cols-1 gap-3">  
-                  {[`${subject} এর বেসিক বুঝিয়ে দাও`, 'সাঈদ সম্পর্কে জানতে চাই','একটি উদাহরণ দিন', `${subject} কিভাবে শিখব?`].map((s, i) => (  
+                  {[`${subject} এর বেসিক বুঝিয়ে দাও`, 'সাঈদ সম্পর্কে জানতে চাই','একটি উদাহরণ দিন', `${subject} কিভাবে শেখা শুরু করব?`].map((s, i) => (  
                     <button key={i} onClick={() => handleSend(s)} className="p-5 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-2xl text-[15px] font-bold text-slate-600 dark:text-slate-400 text-left hover:border-emerald-500/50 transition-all cursor-pointer">{s}</button>  
                   ))}  
                </div>  
@@ -152,7 +159,7 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
                         <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>  
                         <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>  
                      </div>  
-                     <p className="text-[13px] font-black text-emerald-600 tracking-tight uppercase animate-pulse ">
+                     <p className="text-[13px] font-black text-emerald-600 tracking-tight uppercase animate-pulse">
                         {loadingStep === 0 && "Saiyed AI গভীরভাবে বিশ্লেষণ করছে..."}
                         {loadingStep === 1 && "সাঈদ এআই আপনার জন্য চিন্তা করছে..."}
                         {loadingStep === 2 && "প্রয়োজনীয় তথ্য খুঁজে দেখা হচ্ছে..."}
@@ -166,18 +173,15 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
                   </div>  
                 )}  
 
-                {/* সাজেশন বাটন - অরিজিনাল স্টাইল ঠিক রেখে ক্লিক ফিক্স করা হয়েছে */}
+                {/* ৫টি ফিক্সড ও রেগুলার সাজেশন বাটন সেকশন */}
                 {m.suggestions && m.suggestions.length > 0 && (  
-                   <div className="mt-12 flex flex-wrap gap-3">  
+                   <div className="mt-12 flex flex-wrap gap-3 relative z-10">  
                      {m.suggestions.map((s, si) => (  
                        <button 
-                        key={si} 
-                        type="button"
-                        onClick={(e) => { 
-                          e.preventDefault(); 
-                          handleSend(s); 
-                        }} 
-                        className="px-5 py-3 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[13px] font-black rounded-full border border-emerald-500/20 hover:bg-emerald-500 hover:text-white transition-all cursor-pointer z-[70] relative"
+                         key={si} 
+                         type="button"
+                         onClick={() => handleSend(s)} 
+                         className="px-5 py-3 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[13px] font-black rounded-full border border-emerald-500/20 hover:bg-emerald-500 hover:text-white transition-all cursor-pointer"
                        >
                          {s}
                        </button>  
@@ -211,4 +215,5 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
     </div>
   );
 };
+
 export default Tutor;
