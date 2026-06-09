@@ -518,14 +518,7 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
                     </button>
 
                     {m.role === 'user' && (
-                      <button
-                        onClick={() => handleEditMessage(actualIdx, m.text)}
-                        className="px-2 py-1 text-xs bg-slate-200 dark:bg-zinc-800 hover:bg-slate-300 dark:hover:bg-zinc-700 rounded transition"
-                        title="সম্পাদনা"
-                      >
-                        ✏️ সম্পাদনা
-                      </button>
-                    )}
+                                          )}
                   </div>
                 )}
 
