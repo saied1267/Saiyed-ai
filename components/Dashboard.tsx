@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Subject, ClassLevel, Group, AppUser } from '../types';
 
 interface DashboardProps {
@@ -11,6 +10,35 @@ interface DashboardProps {
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ user, onStartTutor, onGoToTranslator, onGoToNews, onGoToHistory }) => {
+  const [isServerActive, setIsServerActive] = useState(true);
+  const [activeUsers, setActiveUsers] = useState(25);
+
+  useEffect(() => {
+    // অ্যাক্টিভ ইউজার সংখ্যা পরিবর্তন করার ইন্টারভাল (প্রতি ৩ সেকেন্ড পর পর ১৫ থেকে ১২০ এর মধ্যে রেন্ডম নাম্বার দেখাবে)
+    const userInterval = setInterval(() => {
+      const minUsers = 15;
+      const maxUsers = 120;
+      const randomCount = Math.floor(Math.random() * (maxUsers - minUsers + 1)) + minUsers;
+      setActiveUsers(randomCount);
+    }, 3000);
+
+    // সার্ভার স্ট্যাটাস পরিবর্তন করার ইন্টারভাল (প্রতি ৮ সেকেন্ড পর পর ১৫% চান্স থাকবে সার্ভার ডাউন দেখানোর)
+    const serverInterval = setInterval(() => {
+      if (Math.random() < 0.15) {
+        setIsServerActive(false);
+        // সার্ভার ডাউন হওয়ার ৩ সেকেন্ড পর স্বয়ংক্রিয়ভাবে আবার অ্যাক্টিভ হয়ে যাবে
+        setTimeout(() => {
+          setIsServerActive(true);
+        }, 3000);
+      }
+    }, 8000);
+
+    return () => {
+      clearInterval(userInterval);
+      clearInterval(serverInterval);
+    };
+  }, []);
+
   const subjectList = [
     { name: Subject.MATH, icon: '📐', color: 'border-blue-500/20 bg-blue-50/50 dark:bg-blue-900/10', iconBg: 'bg-blue-100 dark:bg-blue-800', textColor: 'text-blue-600' },
     { name: Subject.ENGLISH, icon: '🔤', color: 'border-purple-500/20 bg-purple-50/50 dark:bg-purple-900/10', iconBg: 'bg-purple-100 dark:bg-purple-800', textColor: 'text-purple-600' },
@@ -28,11 +56,26 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onStartTutor, onGoToTransla
     <div className="space-y-8 animate-in fade-in duration-700 pb-24 font-['Hind_Siliguri']">
       <header className="flex justify-between items-center pt-2">
         <div className="space-y-1">
-          <h1 className="text-3xl font-black text-slate-900 dark:text-white flex items-center">
-            Saiyed <span className="text-emerald-500 ml-1">AI</span>
-            <span className="ml-2 px-2 py-0.5 bg-white-800 dark:bg-emerald-900/30 text-emerald-600 text-[9px] rounded-full font-black uppercase tracking-tighter animate-pulse">Server Active 🟢</span>
-          </h1>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+          <div className="flex items-start space-x-2">
+            <h1 className="text-3xl font-black text-slate-900 dark:text-white flex items-center">
+              Saiyed <span className="text-emerald-500 ml-1">AI</span>
+            </h1>
+            <div className="flex flex-col items-start mt-1.5 space-y-0.5">
+              {isServerActive ? (
+                <span className="px-2 py-0.5 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 text-[9px] rounded-full font-black uppercase tracking-tighter animate-pulse">
+                  Server Active 🟢
+                </span>
+              ) : (
+                <span className="px-2 py-0.5 bg-rose-50 dark:bg-rose-900/30 text-rose-500 text-[9px] rounded-full font-black uppercase tracking-tighter animate-bounce">
+                  Server Down 🔴
+                </span>
+              )}
+              <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 ml-1 uppercase tracking-tight">
+                {activeUsers} active user
+              </span>
+            </div>
+          </div>
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pt-1">
             {user.college} • {user.department}
           </p>
         </div>
@@ -69,10 +112,10 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onStartTutor, onGoToTransla
       {/* Subject Grid Section */}
       <div className="space-y-4">
         <div className="flex items-center space-x-3 px-1">
-          <h2 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">বিষয় ও কম্পিউটার কোর্স</h2>
+          <h2 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">বিষয় ও কম্পিউটার কোর্স</h2>
           <div className="h-px bg-slate-100 dark:bg-slate-800 flex-1"></div>
         </div>
-        
+
         <div className="grid grid-cols-2 gap-4">
           {subjectList.map((sub, i) => (
             <button 
@@ -96,10 +139,11 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onStartTutor, onGoToTransla
       {/* Motivational Footer */}
       <div className="p-6 bg-slate-50 dark:bg-slate-900/50 rounded-[2.2rem] border-2 border-dashed border-slate-200 dark:border-slate-800 text-center animate-pulse">
         <p className="text-[11px] font-black text-slate-500 dark:text-slate-400">
-          সাঈদ এআই (Saiyed AI) আপনার পড়াশোনাকে আরও সহজ করতে প্রস্তুত! 🚀 For help 01941652097
+          সাঈদ এআই (Saiyed AI) আপনার পড়াশোনাকে আরও সহজ করতে প্রস্তুত! 🚀 For help 01941652097
         </p>
       </div>
     </div>
   );
 };
+
 export default Dashboard;
