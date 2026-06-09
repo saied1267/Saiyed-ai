@@ -143,7 +143,7 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
                         <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
                         <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
                      </div>
-                     <p className="text-[13px] font-black text-slate-400 tracking-tight uppercase">সাঈদ এআই গভীরভাবে বিশ্লেষণ করছে...</p>
+                     <p className="text-[13px] font-black text-slate-400 tracking-tight uppercase animate-pulse ">Saiyed AI গভীরভাবে বিশ্লেষণ করছে...</p>
                    </div>
                 ) : (
                   <div className="prose dark:prose-invert max-w-none">
@@ -171,7 +171,7 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
              value={input}
              onChange={(e) => { setInput(e.target.value); e.target.style.height='auto'; e.target.style.height=e.target.scrollHeight+'px'; }}
              onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
-             placeholder="সাঈদ এআই-কে প্রশ্ন করুন..."
+             placeholder="Saiyd AI-কে প্রশ্ন করুন..."
              className="flex-1 bg-transparent px-5 py-4 outline-none font-bold text-[18px] dark:text-white resize-none max-h-48"
            />
            <button 
