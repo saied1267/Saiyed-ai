@@ -12,35 +12,41 @@ interface DashboardProps {
 const Dashboard: React.FC<DashboardProps> = ({ user, onStartTutor, onGoToTranslator, onGoToNews, onGoToHistory }) => {
   const [isServerActive, setIsServerActive] = useState(true);
   const [activeUsers, setActiveUsers] = useState(4);
-  const [textIndex, setTextIndex] = useState(0);
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+  const [isAnimatingOut, setIsAnimatingOut] = useState(false);
 
-  // বিভিন্ন এনিমেশন ও কালারসহ টেক্সট লিস্ট
+  // এনিমেটেড টেক্সট ও কালার কনফিগ
   const infoSlides = [
-    { text: `${user.college} • ${user.department}`, color: 'text-slate-400 dark:text-slate-300', animation: 'animate-in slide-in-from-left-5' },
-    { text: "Kaisir Ahamed Saiyed is the CEO of Saiyed AI", color: 'text-emerald-500 dark:text-emerald-400 font-black', animation: 'animate-in zoom-in-75' },
-    { text: "Trainer Of Computer", color: 'text-indigo-500 dark:text-indigo-400 font-extrabold', animation: 'animate-in slide-in-from-bottom-5' },
-    { text: "Hathazari Government College Accounting Department", color: 'text-amber-500 dark:text-amber-400', animation: 'animate-in slide-in-from-right-5' },
-    { text: "For Feedback 01941652097", color: 'text-rose-500 dark:text-rose-400 font-black tracking-normal', animation: 'animate-pulse' }
+    { text: `${user.college} • ${user.department}`, color: 'text-slate-400 dark:text-slate-300' },
+    { text: "Kaisir Ahamed Saiyed is the CEO of Saiyed AI", color: 'text-emerald-500 dark:text-emerald-400 font-black' },
+    { text: "Trainer Of Computer", color: 'text-indigo-500 dark:text-indigo-400 font-extrabold' },
+    { text: "Hathazari Government College Accounting Department", color: 'text-amber-500 dark:text-amber-400' },
+    { text: "For Feedback 01941652097", color: 'text-rose-500 dark:text-rose-400 font-black tracking-normal' }
   ];
 
   useEffect(() => {
-    // ইউজার সংখ্যা পরিবর্তন (০ থেকে ১৫ এর মধ্যে)
+    // ইউজার কাউন্টার (০-১৫ জন)
     const userInterval = setInterval(() => {
-      const randomCount = Math.floor(Math.random() * 16); // ০ থেকে ১৫
-      setActiveUsers(randomCount);
+      setActiveUsers(Math.floor(Math.random() * 16));
     }, 8000);
 
-    // টেক্সট পরিবর্তন ও এনিমেশন ট্রিগার (প্রতি ৪ সেকেন্ড পরপর)
+    // টেক্সট এনিমেশন ইন ও আউট পরিবর্তন (প্রতি ৪ সেকেন্ড পরপর)
     const textInterval = setInterval(() => {
-      setTextIndex((prevIndex) => (prevIndex + 1) % infoSlides.length);
-    }, 4000);
+      // ১. প্রথমে আউট এনিমেশন শুরু করুন
+      setIsAnimatingOut(true);
 
-    // সার্ভার স্ট্যাটাস পরিবর্তনের লজিক (প্রতি ২০ সেকেন্ডে একবার চেক করবে)
+      // ২. ৫০০ms অপেক্ষা করুন (এনিমেশন ডিউরেশন duration-500 এর সাথে মিল রেখে)
+      setTimeout(() => {
+        // ৩. ৫০০ms পর আউট এনিমেশন স্টেট বন্ধ করুন এবং পরবর্তী টেক্সট ইনডেক্স সেট করুন
+        setIsAnimatingOut(false);
+        setCurrentSlideIndex((prevIndex) => (prevIndex + 1) % infoSlides.length);
+      }, 500); // ডিউরেশন ৫০০ms
+    }, 4000); // প্রতি ৪ সেকেন্ডে একবার লুপটি চলবে (টোটাল ডিউরেশন)
+
+    // সার্ভার স্ট্যাটাস চেক
     const serverInterval = setInterval(() => {
       setIsServerActive(false);
-      setTimeout(() => {
-        setIsServerActive(true);
-      }, 3000); 
+      setTimeout(() => setIsServerActive(true), 3000); 
     }, 20000);
 
     return () => {
@@ -86,13 +92,14 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onStartTutor, onGoToTransla
             </div>
           </div>
           
-          {/* বিভিন্ন এনিমেশন ও কালারসহ টেক্সট কন্টেইনার */}
+          {/* এনিমেটেড টেক্সট কন্টেইনার */}
           <div className="min-h-[16px] overflow-hidden pt-1">
+            {/* key={currentSlideIndex} ব্যবহার করে এনিমেশন রি-ট্রিগার করা হয়েছে */}
             <p 
-              key={textIndex} 
-              className={`text-[10px] font-bold uppercase tracking-widest transition-all duration-500 ${infoSlides[textIndex].color} ${infoSlides[textIndex].animation}`}
+              key={currentSlideIndex}
+              className={`text-[10px] font-bold uppercase tracking-widest transition-all duration-500 ${infoSlides[currentSlideIndex].color} ${isAnimatingOut ? 'animate-out fade-out slide-out-to-top-2' : 'animate-in fade-in slide-in-from-bottom-2'}`}
             >
-              {infoSlides[textIndex].text}
+              {infoSlides[currentSlideIndex].text}
             </p>
           </div>
         </div>
@@ -105,6 +112,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onStartTutor, onGoToTransla
         </button>
       </header>
 
+      {/* Feature Cards */}
       <div className="grid grid-cols-2 gap-4">
         <button 
           onClick={onGoToTranslator} 
@@ -126,6 +134,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onStartTutor, onGoToTransla
         </button>
       </div>
 
+      {/* Subjects Section */}
       <div className="space-y-4">
         <div className="flex items-center space-x-3 px-1">
           <h2 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">বিষয় ও কম্পিউটার কোর্স</h2>
