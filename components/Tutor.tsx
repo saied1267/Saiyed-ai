@@ -225,7 +225,7 @@ const handleDownloadPDF = async (messageText: string) => {
     }).join('');
 
     // ফিক্স ১: ফন্ট সাইজ অনেক বড় করা হয়েছে এবং কালার অপাসিটি বাড়ানো হয়েছে
-    const watermarkSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600"><text x="300" y="300" fill="rgba(0,0,0,0.15)" font-size="45" font-family="sans-serif" font-weight="900" transform="rotate(-45 300 300)" text-anchor="middle">Kaisir ahamed Saiyed (Saiyed aI)</text></svg>`;
+    const watermarkSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600"><text x="300" y="300" fill="rgba(0,0,0,0.09)" font-size="45" font-family="sans-serif" font-weight="700" transform="rotate(-45 300 300)" text-anchor="middle">Kaisir ahamed Saiyed (Saiyed Ai)</text></svg>`;
     
     // ফিক্স ২: Base64 আবার ব্যবহার করা হয়েছে কারণ এটি html2canvas এ বেশি নির্ভরযোগ্য
     const watermarkBase64 = btoa(unescape(encodeURIComponent(watermarkSvg)));
