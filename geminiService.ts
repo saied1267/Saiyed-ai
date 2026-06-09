@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Type } from "@google/genai";
 import { TutorContext, Subject, StudyPlan } from "./types";
 
@@ -76,7 +77,7 @@ export const getTutorResponseStream = async (
   onChunk: (text: string) => void
 ) => {
   const ai = getAIInstance();
-  const model = 'gemini-1.5-flash';
+  const model = 'gemini-3-flash-preview';
   
   try {
     const responseStream = await ai.models.generateContentStream({
@@ -109,7 +110,7 @@ export const getTutorResponseStream = async (
 export const getTranslationModern = async (text: string, direction: 'bn-en' | 'en-bn') => {
   const ai = getAIInstance();
   const response = await ai.models.generateContent({
-    model: 'gemini-1.5-flash',
+    model: 'gemini-3-flash-preview',
     contents: `Translate this text: "${text}" (${direction}). Provide Formal, Casual, and Informal versions with grammar analysis and line-by-line breakdown in a professional style.`,
     config: {
       responseMimeType: "application/json",
@@ -144,7 +145,7 @@ export const getRecentEvents = async (type: 'bn' | 'en') => {
   const ai = getAIInstance();
   const prompt = type === 'bn' ? "বাংলাদেশের সর্বশেষ খবর" : "Latest global news";
   const response = await ai.models.generateContent({
-    model: 'gemini-1.5-flash',
+    model: 'gemini-3-flash-preview',
     contents: prompt,
     config: { tools: [{ googleSearch: {} }] }
   });
@@ -157,7 +158,7 @@ export const getRecentEvents = async (type: 'bn' | 'en') => {
 export const generateMCQs = async (subject: Subject) => {
   const ai = getAIInstance();
   const response = await ai.models.generateContent({
-    model: 'gemini-1.5-flash',
+    model: 'gemini-3-flash-preview',
     contents: `Generate 5 academic MCQs for ${subject}. Return JSON.`,
     config: { 
       responseMimeType: "application/json",
@@ -183,7 +184,7 @@ export const generateMCQs = async (subject: Subject) => {
 export const getStudyPlan = async (topics: string[]): Promise<StudyPlan> => {
   const ai = getAIInstance();
   const response = await ai.models.generateContent({
-    model: 'gemini-1.5-flash',
+    model: 'gemini-3-flash-preview',
     contents: `Create a study plan for: ${topics.join(', ')}. Return JSON.`,
     config: {
       responseMimeType: "application/json",
@@ -191,7 +192,7 @@ export const getStudyPlan = async (topics: string[]): Promise<StudyPlan> => {
         type: Type.OBJECT,
         properties: {
           dailyGoals: { type: Type.ARRAY, items: { type: Type.STRING } },
-          weakTopics: { type: Type.STRING },
+          weakTopics: { type: Type.ARRAY, items: { type: Type.STRING } },
           nextStudy: { type: Type.STRING }
         },
         required: ["dailyGoals", "weakTopics", "nextStudy"]
