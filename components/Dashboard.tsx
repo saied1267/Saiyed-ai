@@ -11,27 +11,23 @@ interface DashboardProps {
 
 const Dashboard: React.FC<DashboardProps> = ({ user, onStartTutor, onGoToTranslator, onGoToNews, onGoToHistory }) => {
   const [isServerActive, setIsServerActive] = useState(true);
-  const [activeUsers, setActiveUsers] = useState(25);
+  const [activeUsers, setActiveUsers] = useState(4);
 
   useEffect(() => {
-    // অ্যাক্টিভ ইউজার সংখ্যা পরিবর্তন করার ইন্টারভাল (প্রতি ৩ সেকেন্ড পর পর ১৫ থেকে ১২০ এর মধ্যে রেন্ডম নাম্বার দেখাবে)
+    // প্রতি ৫ সেকেন্ড পর পর ইউজার সংখ্যা পরিবর্তন
     const userInterval = setInterval(() => {
-      const minUsers = 15;
-      const maxUsers = 120;
-      const randomCount = Math.floor(Math.random() * (maxUsers - minUsers + 1)) + minUsers;
+      // ৪ থেকে ২০ এর মধ্যে রেন্ডম নাম্বার
+      const randomCount = Math.floor(Math.random() * (20 - 4 + 1)) + 4;
       setActiveUsers(randomCount);
-    }, 3000);
+    }, 5000); // ১.৫ সেকেন্ড থেকে বাড়িয়ে ৫ সেকেন্ড (৫০০০ মিলিসেকেন্ড) করা হলো
 
-    // সার্ভার স্ট্যাটাস পরিবর্তন করার ইন্টারভাল (প্রতি ৮ সেকেন্ড পর পর ১৫% চান্স থাকবে সার্ভার ডাউন দেখানোর)
+    // সার্ভার স্ট্যাটাস মাঝে মাঝে ডাউন দেখানোর জন্য (১০ সেকেন্ড পরপর চেক করবে)
     const serverInterval = setInterval(() => {
-      if (Math.random() < 0.15) {
+      if (Math.random() < 0.10) { // ১০% সম্ভাবনা সার্ভার ডাউন হওয়ার
         setIsServerActive(false);
-        // সার্ভার ডাউন হওয়ার ৩ সেকেন্ড পর স্বয়ংক্রিয়ভাবে আবার অ্যাক্টিভ হয়ে যাবে
-        setTimeout(() => {
-          setIsServerActive(true);
-        }, 3000);
+        setTimeout(() => setIsServerActive(true), 2500); // ২.৫ সেকেন্ড পর আবার একটিভ হবে
       }
-    }, 8000);
+    }, 10000);
 
     return () => {
       clearInterval(userInterval);
@@ -46,7 +42,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onStartTutor, onGoToTransla
     { name: Subject.ICT, icon: '💻', color: 'border-orange-500/20 bg-orange-50/50 dark:bg-orange-900/10', iconBg: 'bg-orange-100 dark:bg-orange-800', textColor: 'text-orange-600' },
     { name: Subject.FINANCE, icon: '💰', color: 'border-rose-500/20 bg-rose-50/50 dark:bg-rose-900/10', iconBg: 'bg-rose-100 dark:bg-rose-800', textColor: 'text-rose-600' },
     { name: Subject.BANGLA, icon: '✍️', color: 'border-amber-500/20 bg-amber-50/50 dark:bg-amber-900/10', iconBg: 'bg-amber-100 dark:bg-amber-800', textColor: 'text-amber-600' },
-    // Computer Courses
     { name: Subject.WORD, icon: '📝', color: 'border-indigo-500/20 bg-indigo-50/50 dark:bg-indigo-900/10', iconBg: 'bg-indigo-100 dark:bg-indigo-800', textColor: 'text-indigo-600' },
     { name: Subject.EXCEL, icon: '📈', color: 'border-green-500/20 bg-green-50/50 dark:bg-green-900/10', iconBg: 'bg-green-100 dark:bg-green-800', textColor: 'text-green-600' },
     { name: Subject.POWERPOINT, icon: '📽️', color: 'border-orange-600/20 bg-orange-50/50 dark:bg-orange-900/10', iconBg: 'bg-orange-100 dark:bg-orange-800', textColor: 'text-orange-700' },
@@ -70,7 +65,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onStartTutor, onGoToTransla
                   Server Down 🔴
                 </span>
               )}
-              <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 ml-1 uppercase tracking-tight">
+              <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 ml-1 uppercase tracking-tight transition-all duration-500">
                 {activeUsers} active user
               </span>
             </div>
@@ -87,7 +82,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onStartTutor, onGoToTransla
         </button>
       </header>
 
-      {/* Main Feature Cards */}
       <div className="grid grid-cols-2 gap-4">
         <button 
           onClick={onGoToTranslator} 
@@ -109,7 +103,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onStartTutor, onGoToTransla
         </button>
       </div>
 
-      {/* Subject Grid Section */}
       <div className="space-y-4">
         <div className="flex items-center space-x-3 px-1">
           <h2 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">বিষয় ও কম্পিউটার কোর্স</h2>
@@ -136,7 +129,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onStartTutor, onGoToTransla
         </div>
       </div>
 
-      {/* Motivational Footer */}
       <div className="p-6 bg-slate-50 dark:bg-slate-900/50 rounded-[2.2rem] border-2 border-dashed border-slate-200 dark:border-slate-800 text-center animate-pulse">
         <p className="text-[11px] font-black text-slate-500 dark:text-slate-400">
           সাঈদ এআই (Saiyed AI) আপনার পড়াশোনাকে আরও সহজ করতে প্রস্তুত! 🚀 For help 01941652097
