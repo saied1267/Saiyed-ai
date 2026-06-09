@@ -30,7 +30,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onStartTutor, onGoToTransla
         <div className="space-y-1">
           <h1 className="text-3xl font-black text-slate-900 dark:text-white flex items-center">
             Saiyed <span className="text-emerald-500 ml-1">AI</span>
-            <span className="ml-2 px-2 py-0.5 bg-black-900 dark:bg-emerald-900/30 text-emerald-600 text-[9px] rounded-full font-black uppercase tracking-tighter">Pro</span>
+            <span className="ml-2 px-2 py-0.5 bg-white-800 dark:bg-emerald-900/30 text-emerald-600 text-[9px] rounded-full font-black uppercase tracking-tighter">Server Active</span>
           </h1>
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
             {user.college} • {user.department}
@@ -40,7 +40,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onStartTutor, onGoToTransla
           onClick={onGoToHistory} 
           className="w-11 h-11 bg-white dark:bg-slate-900 border dark:border-slate-800 rounded-2xl flex items-center justify-center text-xl shadow-sm active:scale-90 transition-all hover:bg-slate-50"
         >
-          📚
+          History
         </button>
       </header>
 
@@ -52,8 +52,8 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onStartTutor, onGoToTransla
         >
           <div className="absolute -right-4 -top-4 w-20 h-20 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
           <div className="text-2xl mb-3">🌍</div>
-          <h3 className="font-black text-sm">অনুবাদ এআই</h3>
-          <p className="text-[9px] opacity-60 mt-1 font-bold uppercase tracking-tighter">গভীর বিশ্লেষণ</p>
+          <h3 className="font-black text-sm">Translate Saiyed AI</h3>
+          <p className="text-[9px] opacity-60 mt-1 font-bold uppercase tracking-tighter">গভীর অনুবাদ বিশ্লেষণ</p>
         </button>
         <button 
           onClick={onGoToNews} 
@@ -96,7 +96,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onStartTutor, onGoToTransla
       {/* Motivational Footer */}
       <div className="p-6 bg-slate-50 dark:bg-slate-900/50 rounded-[2.2rem] border-2 border-dashed border-slate-200 dark:border-slate-800 text-center animate-pulse">
         <p className="text-[11px] font-black text-slate-500 dark:text-slate-400">
-          সাঈদ এআই আপনার পড়াশোনাকে আরও সহজ করতে প্রস্তুত! 🚀
+          সাঈদ এআই (Saiyed AI) আপনার পড়াশোনাকে আরও সহজ করতে প্রস্তুত! 🚀 For help 01941652097
         </p>
       </div>
     </div>
