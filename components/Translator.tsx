@@ -54,7 +54,7 @@ const Translator: React.FC<{onBack:()=>void}> = ({ onBack }) => {
           className="w-full h-40 bg-transparent outline-none font-bold text-[20px] dark:text-white resize-none leading-relaxed placeholder:opacity-30"
         />
         <button onClick={() => handleTranslate()} disabled={loading} className="w-full mt-6 py-5 bg-indigo-600 text-white rounded-[2rem] font-black text-[14px] uppercase shadow-xl shadow-indigo-500/30 active:scale-95 transition-all">
-          {loading ? 'আপনার সেন্টেন্স যাচাই করা হচ্ছে','সাঈদ এআই গভীর ভাবে বিশ্লেষণ করছে...' : 'গভীর অনুবাদ ও গ্রামার চেক'}
+          {loading ? 'সাঈদ এআই গভীর ভাবে বিশ্লেষণ করছে...' : 'গভীর অনুবাদ ও গ্রামার চেক'}
         </button>
       </div>
 
