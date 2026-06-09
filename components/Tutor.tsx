@@ -13,7 +13,7 @@ interface TutorProps {
 }
 
 // ==========================================
-// ড্যাশবোর্ডের স্ক্রিনশট অনুযায়ী ১০০% নিখুঁত প্রম্পট ব্যাংক
+// প্রম্পট ব্যাংক
 // ==========================================
 const SAIYED_PROMPTS = [
   "সাঈদ সম্পর্কে বিস্তারিত জানতে চাই",
@@ -69,14 +69,14 @@ const SUBJECT_PROMPTS: Record<string, string[]> = {
     "সি প্রোগ্রামিং (C Programming) এর লুপ বা Loop কীভাবে কাজ করে?",
     "লজিক গেট (Logic Gates) যেমন: AND, OR, NOT গেট বুঝিয়ে দাও",
     "আইসিটির ডাটাবেজ ম্যানেজমেন্ট সিস্টেম (DBMS) এর কাজ কী?",
-    "নেটওয়ার্ক টপোলজি (যেমন: Star, Mesh, Ring) এর মূল তফাতগুলো কী?",
+    "নেটওয়ার্ক টপোলজি (যেমন: Star, Mesh, Ring) এর মূল تফাতগুলো কী?",
     "সাইবার সিকিউরিটি বা তথ্যপ্রযুক্তি নিরাপত্তার প্রধান ঝুঁকিগুলো কী কী?",
-    "ক্লাউড কম্পিউটিং কী এবং এটি বাস্তব জীবনে কেন গুরুত্বপূর্ণ?"
+    "ক্লাউড 컴퓨টিং কী এবং এটি বাস্তব জীবনে কেন গুরুত্বপূর্ণ?"
   ],
   "ফিন্যান্স": [
     "ফিন্যান্স ও ব্যাংকিং এর মূল ধারণাটি বুঝিয়ে দাও",
     "অর্থের সময়মূল্য (Time Value of Money) কী এবং এর গুরুত্ব কী?",
-    "ঝুঁকি ও аয়ের মধ্যে মূল তফাত এবং সম্পর্কটি ব্যাখ্যা করো",
+    "ঝুঁকি ও আয়ের মধ্যে মূল তফাত এবং সম্পর্কটি ব্যাখ্যা করো",
     "সরল মুনাফা এবং চক্রবৃদ্ধি মুনাফার মধ্যে পার্থক্য উদাহরণসহ দাও",
     "সুযোগ ব্যয় (Opportunity Cost) বলতে ফিন্যা্সে কী বোঝায়?",
     "শেয়ার, bond এবং ডিবেঞ্চারের মধ্যে প্রধান পার্থক্যগুলো কী?",
@@ -98,7 +98,7 @@ const SUBJECT_PROMPTS: Record<string, string[]> = {
     "একটি প্রফেশনাল জীবনবৃত্তান্ত বা Resume মেকিং গাইডলাইন দাও",
     "MS Word-এ টেবিল (Table) এবং কলাম কীভাবে কাস্টমাইজ করতে হয়?",
     "ডকুমেন্টে পেজ নাম্বার এবং হেডার-ফুটার সেট করার নিয়ম কী?",
-    "MS Word-এ যুক্তিযুক্ত হাইপারলিংক এবং বুকমার্ক কীভাবে ব্যবহার করে?",
+    "MS Word-এ হাইপারলিংক এবং বুকমার্ক কীভাবে ব্যবহার করে?",
     "ম্যাক্রো (Macro) ব্যবহার করে কীভাবে কাজ অটোমেট করা যায়?"
   ],
   "MS Excel": [
@@ -132,7 +132,6 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
   const [initialSuggestions, setInitialSuggestions] = useState<string[]>([]); 
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // ড্যাশবোর্ড থেকে আসা subject প্রপ্স ট্র্যাক করে ডাইনামিকলি সাজেশন মিক্স করার লজিক
   useEffect(() => {
     const shuffledSaiyed = [...SAIYED_PROMPTS].sort(() => 0.5 - Math.random()).slice(0, 2);
     const subjectPool = SUBJECT_PROMPTS[subject] || SUBJECT_PROMPTS["default"];
@@ -171,21 +170,23 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
   }, [loading]);
 
   // ==========================================
-  // পিডিএফ তৈরীর কাস্টম ফাংশন (কম্পোনেন্টের ভেতরে)
+  // পিডিএফ তৈরীর ফাংশন
   // ==========================================
   const handleDownloadPDF = (messageText: string) => {
+    const win = window as any;
+    if (!win.html2pdf) {
+      alert("পিডিএফ লাইব্রেরিটি এখনও লোড হয়নি। দয়া করে public/index.html ফাইলে স্ক্রিপ্ট ট্যাগটি যুক্ত করুন এবং পেজ রিফ্রেশ দিন।");
+      return;
+    }
+
     const element = document.createElement('div');
-    
-    // পিডিএফ ফাইলের জন্য সুন্দর মার্কডাউন ক্লিনিং ও লেআউট প্রসেস
     let cleanText = messageText.replace(/\*\*/g, '').replace(/###/g, ''); 
 
     element.innerHTML = `
-      <div style="font-family: 'Hind Siliguri', sans-serif; padding: 40px; color: #1e293b; background-color: #ffffff;">
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #10b981; padding-bottom: 15px; margin-bottom: 30px;">
-          <div>
-            <h1 style="color: #059669; margin: 0; font-size: 26px; font-weight: 900;">${subject} — লেকচার নোট</h1>
-            <p style="color: #64748b; margin: 5px 0 0 0; font-size: 13px; font-weight: 700;">Saiyed AI Tutor 🟢</p>
-          </div>
+      <div style="font-family: 'Hind Siliguri', Arial, sans-serif; padding: 40px; color: #1e293b; background-color: #ffffff;">
+        <div style="border-bottom: 3px solid #10b981; padding-bottom: 15px; margin-bottom: 30px;">
+          <h1 style="color: #059669; margin: 0; font-size: 26px; font-weight: 900;">${subject} — লেকচার নোট</h1>
+          <p style="color: #64748b; margin: 5px 0 0 0; font-size: 13px; font-weight: 700;">Saiyed AI Tutor 🟢</p>
         </div>
         <div style="font-size: 16px; line-height: 1.9; white-space: pre-wrap; color: #334155;">
           ${cleanText}
@@ -201,11 +202,7 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
-    if ((window as any).html2pdf) {
-      (window as any).html2pdf().from(element).set(options).save();
-    } else {
-      alert("পিডিএফ লাইব্রেরিটি লোড হতে পারছে না। দয়া করে index.html-এ স্ক্রিপ্ট ট্যাগটি চেক করুন।");
-    }
+    win.html2pdf().from(element).set(options).save();
   };
 
   const handleSend = async (text?: string) => {
@@ -331,7 +328,7 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
                   </div>  
                 )}  
 
-                {/* এআই মেসেজ সফলভাবে শেষ হলে কাস্টম PDF ডাউনলোড বাটন */}
+                {/* এআই মেসেজ সফলভাবে শেষ হলে এবং টেক্সট থাকলে পিডিএফ বাটন রিণ্ডার হবে */}
                 {m.role === 'model' && m.text && (
                   <div className="mt-4 flex justify-end">
                     <button
