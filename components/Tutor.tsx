@@ -12,16 +12,13 @@ interface TutorProps {
   onBack: () => void;
 }
 
-// ==========================================
-// প্রম্পট ব্যাংক (আগের মতোই অপরিবর্তিত)
-// ==========================================
 const SAIYED_PROMPTS = [
   "সাঈদ সম্পর্কে বিস্তারিত জানতে চাই", "সাঈদ এআই এর নির্মাতা কে এবং এর লক্ষ্য কী?", 
   "সাঈদ এর ব্যাকএন্ডে কোন প্রযুক্তির ব্যবহার করা হয়েছে?", "সাঈদ এআই কীভাবে জটিল সমস্যার সমাধান করে?", 
   "সাঈদ এআই-এর বিশেষ ক্ষমতাগুলো কী কী?", "সাঈদ এআই কি আমাকে পরীক্ষার রুটিন বানাতে সাহায্য করতে পারবে?", 
   "সাঈদ এআই তৈরি করার পেছনে মূল অনুপ্রেরণা কী ছিল?", "সাঈদ এআই এর ডাটা সিকিউরিটি বা নিরাপত্তা ব্যবস্থা কেমন?", 
   "সাঈদ এআই কি বাংলা এবং ইংরেজি দুটোই ভালো বোঝে?", "সাঈদ এআই কে কীভাবে আরও কার্যকরভাবে ব্যবহার করা যায়?", 
-  "সাঈদ এর কাছ থেকে বেস্টアウトপুট পাওয়ার ট্রিকস কী?", "সাঈদ এআই-এর ফিউচার বা আগামীতে কী কী ফিচার আসছে?", 
+  "সাঈদ এর কাছ থেকে বেস্ট আউটপুট পাওয়ার ট্রিকস কী?", "সাঈদ এআই-এর ফিউচার বা আগামীতে কী কী ফিচার আসছে?", 
   "সাঈদ এর সাথে ভয়েস চ্যাট বা কথা বলার কোনো সুযোগ আছে কি?", "সাঈদ কি কঠিন বিষয়ের নোট বা সামারি তৈরি করে দিতে পারে?"
 ];
 
@@ -31,12 +28,11 @@ const SUBJECT_PROMPTS: Record<string, string[]> = {
   "default": ["এই বিষয়ের মূল সিলেবাস এবং রোডম্যাপটি দাও", "পরীক্ষার জন্য কোন কোন অধ্যায় সবচেয়ে গুরুত্বপূর্ণ?"]
 };
 
-// ৫টি ভিন্ন ভিন্ন লোডিং মেসেজ
 const LOADING_MESSAGES = [
   "সাঈদ এআই গভীরভাবে ভাবছে...",
   "আপনার প্রশ্নটি বিশ্লেষণ করা হচ্ছে...",
   "সঠিক এবং তথ্যবহুল উত্তর সাজানো হচ্ছে...",
-  "আপনার ক্লাসের মান অনুযায়ী লেকচার নোট তৈরি হচ্ছে...",
+  "আপনার ক্লাসের মান অনুযায়ী লেкচার নোট তৈরি হচ্ছে...",
   "আর মাত্র কয়েক মুহূর্ত, উত্তর প্রস্তুত করা হচ্ছে..."
 ];
 
@@ -47,7 +43,7 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
   const [initialSuggestions, setInitialSuggestions] = useState<string[]>([]); 
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // ✅ সমাধান ১: গ্লোবালি ফন্ট প্রি-লোড করা (যাতে পিডিএফ জেনারেট করার সময় ইনস্ট্যান্ট ফন্ট পায়)
+  // গ্লোবালি বাংলা ওয়েব ফন্ট ইনজেক্ট করা
   useEffect(() => {
     if (!document.getElementById('global-hind-font')) {
       const link = document.createElement('link');
@@ -73,15 +69,6 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
         behavior: 'smooth'
       });
     }
-    const win = window as any;  
-    if (win.renderMathInElement) {  
-      setTimeout(() => {  
-        win.renderMathInElement(document.body, {  
-          delimiters: [{ left: "$$", right: "$$", display: true }, { left: "$", right: "$", display: false }],
-          throwOnError: false  
-        });  
-      }, 100);  
-    }
   }, [history, loading]);
 
   useEffect(() => {
@@ -95,63 +82,121 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
     return () => clearInterval(interval);
   }, [loading]);
 
-  // ✅ সমাধান ২: অটো-ম্যাথ কনভার্টার (যা raw সমীকরণ এবং \Rightarrow কে স্বয়ংক্রিয়ভাবে $...$ এ রূপান্তর করবে)
-  const autoWrapMathDelimiters = (text: string) => {
-    if (!text || text.includes('$')) return text;
-    // ইংরেজি অক্ষর, সংখ্যা, গাণিতিক চিহ্ন এবং \Rightarrow যুক্ত অংশ সনাক্ত করার রেজেক্স
-    return text.replace(/(?:[A-Za-z0-9\s\+\-\*\/\^\=\(\),]|\\Rightarrow)+(?:\^|\\Rightarrow|\=)(?:[A-Za-z0-9\s\+\-\*\/\^\=\(\),]|\\Rightarrow)+/g, (match) => {
-      return `$${match.trim()}$`;
+  // সমীকরণ সনাক্ত করার শক্তিশালী অটোমেটিক রেজেক্স হেল্পার
+  const autoWrapMathDelimiters = (text: string): string => {
+    if (!text) return '';
+    return text.split('\n').map(line => {
+      if (line.includes('$')) return line;
+      // বীজগণিত, লিমিট, মডুলো বা সাইন সমৃদ্ধ গাণিতিক লাইন ডিটেক্ট করা
+      return line.replace(/([A-Za-z0-9\s\+\-\*\/\^\(\)\[\]\{\}\\\<\>\.\,\:\;\=]+(?:=|\^|\\Rightarrow|\\pmod|\\frac|\\sqrt)[A-Za-z0-9\s\+\-\*\/\^\(\)\[\]\{\}\\\<\>\.\,\:\;\=]*)/g, (match) => {
+        const trimmed = match.trim();
+        if (trimmed.length > 1 && !/^[A-Za-z\s]+$/.test(trimmed)) {
+          return `$${trimmed}$`;
+        }
+        return match;
+      });
+    }).join('\n');
+  };
+
+  // রিঅ্যাক্ট ফ্রেন্ডলি সিঙ্কার্স টেক্সট ও বোল্ড রেন্ডারার (Virtual DOM কনফ্লিক্ট এড়াতে)
+  const renderLineContent = (line: string) => {
+    const win = window as any;
+    const tokens = line.split(/(\$\$.*?\$\$|\$.*?\$)/g);
+
+    return tokens.map((token, idx) => {
+      // ডিসপ্লে মোড সমীকরণ ($$)
+      if (token.startsWith('$$') && token.endsWith('$$')) {
+        const math = token.slice(2, -2);
+        if (win.katex) {
+          const html = win.katex.renderToString(math, { displayMode: true, throwOnError: false });
+          return <span key={idx} dangerouslySetInnerHTML={{ __html: html }} className="block my-2" />;
+        }
+        return <code key={idx}>{math}</code>;
+      }
+      // ইনলাইন মোড সমীকরণ ($)
+      if (token.startsWith('$') && token.endsWith('$')) {
+        const math = token.slice(1, -1);
+        if (win.katex) {
+          const html = win.katex.renderToString(math, { displayMode: false, throwOnError: false });
+          return <span key={idx} dangerouslySetInnerHTML={{ __html: html }} className="inline-block mx-0.5" />;
+        }
+        return <code key={idx}>{math}</code>;
+      }
+      // সাধারণ টেক্সটের ভেতরে থাকা বোল্ড (**) প্রসেস করা
+      const boldParts = token.split(/\*\*(.*?)\*\*/g);
+      return boldParts.map((part, pi) => 
+        pi % 2 === 1 
+          ? <strong key={`${idx}-${pi}`} className="text-emerald-600 dark:text-emerald-400 font-extrabold">{part}</strong> 
+          : part
+      );
     });
   };
 
-  // ✅ সমাধান ৩: পিডিএফ ডাউনলোড করার সময় ফন্ট লোডিং লক এবং লাইভ কেটেক্স রেন্ডারিং নিশ্চিত করা
+  const renderText = (text: string) => {
+    if (!text) return null;
+    const processedText = autoWrapMathDelimiters(text);
+    return processedText.split('\n').map((line, i) => {  
+      if (line.trim().startsWith('###')) {
+        return <h2 key={i} className="text-[20px] font-black mt-6 mb-3 text-emerald-600 dark:text-emerald-400 border-l-4 border-emerald-500 pl-3">{line.replace('###', '').trim()}</h2>;
+      }
+      return <p key={i} className="text-[16px] mb-3 leading-relaxed tracking-normal">{renderLineContent(line)}</p>;
+    });
+  };
+
+  // পিডিএফে সমীকরণ এবং ফন্ট একদম অবিকল রাখার মাস্টার ফাংশন
   const handleDownloadPDF = async (messageText: string) => {
     const win = window as any;
     if (!win.html2pdf) {
-      alert("পিডিএফ লাইব্রেরিটি লোড হচ্ছে, ১ সেকেন্ড অপেক্ষা করে আবার চেষ্টা করুন।");
+      alert("পিডিএফ লাইব্রেরিটি এখনো লোড হচ্ছে। অনুগ্রহ করে কয়েক সেকেন্ড পর ট্রাই করুন।");
       return;
     }
 
+    // একটি অদৃশ্য কিন্তু সচল অ্যাক্টিভ DOM নোড তৈরি (যাতে ব্রাউজারের ফন্ট শেপিং ইঞ্জিন সচল থাকে)
     const element = document.createElement('div');
-    element.style.position = 'absolute';
-    element.style.left = '-9999px';
-    element.style.width = '750px';
-    element.style.padding = '40px';
+    element.style.position = 'fixed';
+    element.style.top = '0';
+    element.style.left = '0';
+    element.style.width = '794px'; // A4 সাইজের স্ট্যান্ডার্ড রেসোলিউশন উইডথ
+    element.style.opacity = '0';
+    element.style.pointerEvents = 'none';
+    element.style.zIndex = '-9999';
     element.style.backgroundColor = '#ffffff';
-    element.style.fontFamily = "'Hind Siliguri', sans-serif";
 
-    // টেক্সট প্রসেস ও সমীকরণ রূপান্তর
     const processedText = autoWrapMathDelimiters(messageText);
-    const formattedHtml = processedText
-      .split('\n')
-      .map((line) => {
-        if (line.trim().startsWith('###')) {
-          return `<h2 style="font-size: 20px; font-weight: 700; margin-top: 22px; margin-bottom: 12px; border-left: 4px solid #10b981; padding-left: 10px; color: #059669;">${line.replace('###', '').trim()}</h2>`;
+    
+    // HTML স্ট্রিং-এই সরাসরি KaTeX ইন্টিগ্রেট করে দেওয়া হলো
+    const formattedHtml = processedText.split('\n').map((line) => {
+      if (line.trim().startsWith('###')) {
+        return `<h2 style="font-size: 20px; font-weight: 700; margin-top: 22px; margin-bottom: 12px; border-left: 4px solid #10b981; padding-left: 10px; color: #059669; font-family: 'Hind Siliguri', sans-serif;">${line.replace('###', '').trim()}</h2>`;
+      }
+      
+      const tokens = line.split(/(\$\$.*?\$\$|\$.*?\$)/g);
+      const lineHtml = tokens.map((token) => {
+        if (token.startsWith('$$') && token.endsWith('$$')) {
+          return win.katex ? win.katex.renderToString(token.slice(2, -2), { displayMode: true, throwOnError: false }) : token;
         }
-        const processedLine = line.replace(/\*\*(.*?)\*\*/g, '<strong style="color: #059669; font-weight: 700;">$1</strong>');
-        return `<p style="font-size: 15px; margin-bottom: 12px; line-height: 1.8; color: #1e293b;">${processedLine}</p>`;
-      })
-      .join('');
+        if (token.startsWith('$') && token.endsWith('$')) {
+          return win.katex ? win.katex.renderToString(token.slice(1, -1), { displayMode: false, throwOnError: false }) : token;
+        }
+        return token.replace(/\*\*(.*?)\*\*/g, '<strong style="color: #059669; font-weight: 700;">$1</strong>');
+      }).join('');
+
+      return `<p style="font-size: 15px; margin-bottom: 14px; line-height: 1.8; color: #1e293b; font-family: 'Hind Siliguri', sans-serif;">${lineHtml}</p>`;
+    }).join('');
 
     element.innerHTML = `
-      <div style="border-bottom: 2px solid #10b981; padding-bottom: 12px; margin-bottom: 24px;">
-        <h1 style="color: #059669; margin: 0; font-size: 24px; font-weight: 700;">${subject} — লেকচার নোট</h1>
-        <p style="color: #64748b; margin: 5px 0 0 0; font-size: 12px;">Generated by Saiyed AI Tutor</p>
+      <div style="font-family: 'Hind Siliguri', sans-serif; padding: 45px; color: #1e293b; background-color: #ffffff;">
+        <div style="border-bottom: 2px solid #10b981; padding-bottom: 12px; margin-bottom: 26px;">
+          <h1 style="color: #059669; margin: 0; font-size: 24px; font-weight: 700; font-family: 'Hind Siliguri', sans-serif;">${subject} — লেকচার নোট</h1>
+          <p style="color: #64748b; margin: 5px 0 0 0; font-size: 12px; font-family: 'Hind Siliguri', sans-serif;">Generated by Saiyed AI Tutor</p>
+        </div>
+        <div style="letter-spacing: 0.1px; font-family: 'Hind Siliguri', sans-serif;">${formattedHtml}</div>
       </div>
-      <div style="letter-spacing: 0.1px;">${formattedHtml}</div>
     `;
 
     document.body.appendChild(element);
 
-    // পিডিএফ জেনারেট হওয়ার আগে অফ-স্ক্রিন এলিমেন্টে কেটেক্স রেন্ডার করা
-    if (win.renderMathInElement) {
-      win.renderMathInElement(element, {
-        delimiters: [{ left: "$$", right: "$$", display: true }, { left: "$", right: "$", display: false }],
-        throwOnError: false
-      });
-    }
-
-    // ব্রাউজারে ফন্ট সম্পূর্ণরূপে রেন্ডার হওয়া পর্যন্ত অপেক্ষা করা (যুক্তাক্ষর ভাঙা রোধ করতে)
+    // ফন্ট যেন শতভাগ লোড শেষ করে তার জন্য ব্রাউজার লক রিলিজের অপেক্ষা
     if (document.fonts && document.fonts.ready) {
       await document.fonts.ready;
     }
@@ -163,7 +208,7 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
       html2canvas: { 
         scale: 2, 
         useCORS: true, 
-        letterRendering: false // বাংলায় ক্যারেক্টার স্পেসিং নিখুঁত রাখার জন্য এটি false থাকবে
+        letterRendering: false 
       },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
@@ -172,7 +217,7 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
       win.html2pdf().from(element).set(options).save().then(() => {
         document.body.removeChild(element);
       });
-    }, 350);
+    }, 400);
   };
 
   const handleSend = async (text?: string) => {
@@ -194,17 +239,6 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
         onUpdateHistory([...currentHistory, { ...aiPlaceholder, text: cleanText, suggestions }]);  
       });  
     } catch (e) { onUpdateHistory([...currentHistory, { ...aiPlaceholder, text: "⚠️ ত্রুটি হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।" }]); } finally { setLoading(false); }
-  };
-
-  // স্ক্রিনে দেখানোর জন্যও অটো-ম্যাথ কনভার্টার কল করা হলো
-  const renderText = (text: string) => {
-    if (!text) return null;
-    const processedMath = autoWrapMathDelimiters(text);
-    return processedMath.split('\n').map((line, i) => {  
-      if (line.trim().startsWith('###')) return <h2 key={i} className="text-[20px] font-black mt-6 mb-3 text-emerald-600 dark:text-emerald-400 border-l-4 border-emerald-500 pl-3">{line.replace('###', '').trim()}</h2>;
-      const processBold = (content: string) => content.split(/\*\*(.*?)\*\*/g).map((part, pi) => pi % 2 === 1 ? <strong key={pi} className="text-emerald-600 dark:text-emerald-400 font-extrabold">{part}</strong> : part);
-      return <p key={i} className="text-[16px] mb-3 leading-relaxed tracking-normal">{processBold(line)}</p>;
-    });
   };
 
   return (
