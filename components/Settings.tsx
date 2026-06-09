@@ -223,7 +223,7 @@ const Settings: React.FC<SettingsProps> = ({ user, darkMode, setDarkMode, onUpda
       
       {/* Footer Branding */}
       <div className="flex flex-col items-center justify-center pt-10 space-y-1">
-        <p className="text-[9px] font-black uppercase tracking-[0.5em] text-slate-300 dark:text-zinc-700">Handcrafted by Saiyed</p>
+        <p className="text-[9px] font-black uppercase tracking-[0.5em] text-slate-300 dark:text-zinc-700">Kaisir Ahamed Saiyed</p>
         <p className="text-[9px] font-bold text-slate-400/50 dark:text-zinc-600">Version 3.0 • Premium AI Edition</p>
       </div>
     </div>
