@@ -14,31 +14,34 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onStartTutor, onGoToTransla
   const [activeUsers, setActiveUsers] = useState(4);
   const [textIndex, setTextIndex] = useState(0);
 
-  // এনিমেটেড টেক্সট ও কালার কনফিগ
+  // বিভিন্ন এনিমেশন ও কালারসহ টেক্সট লিস্ট
   const infoSlides = [
-    { text: `${user.college} • ${user.department}`, color: 'text-slate-400', animation: 'animate-in slide-in-from-left-4' },
-    { text: "Kaisir Ahamed Saiyed is the CEO of Saiyed AI", color: 'text-emerald-500 font-black', animation: 'animate-in zoom-in-75' },
-    { text: "Trainer Of Computer", color: 'text-indigo-500', animation: 'animate-in slide-in-from-bottom-4' },
-    { text: "Hathazari Government College Accounting Department", color: 'text-amber-500', animation: 'animate-in fade-in zoom-in-95' },
-    { text: "For Feedback 01941652097", color: 'text-rose-500 underline decoration-dashed', animation: 'animate-bounce' }
+    { text: `${user.college} • ${user.department}`, color: 'text-slate-400 dark:text-slate-300', animation: 'animate-in slide-in-from-left-5' },
+    { text: "Kaisir Ahamed Saiyed is the CEO of Saiyed AI", color: 'text-emerald-500 dark:text-emerald-400 font-black', animation: 'animate-in zoom-in-75' },
+    { text: "Trainer Of Computer", color: 'text-indigo-500 dark:text-indigo-400 font-extrabold', animation: 'animate-in slide-in-from-bottom-5' },
+    { text: "Hathazari Government College Accounting Department", color: 'text-amber-500 dark:text-amber-400', animation: 'animate-in slide-in-from-right-5' },
+    { text: "For Feedback 01941652097", color: 'text-rose-500 dark:text-rose-400 font-black tracking-normal', animation: 'animate-pulse' }
   ];
 
   useEffect(() => {
-    // ইউজার কাউন্টার (০-১৫ জন)
+    // ইউজার সংখ্যা পরিবর্তন (০ থেকে ১৫ এর মধ্যে)
     const userInterval = setInterval(() => {
-      setActiveUsers(Math.floor(Math.random() * 16));
+      const randomCount = Math.floor(Math.random() * 16); // ০ থেকে ১৫
+      setActiveUsers(randomCount);
     }, 8000);
 
-    // টেক্সট ও এনিমেশন পরিবর্তন (প্রতি ৪.৫ সেকেন্ড পরপর)
+    // টেক্সট পরিবর্তন ও এনিমেশন ট্রিগার (প্রতি ৪ সেকেন্ড পরপর)
     const textInterval = setInterval(() => {
-      setTextIndex((prev) => (prev + 1) % infoSlides.length);
-    }, 4500);
+      setTextIndex((prevIndex) => (prevIndex + 1) % infoSlides.length);
+    }, 4000);
 
-    // সার্ভার স্ট্যাটাস চেক
+    // সার্ভার স্ট্যাটাস পরিবর্তনের লজিক (প্রতি ২০ সেকেন্ডে একবার চেক করবে)
     const serverInterval = setInterval(() => {
       setIsServerActive(false);
-      setTimeout(() => setIsServerActive(true), 3000);
-    }, 25000);
+      setTimeout(() => {
+        setIsServerActive(true);
+      }, 3000); 
+    }, 20000);
 
     return () => {
       clearInterval(userInterval);
@@ -61,75 +64,72 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onStartTutor, onGoToTransla
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700 pb-24 font-['Hind_Siliguri']">
-      <header className="px-1 pt-4">
-        <div className="flex justify-between items-start">
-          <div className="space-y-3 flex-1">
-            <div className="flex items-center space-x-3">
-              <h1 className="text-4xl font-[900] text-slate-900 dark:text-white tracking-tighter">
-                Saiyed <span className="text-emerald-500">AI</span>
-              </h1>
-              <div className="flex flex-col space-y-1">
-                {isServerActive ? (
-                  <span className="px-2.5 py-0.5 bg-emerald-500/10 text-emerald-500 text-[10px] rounded-full font-black uppercase tracking-widest border border-emerald-500/20 animate-pulse">
-                    Online 🟢
-                  </span>
-                ) : (
-                  <span className="px-2.5 py-0.5 bg-rose-500/10 text-rose-500 text-[10px] rounded-full font-black uppercase tracking-widest border border-rose-500/20 animate-bounce">
-                    Offline 🔴
-                  </span>
-                )}
-                <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 ml-1">
-                  {activeUsers} Students Learning
+      <header className="flex justify-between items-center pt-2">
+        <div className="space-y-1">
+          <div className="flex items-start space-x-2">
+            <h1 className="text-3xl font-black text-slate-900 dark:text-white flex items-center">
+              Saiyed <span className="text-emerald-500 ml-1">AI</span>
+            </h1>
+            <div className="flex flex-col items-start mt-1.5 space-y-0.5">
+              {isServerActive ? (
+                <span className="px-2 py-0.5 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 text-[9px] rounded-full font-black uppercase tracking-tighter animate-pulse">
+                  Server Active 🟢
                 </span>
-              </div>
-            </div>
-
-            {/* ডাইনামিক মাল্টি-কালার এনিমেটেড হেডার */}
-            <div className="min-h-[24px] flex items-center overflow-hidden">
-              <p 
-                key={textIndex} 
-                className={`text-[11px] uppercase tracking-[0.15em] duration-700 font-bold ${infoSlides[textIndex].color} ${infoSlides[textIndex].animation}`}
-              >
-                {infoSlides[textIndex].text}
-              </p>
+              ) : (
+                <span className="px-2 py-0.5 bg-rose-50 dark:bg-rose-900/30 text-rose-500 text-[9px] rounded-full font-black uppercase tracking-tighter animate-bounce">
+                  Server Down 🔴
+                </span>
+              )}
+              <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 ml-1 uppercase tracking-tight transition-all duration-500">
+                {activeUsers} active user
+              </span>
             </div>
           </div>
           
-          <button 
-            onClick={onGoToHistory} 
-            className="w-12 h-12 bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-2xl flex items-center justify-center text-xl shadow-sm active:scale-90 transition-all"
-          >
-           🗑️
-          </button>
+          {/* বিভিন্ন এনিমেশন ও কালারসহ টেক্সট কন্টেইনার */}
+          <div className="min-h-[16px] overflow-hidden pt-1">
+            <p 
+              key={textIndex} 
+              className={`text-[10px] font-bold uppercase tracking-widest transition-all duration-500 ${infoSlides[textIndex].color} ${infoSlides[textIndex].animation}`}
+            >
+              {infoSlides[textIndex].text}
+            </p>
+          </div>
         </div>
+        
+        <button 
+          onClick={onGoToHistory} 
+          className="w-11 h-11 bg-white dark:bg-slate-900 border dark:border-slate-800 rounded-2xl flex items-center justify-center text-xl shadow-sm active:scale-90 transition-all hover:bg-slate-50"
+        >
+         🗑️
+        </button>
       </header>
 
-      {/* Main Action Cards */}
       <div className="grid grid-cols-2 gap-4">
         <button 
           onClick={onGoToTranslator} 
-          className="p-6 rounded-[2.5rem] bg-indigo-600 dark:bg-indigo-700 text-white shadow-lg shadow-indigo-500/30 active:scale-95 transition-all text-left group overflow-hidden relative"
+          className="p-5 rounded-[2.2rem] bg-slate-900 dark:bg-indigo-600 text-white shadow-xl shadow-indigo-500/20 active:scale-95 transition-all text-left relative overflow-hidden group"
         >
-          <div className="absolute top-0 right-0 p-4 opacity-20 group-hover:rotate-12 transition-transform">💬</div>
-          <h3 className="font-black text-base">Translator</h3>
-          <p className="text-[10px] font-medium opacity-80 mt-1 uppercase tracking-widest">Analysis Mode</p>
+          <div className="absolute -right-4 -top-4 w-20 h-20 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
+          <div className="text-2xl mb-3">💬🈶</div>
+          <h3 className="font-black text-sm">Translator</h3>
+          <p className="text-[9px] opacity-60 mt-1 font-bold uppercase tracking-tighter">গভীর অনুবাদ বিশ্লেষণ</p>
         </button>
         <button 
           onClick={onGoToNews} 
-          className="p-6 rounded-[2.5rem] bg-emerald-500 text-white shadow-lg shadow-emerald-500/30 active:scale-95 transition-all text-left group overflow-hidden relative"
+          className="p-5 rounded-[2.2rem] bg-emerald-500 text-white shadow-xl shadow-emerald-500/20 active:scale-95 transition-all text-left relative overflow-hidden group"
         >
-          <div className="absolute top-0 right-0 p-4 opacity-20 group-hover:rotate-12 transition-transform">📰</div>
-          <h3 className="font-black text-base">Live News</h3>
-          <p className="text-[10px] font-medium opacity-80 mt-1 uppercase tracking-widest">Update Now</p>
+          <div className="absolute -right-4 -top-4 w-20 h-20 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
+          <div className="text-2xl mb-3">📰</div>
+          <h3 className="font-black text-sm">আজকের খবর</h3>
+          <p className="text-[9px] opacity-60 mt-1 font-bold uppercase tracking-tighter">লাইভ আপডেট</p>
         </button>
       </div>
 
-      {/* Subject Grid */}
-      <div className="space-y-5">
-        <div className="flex items-center space-x-4 px-2">
-          <span className="h-2 w-2 bg-emerald-500 rounded-full animate-ping"></span>
-          <h2 className="text-[12px] font-black text-slate-400 uppercase tracking-[0.25em]">Courses & Computer</h2>
-          <div className="h-[1px] bg-gradient-to-r from-slate-200 to-transparent flex-1"></div>
+      <div className="space-y-4">
+        <div className="flex items-center space-x-3 px-1">
+          <h2 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">বিষয় ও কম্পিউটার কোর্স</h2>
+          <div className="h-px bg-slate-100 dark:bg-slate-800 flex-1"></div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
@@ -137,24 +137,26 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onStartTutor, onGoToTransla
             <button 
               key={i} 
               onClick={() => onStartTutor(ClassLevel.C10, Group.GENERAL, sub.name)}
-              className={`group flex flex-col items-center justify-center p-7 rounded-[2.8rem] border-2 border-transparent shadow-sm transition-all active:scale-[0.9] hover:border-emerald-400/20 ${sub.color}`}
+              className={`group flex flex-col items-center justify-center p-6 rounded-[2.5rem] border shadow-sm transition-all active:scale-[0.92] hover:shadow-md hover:border-emerald-500/30 ${sub.color}`}
             >
-              <div className={`w-16 h-16 ${sub.iconBg} rounded-3xl flex items-center justify-center text-3xl mb-4 transition-transform group-hover:scale-110 shadow-lg`}>
+              <div className={`w-14 h-14 ${sub.iconBg} rounded-[1.5rem] flex items-center justify-center text-3xl mb-4 transform group-hover:rotate-12 group-hover:scale-110 transition-all duration-300 shadow-inner`}>
                 {sub.icon}
               </div>
-              <h4 className="font-black text-[13px] text-slate-700 dark:text-white tracking-tight">{sub.name}</h4>
+              <h4 className={`font-black text-[13px] ${sub.textColor} dark:text-white text-center leading-tight`}>{sub.name}</h4>
+              <div className="mt-3 flex items-center space-x-1 opacity-40 group-hover:opacity-100 transition-opacity">
+                 <span className="text-[8px] font-black uppercase tracking-widest">শিখুন</span>
+                 <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="4"><polyline points="9 18 15 12 9 6"/></svg>
+              </div>
             </button>
           ))}
         </div>
       </div>
 
-      <footer className="p-8 bg-slate-900 rounded-[3rem] text-center space-y-2 border-t-4 border-emerald-500">
-        <p className="text-[11px] font-bold text-emerald-400 uppercase tracking-widest">Saiyed AI Platform</p>
-        <p className="text-[10px] text-slate-400 leading-relaxed font-medium">
-          আপনার ক্যারিয়ার গড়ার বিশ্বস্ত সঙ্গী। সাহায্য পেতে কল করুন <br/> 
-          <span className="text-white font-black">01941652097</span>
+      <div className="p-6 bg-slate-50 dark:bg-slate-900/50 rounded-[2.2rem] border-2 border-dashed border-slate-200 dark:border-slate-800 text-center animate-pulse">
+        <p className="text-[11px] font-black text-slate-500 dark:text-slate-400">
+          সাঈদ এআই (Saiyed AI) আপনার পড়াশোনাকে আরও সহজ করতে প্রস্তুত! 🚀 For help 01941652097
         </p>
-      </footer>
+      </div>
     </div>
   );
 };
