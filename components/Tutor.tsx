@@ -433,7 +433,7 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
                       className="px-2 py-1 text-xs bg-slate-200 dark:bg-zinc-800 hover:bg-slate-300 dark:hover:bg-zinc-700 rounded"
                       title="কপি"
                     >
-                      {copiedIndex === actualIdx ? '✓ কপি হয়েছে' : '📋 কপি'}
+                      {copiedIndex === actualIdx ? '✓ copied' : 'Copy'}
                     </button>
 
                     {m.role === 'user' && (
@@ -455,7 +455,7 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
                       }`}
                       title="বুকমার্ক"
                     >
-                      {isBookmarked ? '📌 বুকমার্ক করা' : '📌 বুকমার্ক'}
+                      {isBookmarked ? '📌 বুকমার্ক করা' : 'Bookmark'}
                     </button>
                   </div>
                 )}
