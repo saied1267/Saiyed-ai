@@ -14,21 +14,22 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onStartTutor, onGoToTransla
   const [activeUsers, setActiveUsers] = useState(4);
 
   useEffect(() => {
-    // প্রতি ৫ সেকেন্ড পর পর ইউজার সংখ্যা পরিবর্তন (৪ থেকে ২০ এর মধ্যে)
+    // ইউজার সংখ্যা পরিবর্তন (০ থেকে ১৫ এর মধ্যে)
     const userInterval = setInterval(() => {
-      const randomCount = Math.floor(Math.random() * (20 - 4 + 1)) + 4;
+      // ০ থেকে ১৫ এর মধ্যে রেন্ডম নাম্বার
+      const randomCount = Math.floor(Math.random() * (15 - 0 + 1)) + 0;
       setActiveUsers(randomCount);
-    }, 5000);
+    }, 8000); // ৮ সেকেন্ড পরপর পরিবর্তন হবে
 
-    // নিশ্চিতভাবে প্রতি ৬ সেকেন্ড পর পর সার্ভার ২ সেকেন্ডের জন্য ডাউন হবে
+    // সার্ভার স্ট্যাটাস পরিবর্তনের লজিক (প্রতি ২০ সেকেন্ডে একবার চেক করবে)
     const serverInterval = setInterval(() => {
       setIsServerActive(false);
       
-      // ২ সেকেন্ড পর আবার স্বয়ংক্রিয়ভাবে একটিভ হয়ে যাবে
+      // ৩ সেকেন্ড ডাউন থাকার পর আবার একটিভ হবে
       setTimeout(() => {
         setIsServerActive(true);
-      }, 2000); 
-    }, 6000); // প্রতি ৬ সেকেন্ড পর পর লুপটি চলবে
+      }, 3000); 
+    }, 20000);
 
     return () => {
       clearInterval(userInterval);
@@ -83,7 +84,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onStartTutor, onGoToTransla
         </button>
       </header>
 
-      {/* Main Feature Cards */}
       <div className="grid grid-cols-2 gap-4">
         <button 
           onClick={onGoToTranslator} 
@@ -105,7 +105,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onStartTutor, onGoToTransla
         </button>
       </div>
 
-      {/* Subject Grid Section */}
       <div className="space-y-4">
         <div className="flex items-center space-x-3 px-1">
           <h2 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">বিষয় ও কম্পিউটার কোর্স</h2>
@@ -132,7 +131,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onStartTutor, onGoToTransla
         </div>
       </div>
 
-      {/* Motivational Footer */}
       <div className="p-6 bg-slate-50 dark:bg-slate-900/50 rounded-[2.2rem] border-2 border-dashed border-slate-200 dark:border-slate-800 text-center animate-pulse">
         <p className="text-[11px] font-black text-slate-500 dark:text-slate-400">
           সাঈদ এআই (Saiyed AI) আপনার পড়াশোনাকে আরও সহজ করতে প্রস্তুত! 🚀 For help 01941652097
