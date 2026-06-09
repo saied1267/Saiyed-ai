@@ -51,8 +51,8 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onStartTutor, onGoToTransla
           className="p-5 rounded-[2.2rem] bg-slate-900 dark:bg-indigo-600 text-white shadow-xl shadow-indigo-500/20 active:scale-95 transition-all text-left relative overflow-hidden group"
         >
           <div className="absolute -right-4 -top-4 w-20 h-20 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
-          <div className="text-2xl mb-3">🌍</div>
-          <h3 className="font-black text-sm">Translate Saiyed AI</h3>
+          <div className="text-2xl mb-3">💬🈶</div>
+          <h3 className="font-black text-sm">Translator</h3>
           <p className="text-[9px] opacity-60 mt-1 font-bold uppercase tracking-tighter">গভীর অনুবাদ বিশ্লেষণ</p>
         </button>
         <button 
