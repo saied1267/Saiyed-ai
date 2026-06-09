@@ -110,7 +110,7 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
           </button>
           <div>
             <h2 className="text-[16px] font-black dark:text-white leading-none">{subject}</h2>
-            <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mt-1">সাঈদ এআই টিউটর</p>
+            <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mt-1  animate-pulse">Saiyed AI Tutor 🟢</p>
           </div>
         </div>
         <button onClick={() => { if(confirm('চ্যাট মুছবেন?')) onUpdateHistory([]) }} className="p-2 text-slate-300 hover:text-red-500 transition-colors">
@@ -126,7 +126,7 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
                <h1 className="text-3xl font-black mb-4 dark:text-white">কি শিখতে চান?</h1>
                <p className="text-slate-400 font-bold mb-10">আপনার যেকোনো প্রশ্ন এখানে করুন।</p>
                <div className="grid grid-cols-1 gap-3">
-                  {[`${subject} এর বেসিক বুঝিয়ে দাও`, 'সাঈদ সম্পর্কে বলুন','একটি উদাহরণ দিন'].map((s, i) => (
+                  {[`${subject} এর বেসিক বুঝিয়ে দাও`, 'সাঈদ সম্পর্কে জানতে চাই','একটি উদাহরণ দিন'`${subject} কিভাবে শেখা শুরু করব?`].map((s, i) => (
                     <button key={i} onClick={() => handleSend(s)} className="p-5 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-2xl text-[15px] font-bold text-slate-600 dark:text-slate-400 text-left hover:border-emerald-500/50 transition-all">{s}</button>
                   ))}
                </div>
