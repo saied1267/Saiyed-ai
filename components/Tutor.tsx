@@ -151,7 +151,7 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
             <div key={i} className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'}`}>  
               <div className={`${m.role === 'user' ? 'max-w-[90%] bg-slate-100 dark:bg-white/10 p-4 rounded-2xl' : 'w-full'}`}>  
                 {m.role === 'model' && i === history.length - 1 && loading && !m.text ? (
-                  <div className="flex space-x-2 p-4 text-emerald-500 animate-pulse font-black text-xs">সাঈদ ভাবছে...</div>
+                  <div className="flex space-x-2 p-4 text-emerald-500 animate-pulse font-black text-xs">সাঈদ এআই গভীরভাবে ভাবছে...</div>
                 ) : (
                   <div className="prose dark:prose-invert max-w-none text-slate-800 dark:text-slate-200">
                     {renderText(m.text)}
