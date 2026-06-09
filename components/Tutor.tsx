@@ -30,7 +30,7 @@ const SAIYED_PROMPTS = [
   "সাঈদ এর ব্যাকএন্ডে কোন প্রযুক্তির ব্যবহার করা হয়েছে?",
   "সাঈদ এআই-এর বিশেষ ক্ষমতাগুলো কী কী?",
   "সাঈদ এআই তৈরি করার পেছনে মূল অনুপ্রেরণা কী ছিল?",
-  "সাঈদ এর কাছ থেকে বেস্টアウトপুট পাওয়ার ট্রিকস কী?",
+  "সাঈদ এর কাছ থেকে বেস্ট আউটপুট পাওয়ার ট্রিকস কী?",
 ];
 
 const SUBJECT_PROMPTS: Record<string, string[]> = {
@@ -55,8 +55,6 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
   const [fontSize, setFontSize] = useState<'sm' | 'base' | 'lg'>('base');
   const [showSettings, setShowSettings] = useState(false);
   const [showHeaderMenu, setShowHeaderMenu] = useState(false);
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  const [editingText, setEditingText] = useState('');
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -262,21 +260,6 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
     setTimeout(() => setCopiedIndex(null), 2000);
   };
 
-  const handleEditMessage = (index: number, text: string) => {
-    setEditingIndex(index);
-    setEditingText(text);
-  };
-
-  const handleSaveEdit = (index: number) => {
-    if (!editingText.trim()) return;
-    const updatedHistory = [...history];
-    (updatedHistory[index] as any).text = editingText;
-    onUpdateHistory(updatedHistory);
-    setEditingIndex(null);
-    setEditingText('');
-    showToast("মেসেজ আপডেট হয়েছে");
-  };
-
   const handleClearHistory = () => {
     if (window.confirm("আপনি কি চ্যাট হিস্টরি মুছতে চান?")) {
       onUpdateHistory([]);
@@ -439,7 +422,7 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
                     onClick={() => handleSend(s)}
                     className="p-4 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl text-left font-semibold text-slate-700 dark:text-zinc-300 hover:border-emerald-400 dark:hover:border-emerald-600 hover:shadow-md dark:hover:bg-zinc-800/70 transition duration-200"
                   >
-                    {s}
+                    {renderLineContent(autoWrapMathDelimiters(s))}
                   </button>
                 ))}
               </div>
@@ -448,7 +431,6 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
 
           {/* Chat Messages */}
           {history.map((m, actualIdx) => {
-            const isEditing = editingIndex === actualIdx;
             const hasImportantTopics = (m as any).importantTopics && (m as any).importantTopics.length > 0;
             const followUpQuestions = (m as any).followUpQuestions || [];
             const aiSuggestions = (m as any).suggestions || [];
@@ -456,36 +438,19 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
             return (
               <div key={actualIdx} className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'} space-y-2`}>
                 <div className={`${m.role === 'user' ? 'max-w-[85%] bg-emerald-600 text-white p-4 rounded-2xl rounded-br-sm' : 'w-full bg-white dark:bg-zinc-900 border dark:border-zinc-800 p-5 rounded-xl'}`}>
-                  {isEditing && m.role === 'user' ? (
-                    <div className="flex flex-col gap-2">
-                      <textarea
-                        value={editingText}
-                        onChange={(e) => setEditingText(e.target.value)}
-                        className="w-full bg-emerald-700 text-white p-2 outline-none rounded resize-none"
-                        rows={3}
-                      />
-                      <div className="flex justify-end space-x-2">
-                        <button onClick={() => setEditingIndex(null)} className="px-3 py-1 bg-emerald-800 text-white rounded text-sm">Cancel</button>
-                        <button onClick={() => handleSaveEdit(actualIdx)} className="px-3 py-1 bg-white text-emerald-700 font-bold rounded text-sm">Save</button>
+                  {m.role === 'model' && actualIdx === history.length - 1 && loading && !m.text ? (
+                    <div className="flex items-center space-x-2 py-3">
+                      <div className="flex space-x-1">
+                        <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                        <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                        <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                       </div>
+                      <span className="text-emerald-500 font-bold text-sm">{LOADING_MESSAGES[loadingStep]}</span>
                     </div>
                   ) : (
-                    <>
-                      {m.role === 'model' && actualIdx === history.length - 1 && loading && !m.text ? (
-                        <div className="flex items-center space-x-2 py-3">
-                          <div className="flex space-x-1">
-                            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                          </div>
-                          <span className="text-emerald-500 font-bold text-sm">{LOADING_MESSAGES[loadingStep]}</span>
-                        </div>
-                      ) : (
-                        <div className={`prose dark:prose-invert max-w-none ${m.role === 'user' ? 'text-white' : 'text-slate-800 dark:text-zinc-200'}`}>
-                          {renderText(m.text)}
-                        </div>
-                      )}
-                    </>
+                    <div className={`prose dark:prose-invert max-w-none ${m.role === 'user' ? 'text-white' : 'text-slate-800 dark:text-zinc-200'}`}>
+                      {renderText(m.text)}
+                    </div>
                   )}
                 </div>
 
@@ -503,40 +468,29 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
                   </div>
                 )}
 
-                {/* Message Actions (Copy / Edit / PDF) */}
-                {!isEditing && (
-                  <div className="flex items-center space-x-2 mt-1">
+                {/* Message Actions (Copy / PDF) */}
+                <div className="flex items-center space-x-2 mt-1">
+                  <button
+                    onClick={() => handleCopyMessage(m.text, actualIdx)}
+                    className={`px-2 py-1 text-xs rounded transition ${m.role === 'user' ? 'bg-emerald-500/20 hover:bg-emerald-500/40 text-emerald-600 dark:text-emerald-300' : 'bg-slate-200 dark:bg-zinc-800 hover:bg-slate-300 dark:hover:bg-zinc-700 text-slate-600 dark:text-slate-300'}`}
+                    title="কপি"
+                  >
+                    {copiedIndex === actualIdx ? '✓ Copied' : 'Copy'}
+                  </button>
+
+                  {m.role === 'model' && m.text && (
                     <button
-                      onClick={() => handleCopyMessage(m.text, actualIdx)}
-                      className={`px-2 py-1 text-xs rounded transition ${m.role === 'user' ? 'bg-emerald-500/20 hover:bg-emerald-500/40 text-emerald-600 dark:text-emerald-300' : 'bg-slate-200 dark:bg-zinc-800 hover:bg-slate-300 dark:hover:bg-zinc-700 text-slate-600 dark:text-slate-300'}`}
-                      title="কপি"
+                      onClick={() => handleDownloadPDF(m.text)}
+                      className="flex items-center space-x-1 px-2 py-1 text-xs bg-emerald-600 hover:bg-emerald-700 text-white rounded transition shadow-sm"
+                      title="PDF ডাউনলোড"
                     >
-                      {copiedIndex === actualIdx ? '✓ Copied' : 'Copy'}
+                      <svg viewBox="0 0 24 24" width="11" height="11" stroke="currentColor" strokeWidth="3" fill="none">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" />
+                      </svg>
+                      <span>PDF</span>
                     </button>
-
-                    {m.role === 'user' && (
-                      <button
-                        onClick={() => handleEditMessage(actualIdx, m.text)}
-                        className="px-2 py-1 text-xs bg-emerald-500/20 hover:bg-emerald-500/40 text-emerald-600 dark:text-emerald-300 rounded transition"
-                      >
-                        Edit
-                      </button>
-                    )}
-
-                    {m.role === 'model' && m.text && (
-                      <button
-                        onClick={() => handleDownloadPDF(m.text)}
-                        className="flex items-center space-x-1 px-2 py-1 text-xs bg-emerald-600 hover:bg-emerald-700 text-white rounded transition shadow-sm"
-                        title="PDF ডাউনলোড"
-                      >
-                        <svg viewBox="0 0 24 24" width="11" height="11" stroke="currentColor" strokeWidth="3" fill="none">
-                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" />
-                        </svg>
-                        <span>PDF</span>
-                      </button>
-                    )}
-                  </div>
-                )}
+                  )}
+                </div>
 
                 {/* Follow-Up Questions */}
                 {m.role === 'model' && m.text && followUpQuestions.length > 0 && aiSuggestions.length === 0 && (
@@ -549,7 +503,7 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
                           onClick={() => handleSend(question)}
                           className="text-left text-xs px-3 py-2 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition"
                         >
-                          {question}
+                          {renderLineContent(autoWrapMathDelimiters(question))}
                         </button>
                       ))}
                     </div>
@@ -567,7 +521,7 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
                           onClick={() => handleSend(suggestion)}
                           className="text-left text-xs px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800 rounded-lg text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-800/50 transition"
                         >
-                          {suggestion}
+                          {renderLineContent(autoWrapMathDelimiters(suggestion))}
                         </button>
                       ))}
                     </div>
