@@ -671,7 +671,7 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
   );
 };
 
-export default Tutor;'Small' : size === 'lg' ? 'Large' : 'Mediam'}
+export default Tutor;'sm' : size === 'lg' ? 'Large' : 'Medium'}
                 </button>
               ))}
             </div>
