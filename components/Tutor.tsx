@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Subject, ChatMessage, AppUser, ClassLevel, Group } from '../types';
 import { getTutorResponseStream } from '../geminiService';
 
@@ -12,20 +12,25 @@ interface TutorProps {
   onBack: () => void;
 }
 
+interface ChatMessageExtended extends ChatMessage {
+  suggestions?: string[];
+  isBookmarked?: boolean;
+  isCopied?: boolean;
+}
+
 const SAIYED_PROMPTS = [
-  "সাঈদ সম্পর্কে বিস্তারিত জানতে চাই", "সাঈদ এআই এর নির্মাতা কে এবং এর লক্ষ্য কী?", 
-  "সাঈদ এর ব্যাকএন্ডে কোন প্রযুক্তির ব্যবহার করা হয়েছে?", "সাঈদ এআই কীভাবে জটিল সমস্যার সমাধান করে?", 
-  "সাঈদ এআই-এর বিশেষ ক্ষমতাগুলো কী কী?", "সাঈদ এআই কি আমাকে পরীক্ষার রুটিন বানাতে সাহায্য করতে পারবে?", 
-  "সাঈদ এআই তৈরি করার পেছনে মূল অনুপ্রেরণা কী ছিল?", "সাঈদ এআই এর ডাটা সিকিউরিটি বা নিরাপত্তা ব্যবস্থা কেমন?", 
-  "সাঈদ এআই কি বাংলা এবং ইংরেজি দুটোই ভালো বোঝে?", "সাঈদ এআই কে কীভাবে আরও কার্যকরভাবে ব্যবহার করা যায়?", 
-  "সাঈদ এর কাছ থেকে বেস্ট আউটপুট পাওয়ার ট্রিকস কী?", "সাঈদ এআই-এর ফিউচার বা আগামীতে কী কী ফিচার আসছে?", 
-  "সাঈদ এর সাথে ভয়েস চ্যাট বা কথা বলার কোনো সুযোগ আছে কি?", "সাঈদ কি কঠিন বিষয়ের নোট বা সামারি তৈরি করে দিতে পারে?"
+  "সাঈদ সম্পর্কে বিস্তারিত জানতে চাই",
+  "সাঈদ এআই এর নির্মাতা কে এবং এর লক্ষ্য কী?",
+  "সাঈদ এর ব্যাকএন্ডে কোন প্রযুক্তির ব্যবহার করা হয়েছে?",
+  "সাঈদ এআই-এর বিশেষ ক্ষমতাগুলো কী কী?",
+  "সাঈদ এআই তৈরি করার পেছনে মূল অনুপ্রেরণা কী ছিল?",
+  "সাঈদ এর কাছ থেকে বেস্ট আউটপুট পাওয়ার ট্রিকস কী?",
 ];
 
 const SUBJECT_PROMPTS: Record<string, string[]> = {
-  "গণিত": ["গণিতের বেসিক ভয় দূর করার কিছু উপায় বলো", "বীজগণিতের সূত্রগুলো সহজে মনে রাখার ট্রিকস কী?", "জ্যামিতির উপপাদ্য মুখস্থ না করে কীভাবে বুঝবো?"],
-  "ইংরেজি": ["ইংরেজি গ্রামারের টেন্স (Tense) সহজে চেনার উপায় কী?", "সহজে নতুন নতুন English Vocabulary মনে রাখার উপায় কী?"],
-  "default": ["এই বিষয়ের মূল সিলেবাস এবং রোডম্যাপটি দাও", "পরীক্ষার জন্য কোন কোন অধ্যায় সবচেয়ে গুরুত্বপূর্ণ?"]
+  "গণিত": ["গণিতের বেসিক ভয় দূর করার কিছু উপায় বলো", "বীজগণিতের সূত্রগুলো সহজে শিখার কৌশল"],
+  "ইংরেজি": ["ইংরেজি গ্রামারের টেন্স (Tense) সহজে চেনার উপায় কী?", "সহজে নতুন নতুন ইংরেজি শব্দ শিখার উপায়"],
+  "default": ["এই বিষয়ের মূল সিলেবাস এবং রোডম্যাপটি দাও", "পরীক্ষার জন্য কোন কোন অধ্যায় সবচেয়ে গুরুত্বপূর্ণ?"],
 };
 
 const LOADING_MESSAGES = [
@@ -33,15 +38,24 @@ const LOADING_MESSAGES = [
   "আপনার প্রশ্নটি বিশ্লেষণ করা হচ্ছে...",
   "সঠিক এবং তথ্যবহুল উত্তর সাজানো হচ্ছে...",
   "আপনার ক্লাসের মান অনুযায়ী লেকচার নোট তৈরি হচ্ছে...",
-  "আর মাত্র কয়েক মুহূর্ত, উত্তর প্রস্তুত করা হচ্ছে..."
+  "আর মাত্র কয়েক মুহূর্ত, উত্তর প্রস্তুত করা হচ্ছে...",
 ];
 
 const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, onBack, classLevel, group }) => {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [loadingStep, setLoadingStep] = useState(0); 
-  const [initialSuggestions, setInitialSuggestions] = useState<string[]>([]); 
+  const [loadingStep, setLoadingStep] = useState(0);
+  const [initialSuggestions, setInitialSuggestions] = useState<string[]>([]);
+  const [bookmarks, setBookmarks] = useState<number[]>([]);
+  const [fontSize, setFontSize] = useState<'sm' | 'base' | 'lg'>('base');
+  const [showSettings, setShowSettings] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredHistory, setFilteredHistory] = useState<ChatMessageExtended[]>([]);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [editingText, setEditingText] = useState('');
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // ফন্ট ইনজেকশন
   useEffect(() => {
@@ -74,12 +88,24 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
     let interval: any;
     if (loading) {
       setLoadingStep(0);
-      interval = setInterval(() => { 
-        setLoadingStep((prev) => (prev < LOADING_MESSAGES.length - 1 ? prev + 1 : 0)); 
-      }, 1500); 
+      interval = setInterval(() => {
+        setLoadingStep((prev) => (prev < LOADING_MESSAGES.length - 1 ? prev + 1 : 0));
+      }, 1500);
     }
     return () => clearInterval(interval);
   }, [loading]);
+
+  // Search filtering
+  useEffect(() => {
+    if (searchQuery.trim()) {
+      const filtered = history.filter(msg =>
+        msg.text.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setFilteredHistory(filtered as ChatMessageExtended[]);
+    } else {
+      setFilteredHistory(history as ChatMessageExtended[]);
+    }
+  }, [searchQuery, history]);
 
   const autoWrapMathDelimiters = (text: string): string => {
     if (!text) return '';
@@ -115,18 +141,19 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
   const renderText = (text: string) => {
     if (!text) return null;
     const processedText = autoWrapMathDelimiters(text);
-    return processedText.split('\n').map((line, i) => {  
+    const fontSizeClass = fontSize === 'sm' ? 'text-[13px]' : fontSize === 'lg' ? 'text-[17px]' : 'text-[15px]';
+    return processedText.split('\n').map((line, i) => {
       if (line.trim().startsWith('###')) {
         return <h2 key={i} className="text-[19px] font-bold mt-5 mb-2 text-emerald-600 dark:text-emerald-400 border-l-4 border-emerald-500 pl-3">{line.replace('###', '').trim()}</h2>;
       }
-      return <p key={i} className="text-[15px] mb-3 leading-relaxed">{renderLineContent(line)}</p>;
+      return <p key={i} className={`${fontSizeClass} mb-3 leading-relaxed`}>{renderLineContent(line)}</p>;
     });
   };
 
   const handleDownloadPDF = async (messageText: string) => {
     const win = window as any;
     if (!win.html2pdf) {
-      alert("PDF Library not loaded");
+      showToast("PDF লাইব্রেরি লোড হয়নি");
       return;
     }
 
@@ -156,113 +183,365 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
 
     const opt = {
       margin: 10,
-      filename: `${subject}_note.pdf`,
+      filename: `${subject}_note_${Date.now()}.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { scale: 2, useCORS: true },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
     win.html2pdf().from(htmlContent).set(opt).save();
+    showToast("PDF ডাউনলোড শুরু হয়েছে");
+  };
+
+  const handleExportChat = (format: 'json' | 'markdown') => {
+    let content = '';
+    let filename = '';
+
+    if (format === 'json') {
+      content = JSON.stringify(history, null, 2);
+      filename = `chat_${subject}_${Date.now()}.json`;
+    } else {
+      content = history.map(msg => `**${msg.role === 'user' ? 'আপনি' : 'সাঈদ এআই'}:**\n${msg.text}\n`).join('\n---\n\n');
+      filename = `chat_${subject}_${Date.now()}.md`;
+    }
+
+    const element = document.createElement('a');
+    element.setAttribute('href', `data:text/plain;charset=utf-8,${encodeURIComponent(content)}`);
+    element.setAttribute('download', filename);
+    element.style.display = 'none';
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+    showToast(`${format.toUpperCase()} এ এক্সপোর্ট সম্পন্ন`);
+  };
+
+  const handleCopyMessage = (text: string, index: number) => {
+    navigator.clipboard.writeText(text);
+    setCopiedIndex(index);
+    showToast("মেসেজ কপি করা হয়েছে");
+    setTimeout(() => setCopiedIndex(null), 2000);
+  };
+
+  const handleBookmark = (index: number) => {
+    setBookmarks(prev =>
+      prev.includes(index) ? prev.filter(i => i !== index) : [...prev, index]
+    );
+    showToast(bookmarks.includes(index) ? "বুকমার্ক সরানো হয়েছে" : "বুকমার্ক করা হয়েছে");
+  };
+
+  const handleEditMessage = (index: number, text: string) => {
+    setEditingIndex(index);
+    setEditingText(text);
+  };
+
+  const handleSaveEdit = (index: number) => {
+    if (!editingText.trim()) return;
+    const updatedHistory = [...history];
+    (updatedHistory[index] as any).text = editingText;
+    onUpdateHistory(updatedHistory);
+    setEditingIndex(null);
+    setEditingText('');
+    showToast("মেসেজ আপডেট হয়েছে");
+  };
+
+  const handleClearHistory = () => {
+    if (window.confirm("আপনি কি চ্যাট হিস্টরি মুছতে চান?")) {
+      onUpdateHistory([]);
+      setBookmarks([]);
+      showToast("চ্যাট হিস্টরি মুছে দেওয়া হয়েছে");
+    }
+  };
+
+  const showToast = (message: string) => {
+    if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+    // In a real app, you'd use a toast library
+    console.log('Toast:', message);
   };
 
   const handleSend = async (text?: string) => {
     const msgText = text || input;
     if (!msgText.trim() || loading) return;
-    const userMsg: ChatMessage = { role: 'user', text: msgText, timestamp: Date.now() };  
-    const currentHistory = [...history, userMsg];  
-    onUpdateHistory(currentHistory);  
-    setInput('');  
-    setLoading(true);  
-    const aiPlaceholder: ChatMessage = { role: 'model', text: '', timestamp: Date.now() };  
-    onUpdateHistory([...currentHistory, aiPlaceholder]);  
-    try {  
-      await getTutorResponseStream(msgText, { classLevel, group, subject, user }, currentHistory.map(m => ({ role: m.role, parts: [{ text: m.text }] })), (streamedText) => {  
-        let cleanText = streamedText;  
-        let suggestions: string[] = [];  
-        const sugMatch = streamedText.match(/\[SUGGESTIONS:\s*(.*?)\]/i); 
-        if (sugMatch) { cleanText = streamedText.replace(sugMatch[0], '').trim(); suggestions = sugMatch[1].split(',').map(s => s.trim()); }  
-        onUpdateHistory([...currentHistory, { ...aiPlaceholder, text: cleanText, suggestions }]);  
-      });  
-    } catch (e) { onUpdateHistory([...currentHistory, { ...aiPlaceholder, text: "⚠️ সমস্যা হয়েছে। আবার চেষ্টা করুন।" }]); } finally { setLoading(false); }
+    const userMsg: ChatMessage = { role: 'user', text: msgText, timestamp: Date.now() };
+    const currentHistory = [...history, userMsg];
+    onUpdateHistory(currentHistory);
+    setInput('');
+    setLoading(true);
+    const aiPlaceholder: ChatMessage = { role: 'model', text: '', timestamp: Date.now() };
+    onUpdateHistory([...currentHistory, aiPlaceholder]);
+    try {
+      await getTutorResponseStream(msgText, { classLevel, group, subject, user }, currentHistory.map(m => ({ role: m.role, parts: [{ text: m.text }] })), (streamedText) => {
+        let cleanText = streamedText;
+        let suggestions: string[] = [];
+        const sugMatch = streamedText.match(/\[SUGGESTIONS:\s*(.*?)\]/i);
+        if (sugMatch) {
+          cleanText = streamedText.replace(sugMatch[0], '').trim();
+          suggestions = sugMatch[1].split(',').map(s => s.trim());
+        }
+        onUpdateHistory([...currentHistory, { ...aiPlaceholder, text: cleanText, suggestions }]);
+      });
+    } catch (e) {
+      onUpdateHistory([...currentHistory, { ...aiPlaceholder, text: "⚠️ সমস্যা হয়েছে। আবার চেষ্টা করুন।" }]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="fixed inset-0 z-[60] flex flex-col bg-slate-50 dark:bg-[#09090b]">
+      {/* Header */}
       <header className="px-4 py-3.5 flex items-center justify-between border-b border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#09090b] sticky top-0 z-50">
         <div className="flex items-center space-x-3">
           <button onClick={onBack} className="p-2 text-slate-500 hover:text-slate-800 dark:hover:text-white rounded-lg">
-            <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" strokeWidth="2.5" fill="none"><polyline points="15 18 9 12 15 6"/></svg>
+            <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" strokeWidth="2.5" fill="none"><polyline points="15 18 9 12 15 6" /></svg>
           </button>
           <div>
             <h2 className="text-[16px] font-bold text-slate-800 dark:text-zinc-100">{subject}</h2>
             <p className="text-[11px] text-emerald-600 font-bold">সাঈদ AI সক্রিয়</p>
           </div>
         </div>
+
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => setShowSettings(!showSettings)}
+            className="p-2 text-slate-500 hover:text-slate-800 dark:hover:text-white rounded-lg"
+            title="সেটিংস"
+          >
+            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none">
+              <circle cx="12" cy="12" r="3" />
+              <path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m5.08 5.08l4.24 4.24M1 12h6m6 0h6M4.22 19.78l4.24-4.24m5.08-5.08l4.24-4.24" />
+            </svg>
+          </button>
+        </div>
       </header>
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-6 space-y-6">  
-        <div className="max-w-2xl mx-auto space-y-6">  
-          {history.length === 0 && (
+      {/* Settings Panel */}
+      {showSettings && (
+        <div className="px-4 py-3 border-b dark:border-zinc-800 bg-white dark:bg-zinc-900 space-y-3">
+          <div className="flex items-center justify-between">
+            <label className="text-sm font-medium">ফন্ট সাইজ:</label>
+            <div className="flex space-x-2">
+              {['sm', 'base', 'lg'].map(size => (
+                <button
+                  key={size}
+                  onClick={() => setFontSize(size as 'sm' | 'base' | 'lg')}
+                  className={`px-3 py-1 rounded text-xs font-bold ${
+                    fontSize === size
+                      ? 'bg-emerald-600 text-white'
+                      : 'bg-slate-200 dark:bg-zinc-800'
+                  }`}
+                >
+                  {size === 'sm' ? 'ছোট' : size === 'lg' ? 'বড়' : 'মধ্যম'}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between gap-2">
+            <button
+              onClick={() => handleExportChat('markdown')}
+              className="flex-1 px-2 py-2 text-xs font-bold bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+              Markdown এ এক্সপোর্ট
+            </button>
+            <button
+              onClick={() => handleExportChat('json')}
+              className="flex-1 px-2 py-2 text-xs font-bold bg-purple-500 text-white rounded hover:bg-purple-600"
+            >
+              JSON এ এক্সপোর্ট
+            </button>
+            <button
+              onClick={handleClearHistory}
+              className="flex-1 px-2 py-2 text-xs font-bold bg-red-500 text-white rounded hover:bg-red-600"
+            >
+              সব মুছুন
+            </button>
+          </div>
+
+          {/* Search */}
+          <div className="pt-2">
+            <input
+              type="text"
+              placeholder="চ্যাট খুঁজুন..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-3 py-2 bg-slate-100 dark:bg-zinc-800 rounded-lg text-sm outline-none"
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Chat Area */}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-6 space-y-6">
+        <div className="max-w-2xl mx-auto space-y-6">
+          {filteredHistory.length === 0 && history.length === 0 && (
             <div className="py-12 text-center">
               <h1 className="text-2xl font-bold mb-8 text-slate-800 dark:text-white">আজকে কী শিখতে চান?</h1>
               <div className="flex flex-col space-y-3">
                 {initialSuggestions.map((s, i) => (
-                  <button key={i} onClick={() => handleSend(s)} className="p-4 bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-xl text-left font-semibold text-slate-700 dark:text-zinc-300 hover:border-emerald-500 transition-all">{s}</button>
+                  <button
+                    key={i}
+                    onClick={() => handleSend(s)}
+                    className="p-4 bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-xl text-left font-semibold text-slate-700 dark:text-zinc-300 hover:bg-slate-50 dark:hover:bg-zinc-800 transition"
+                  >
+                    {s}
+                  </button>
                 ))}
               </div>
             </div>
           )}
 
-          {history.map((m, i) => (  
-            <div key={i} className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'} space-y-1`}>  
-              <div className={`${m.role === 'user' ? 'max-w-[85%] bg-emerald-600 text-white p-4 rounded-2xl rounded-br-sm' : 'w-full bg-white dark:bg-zinc-900 border dark:border-zinc-800 p-5 rounded-2xl shadow-sm'}`}>  
-                {m.role === 'model' && i === history.length - 1 && loading && !m.text ? (
-                  <div className="flex items-center space-x-3 py-3 text-emerald-500 font-bold animate-pulse">
-                    <span>{LOADING_MESSAGES[loadingStep]}</span>
+          {/* Bookmarks Section */}
+          {bookmarks.length > 0 && (
+            <div className="bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-900 rounded-lg p-4">
+              <h3 className="font-bold text-yellow-800 dark:text-yellow-200 mb-2">📌 বুকমার্ক করা ({bookmarks.length})</h3>
+              <div className="space-y-2">
+                {bookmarks.slice(0, 3).map(idx => (
+                  <div key={idx} className="text-sm text-yellow-700 dark:text-yellow-300 bg-yellow-100 dark:bg-yellow-900/30 p-2 rounded">
+                    {history[idx]?.text?.substring(0, 100)}...
                   </div>
-                ) : (
-                  <div className={`prose dark:prose-invert max-w-none ${m.role === 'user' ? 'text-white' : 'text-slate-800 dark:text-zinc-200'}`}>
-                    {renderText(m.text)}
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Chat Messages */}
+          {(searchQuery.trim() ? filteredHistory : history).map((m, originalIdx) => {
+            const actualIdx = history.findIndex(msg => msg === m);
+            const isBookmarked = bookmarks.includes(actualIdx);
+            const isEditing = editingIndex === actualIdx;
+
+            return (
+              <div key={actualIdx} className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'} space-y-1`}>
+                <div className={`${m.role === 'user' ? 'max-w-[85%] bg-emerald-600 text-white p-4 rounded-2xl rounded-br-sm' : 'w-full bg-white dark:bg-zinc-900 border dark:border-zinc-800 p-5 rounded-2xl'}`}>
+                  {isEditing && m.role === 'user' ? (
+                    <div className="space-y-2">
+                      <textarea
+                        value={editingText}
+                        onChange={(e) => setEditingText(e.target.value)}
+                        className="w-full px-3 py-2 bg-white dark:bg-zinc-800 text-slate-800 dark:text-white rounded outline-none border dark:border-zinc-700"
+                        rows={3}
+                      />
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => handleSaveEdit(actualIdx)}
+                          className="px-3 py-1 bg-emerald-600 text-white rounded text-xs font-bold"
+                        >
+                          সেভ
+                        </button>
+                        <button
+                          onClick={() => setEditingIndex(null)}
+                          className="px-3 py-1 bg-slate-400 text-white rounded text-xs font-bold"
+                        >
+                          বাতিল
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      {m.role === 'model' && actualIdx === history.length - 1 && loading && !m.text ? (
+                        <div className="flex items-center space-x-3 py-3 text-emerald-500 font-bold animate-pulse">
+                          <span>{LOADING_MESSAGES[loadingStep]}</span>
+                        </div>
+                      ) : (
+                        <div className={`prose dark:prose-invert max-w-none ${m.role === 'user' ? 'text-white' : 'text-slate-800 dark:text-zinc-200'}`}>
+                          {renderText(m.text)}
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+
+                {/* Message Actions */}
+                {!isEditing && (
+                  <div className="flex space-x-2 mt-2">
+                    <button
+                      onClick={() => handleCopyMessage(m.text, actualIdx)}
+                      className="px-2 py-1 text-xs bg-slate-200 dark:bg-zinc-800 hover:bg-slate-300 dark:hover:bg-zinc-700 rounded"
+                      title="কপি"
+                    >
+                      {copiedIndex === actualIdx ? '✓ কপি হয়েছে' : '📋 কপি'}
+                    </button>
+
+                    {m.role === 'user' && (
+                      <button
+                        onClick={() => handleEditMessage(actualIdx, m.text)}
+                        className="px-2 py-1 text-xs bg-slate-200 dark:bg-zinc-800 hover:bg-slate-300 dark:hover:bg-zinc-700 rounded"
+                        title="সম্পাদনা"
+                      >
+                        ✏️ সম্পাদনা
+                      </button>
+                    )}
+
+                    <button
+                      onClick={() => handleBookmark(actualIdx)}
+                      className={`px-2 py-1 text-xs rounded ${
+                        isBookmarked
+                          ? 'bg-yellow-400 text-slate-800'
+                          : 'bg-slate-200 dark:bg-zinc-800 hover:bg-slate-300 dark:hover:bg-zinc-700'
+                      }`}
+                      title="বুকমার্ক"
+                    >
+                      {isBookmarked ? '📌 বুকমার্ক করা' : '📌 বুকমার্ক'}
+                    </button>
                   </div>
                 )}
+
+                {/* PDF Download & Suggestions */}
                 {m.role === 'model' && m.text && (
                   <div className="mt-4 pt-3 border-t dark:border-zinc-800 flex justify-end">
-                    <button onClick={() => handleDownloadPDF(m.text)} className="flex items-center space-x-2 px-3 py-1.5 bg-emerald-500 text-white text-[12px] font-bold rounded-lg hover:bg-emerald-600 transition-all">
-                      <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="3" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                    <button
+                      onClick={() => handleDownloadPDF(m.text)}
+                      className="flex items-center space-x-2 px-3 py-1.5 bg-emerald-500 text-white text-[12px] font-bold rounded-lg hover:bg-emerald-600"
+                    >
+                      <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="3" fill="none">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" />
+                      </svg>
                       <span>PDF ডাউনলোড</span>
                     </button>
                   </div>
                 )}
-              </div>  
-              {m.suggestions && m.suggestions.length > 0 && (  
-                 <div className="mt-3 flex flex-wrap gap-2 w-full">  
-                   {m.suggestions.map((s, si) => (  
-                     <button key={si} onClick={() => handleSend(s)} className="px-3.5 py-2 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 text-[13px] font-bold rounded-xl border border-emerald-100 dark:border-emerald-900/30">
-                       {renderLineContent(s)}
-                     </button>  
-                   ))}  
-                 </div>  
-              )}  
-            </div>  
-          ))}  
-        </div>  
-      </div>  
 
-      <div className="p-4 bg-white dark:bg-[#09090b] border-t dark:border-zinc-800 pb-8">  
-        <div className="max-w-2xl mx-auto flex items-center bg-slate-100 dark:bg-zinc-900 p-1.5 rounded-xl border dark:border-zinc-800">  
-           <textarea   
-             rows={1} 
-             value={input} 
-             onChange={(e) => setInput(e.target.value)}
-             onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
-             placeholder="আপনার প্রশ্ন লিখুন..."  
-             className="flex-1 bg-transparent px-3 py-2 outline-none font-medium text-[15px] dark:text-white resize-none"  
-           />  
-           <button onClick={() => handleSend()} disabled={!input.trim() || loading} className="p-2.5 bg-emerald-600 text-white rounded-lg disabled:opacity-50">
-             <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-           </button>  
-        </div>  
-      </div>  
+                {(m as ChatMessageExtended).suggestions && (m as ChatMessageExtended).suggestions!.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-2 w-full">
+                    {(m as ChatMessageExtended).suggestions!.map((s, si) => (
+                      <button
+                        key={si}
+                        onClick={() => handleSend(s)}
+                        className="px-3.5 py-2 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 text-[13px] font-bold rounded-xl hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition"
+                      >
+                        {renderLineContent(s)}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Input Area */}
+      <div className="p-4 bg-white dark:bg-[#09090b] border-t dark:border-zinc-800 pb-8">
+        <div className="max-w-2xl mx-auto flex items-center bg-slate-100 dark:bg-zinc-900 p-1.5 rounded-xl border dark:border-zinc-800">
+          <textarea
+            rows={1}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
+            placeholder="আপনার প্রশ্ন লিখুন..."
+            className="flex-1 bg-transparent px-3 py-2 outline-none font-medium text-[15px] dark:text-white resize-none"
+          />
+          <button
+            onClick={() => handleSend()}
+            disabled={!input.trim() || loading}
+            className="p-2.5 bg-emerald-600 text-white rounded-lg disabled:opacity-50 hover:bg-emerald-700 transition"
+          >
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+              <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+            </svg>
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
