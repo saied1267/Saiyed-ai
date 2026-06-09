@@ -15,7 +15,6 @@ interface TutorProps {
 interface ChatMessageExtended extends ChatMessage {
   suggestions?: string[];
   followUpQuestions?: string[];
-  importantTopics?: string[];
 }
 
 interface Toast {
@@ -134,26 +133,19 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
     }, 3000);
   };
 
-  const extractImportantTopics = (text: string): string[] => {
-    const matches = text.match(/\*\*([^*]+)\*\*/g) || [];
-    return matches.map(m => m.replace(/\*\*/g, '')).slice(0, 3);
-  };
+  const generateRelatedQuestions = (previousQuestion: string): string[] => {
+    // আগের প্রশ্ন থেকে কীওয়ার্ড নিয়ে রিলেটেড প্রশ্ন তৈরি করুন
+    const keywords = previousQuestion.toLowerCase().split(/\s+/);
+    const mainTopic = keywords.slice(0, 2).join(' ');
 
-  const extractFollowUpQuestions = (text: string): string[] => {
-    const keywordQuestions: Record<string, string[]> = {
-      'সূত্র': ['এই সূত্রটি কিভাবে কাজ করে?', 'এর প্রমাণ কী?', 'এর প্রয়োগ দেখান'],
-      'সংজ্ঞা': ['এর বাস্তব জীবনের উদাহরণ কী?', 'এটি কেন গুরুত্বপূর্ণ?', 'এর বিপরীত কী?'],
-      'তত্ত্ব': ['এটি কিভাবে প্রমাণিত হয়?', 'এর ব্যবহার কোথায়?', 'এর ব্যতিক্রম আছে?'],
-      'প্রক্রিয়া': ['পরবর্তী ধাপ কী?', 'এর বৈকল্পিক পদ্ধতি আছে?', 'এতে কোন ত্রুটি থাকতে পারে?'],
-    };
+    const relatedPatterns = [
+      `${mainTopic} এর উপর বিস্তারিত উদাহরণ দিন`,
+      `${mainTopic} কীভাবে ব্যবহার করা হয়?`,
+      `${mainTopic} সম্পর্কে আরও কী জানা প্রয়োজন?`,
+      `${mainTopic} এর গুরুত্ব ব্যাখ্যা করুন`,
+    ];
 
-    for (const [keyword, questions] of Object.entries(keywordQuestions)) {
-      if (text.toLowerCase().includes(keyword)) {
-        return questions;
-      }
-    }
-
-    return ['এই বিষয়ে আরও জানতে চান?', 'এর উপর কোন প্রশ্ন আছে?', 'আরও গভীরভাবে বুঝতে চান?'];
+    return relatedPatterns;
   };
 
   const autoWrapMathDelimiters = (text: string): string => {
@@ -298,14 +290,13 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
           suggestions = sugMatch[1].split(',').map(s => s.trim());
         }
         
-        const importantTopics = extractImportantTopics(cleanText);
-        const followUpQuestions = extractFollowUpQuestions(cleanText);
+        // আগের প্রশ্ন থেকে রিলেটেড প্রশ্ন জেনারেট করুন
+        const followUpQuestions = generateRelatedQuestions(msgText);
         
         const enhancedMessage: any = { 
           ...aiPlaceholder, 
           text: cleanText, 
           suggestions,
-          importantTopics,
           followUpQuestions
         };
         onUpdateHistory([...currentHistory, enhancedMessage]);
@@ -442,7 +433,6 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
           {/* Chat Messages */}
           {history.map((m, actualIdx) => {
             const isEditing = editingIndex === actualIdx;
-            const hasImportantTopics = (m as any).importantTopics && (m as any).importantTopics.length > 0;
             const followUpQuestions = (m as any).followUpQuestions || [];
 
             return (
@@ -492,20 +482,6 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
                   )}
                 </div>
 
-                {/* Important Topics Highlight */}
-                {m.role === 'model' && hasImportantTopics && (
-                  <div className="w-full bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-3 animate-in slide-in-from-bottom-2">
-                    <p className="text-xs font-bold text-amber-900 dark:text-amber-200 mb-2">⭐ গুরুত্বপূর্ণ বিষয়গুলো:</p>
-                    <div className="flex flex-wrap gap-2">
-                      {(m as any).importantTopics.map((topic: string, idx: number) => (
-                        <span key={idx} className="text-xs bg-amber-200 dark:bg-amber-900 text-amber-900 dark:text-amber-100 px-3 py-1 rounded-full font-semibold">
-                          {topic}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
                 {/* Message Actions */}
                 {!isEditing && (
                   <div className="flex space-x-2 mt-1">
@@ -529,16 +505,16 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
                   </div>
                 )}
 
-                {/* Follow-Up Questions */}
+                {/* Related Questions - 4 টি প্রশ্ন */}
                 {m.role === 'model' && m.text && followUpQuestions.length > 0 && (
                   <div className="w-full mt-3 space-y-2 animate-in slide-in-from-bottom-2">
-                    <p className="text-xs font-bold text-slate-600 dark:text-slate-400">💡 পরবর্তী প্রশ্ন:</p>
-                    <div className="flex flex-col gap-2">
-                      {followUpQuestions.slice(0, 2).map((question: string, idx: number) => (
+                    <p className="text-xs font-bold text-slate-600 dark:text-slate-400">💡 রিলেটেড প্রশ্ন:</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {followUpQuestions.map((question: string, idx: number) => (
                         <button
                           key={idx}
                           onClick={() => handleSend(question)}
-                          className="text-left text-xs px-3 py-2 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition"
+                          className="text-left text-xs px-3 py-2 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition line-clamp-2"
                         >
                           {question}
                         </button>
