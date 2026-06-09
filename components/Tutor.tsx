@@ -54,12 +54,14 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
   const [initialSuggestions, setInitialSuggestions] = useState<string[]>([]);
   const [fontSize, setFontSize] = useState<'sm' | 'base' | 'lg'>('base');
   const [showSettings, setShowSettings] = useState(false);
+  const [showHeaderMenu, setShowHeaderMenu] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editingText, setEditingText] = useState('');
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const toastIdRef = useRef(0);
+  const headerMenuRef = useRef<HTMLDivElement>(null);
 
   // ফন্ট ইনজেকশন
   useEffect(() => {
@@ -83,6 +85,18 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
       `;
       document.head.appendChild(style);
     }
+  }, []);
+
+  // হেডার মেনু বাইরের ক্লিক ডিটেক্ট করুন
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (headerMenuRef.current && !headerMenuRef.current.contains(e.target as Node)) {
+        setShowHeaderMenu(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   useEffect(() => {
@@ -121,14 +135,11 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
   };
 
   const extractImportantTopics = (text: string): string[] => {
-    // গুরুত্বপূর্ণ টপিক আপটিক করা (** দিয়ে চিহ্নিত)
     const matches = text.match(/\*\*([^*]+)\*\*/g) || [];
     return matches.map(m => m.replace(/\*\*/g, '')).slice(0, 3);
   };
 
   const extractFollowUpQuestions = (text: string): string[] => {
-    // প্রেক্ষাপট থেকে অনুসিদ্ধান্ত প্রশ্ন উৎপন্ন করুন
-    const lines = text.split('\n');
     const keywordQuestions: Record<string, string[]> = {
       'সূত্র': ['এই সূত্রটি কিভাবে কাজ করে?', 'এর প্রমাণ কী?', 'এর প্রয়োগ দেখান'],
       'সংজ্ঞা': ['এর বাস্তব জীবনের উদাহরণ কী?', 'এটি কেন গুরুত্বপূর্ণ?', 'এর বিপরীত কী?'],
@@ -262,6 +273,7 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
   const handleClearHistory = () => {
     if (window.confirm("আপনি কি চ্যাট হিস্টরি মুছতে চান?")) {
       onUpdateHistory([]);
+      setShowHeaderMenu(false);
       showToast("চ্যাট হিস্টরি মুছে দেওয়া হয়েছে");
     }
   };
@@ -329,7 +341,7 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
       {/* Header */}
       <header className="px-4 py-3.5 flex items-center justify-between border-b border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#09090b] sticky top-0 z-50">
         <div className="flex items-center space-x-3">
-          <button onClick={onBack} className="p-2 text-slate-500 hover:text-slate-800 dark:hover:text-white rounded-lg">
+          <button onClick={onBack} className="p-2 text-slate-500 hover:text-slate-800 dark:hover:text-white rounded-lg transition">
             <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" strokeWidth="2.5" fill="none"><polyline points="15 18 9 12 15 6" /></svg>
           </button>
           <div>
@@ -338,23 +350,54 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
           </div>
         </div>
 
+        {/* Header 3-Dot Menu */}
         <div className="flex items-center space-x-2">
-          <button
-            onClick={() => setShowSettings(!showSettings)}
-            className="p-2 text-slate-500 hover:text-slate-800 dark:hover:text-white rounded-lg"
-            title="সেটিংস"
-          >
-            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none">
-              <circle cx="12" cy="12" r="3" />
-              <path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m5.08 5.08l4.24 4.24M1 12h6m6 0h6M4.22 19.78l4.24-4.24m5.08-5.08l4.24-4.24" />
-            </svg>
-          </button>
+          <div ref={headerMenuRef} className="relative">
+            <button
+              onClick={() => setShowHeaderMenu(!showHeaderMenu)}
+              className="p-2 text-slate-500 hover:text-slate-800 dark:hover:text-white rounded-lg transition"
+              title="মেনু"
+            >
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                <circle cx="12" cy="5" r="2" />
+                <circle cx="12" cy="12" r="2" />
+                <circle cx="12" cy="19" r="2" />
+              </svg>
+            </button>
+
+            {/* Header Menu Dropdown */}
+            {showHeaderMenu && (
+              <div className="absolute right-0 top-10 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg shadow-lg z-50 min-w-[180px]">
+                <button
+                  onClick={() => {
+                    setShowSettings(!showSettings);
+                    setShowHeaderMenu(false);
+                  }}
+                  className="w-full text-left px-4 py-2.5 text-sm hover:bg-slate-100 dark:hover:bg-zinc-700 text-slate-700 dark:text-slate-300 flex items-center space-x-2 border-b border-slate-200 dark:border-zinc-700"
+                >
+                  <span>📝</span>
+                  <span>সেটিংস</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    handleClearHistory();
+                    setShowHeaderMenu(false);
+                  }}
+                  className="w-full text-left px-4 py-2.5 text-sm hover:bg-red-50 dark:hover:bg-red-950 text-red-600 dark:text-red-400 flex items-center space-x-2"
+                >
+                  <span>🗑️</span>
+                  <span>সব মুছুন</span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
       {/* Settings Panel */}
       {showSettings && (
-        <div className="px-4 py-3 border-b dark:border-zinc-800 bg-white dark:bg-zinc-900 space-y-3">
+        <div className="px-4 py-3 border-b dark:border-zinc-800 bg-white dark:bg-zinc-900 space-y-3 animate-in slide-in-from-top">
           <div className="flex items-center justify-between">
             <label className="text-sm font-medium">ফন্ট সাইজ:</label>
             <div className="flex space-x-2">
@@ -362,25 +405,16 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
                 <button
                   key={size}
                   onClick={() => setFontSize(size as 'sm' | 'base' | 'lg')}
-                  className={`px-3 py-1 rounded text-xs font-bold ${
+                  className={`px-3 py-1.5 rounded text-xs font-bold transition ${
                     fontSize === size
-                      ? 'bg-emerald-600 text-white'
-                      : 'bg-slate-200 dark:bg-zinc-800'
+                      ? 'bg-emerald-600 text-white shadow-md'
+                      : 'bg-slate-200 dark:bg-zinc-800 hover:bg-slate-300 dark:hover:bg-zinc-700'
                   }`}
                 >
                   {size === 'sm' ? 'ছোট' : size === 'lg' ? 'বড়' : 'মধ্যম'}
                 </button>
               ))}
             </div>
-          </div>
-
-          <div className="flex items-center justify-between gap-2">
-            <button
-              onClick={handleClearHistory}
-              className="flex-1 px-2 py-2 text-xs font-bold bg-red-500 text-white rounded hover:bg-red-600"
-            >
-              সব মুছুন
-            </button>
           </div>
         </div>
       )}
@@ -396,7 +430,7 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
                   <button
                     key={i}
                     onClick={() => handleSend(s)}
-                    className="p-4 bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-xl text-left font-semibold text-slate-700 dark:text-zinc-300 hover:bg-slate-50 dark:hover:bg-zinc-800 transition"
+                    className="p-4 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl text-left font-semibold text-slate-700 dark:text-zinc-300 hover:border-emerald-400 dark:hover:border-emerald-600 hover:shadow-md dark:hover:bg-zinc-800/70 transition duration-200"
                   >
                     {s}
                   </button>
@@ -419,19 +453,20 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
                       <textarea
                         value={editingText}
                         onChange={(e) => setEditingText(e.target.value)}
-                        className="w-full px-3 py-2 bg-white dark:bg-zinc-800 text-slate-800 dark:text-white rounded outline-none border dark:border-zinc-700"
+                        className="w-full px-3 py-2 bg-white dark:bg-zinc-800 text-slate-800 dark:text-white rounded outline-none border border-slate-300 dark:border-zinc-700 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
                         rows={3}
+                        autoFocus
                       />
                       <div className="flex space-x-2">
                         <button
                           onClick={() => handleSaveEdit(actualIdx)}
-                          className="px-3 py-1 bg-emerald-600 text-white rounded text-xs font-bold"
+                          className="px-3 py-1 bg-emerald-600 text-white rounded text-xs font-bold hover:bg-emerald-700 transition"
                         >
-                          সেভ
+                          সেভ করুন
                         </button>
                         <button
                           onClick={() => setEditingIndex(null)}
-                          className="px-3 py-1 bg-slate-400 text-white rounded text-xs font-bold"
+                          className="px-3 py-1 bg-slate-400 text-white rounded text-xs font-bold hover:bg-slate-500 transition"
                         >
                           বাতিল
                         </button>
@@ -459,7 +494,7 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
 
                 {/* Important Topics Highlight */}
                 {m.role === 'model' && hasImportantTopics && (
-                  <div className="w-full bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+                  <div className="w-full bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-3 animate-in slide-in-from-bottom-2">
                     <p className="text-xs font-bold text-amber-900 dark:text-amber-200 mb-2">⭐ গুরুত্বপূর্ণ বিষয়গুলো:</p>
                     <div className="flex flex-wrap gap-2">
                       {(m as any).importantTopics.map((topic: string, idx: number) => (
@@ -496,7 +531,7 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
 
                 {/* Follow-Up Questions */}
                 {m.role === 'model' && m.text && followUpQuestions.length > 0 && (
-                  <div className="w-full mt-3 space-y-2">
+                  <div className="w-full mt-3 space-y-2 animate-in slide-in-from-bottom-2">
                     <p className="text-xs font-bold text-slate-600 dark:text-slate-400">💡 পরবর্তী প্রশ্ন:</p>
                     <div className="flex flex-col gap-2">
                       {followUpQuestions.slice(0, 2).map((question: string, idx: number) => (
