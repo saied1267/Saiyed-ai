@@ -376,7 +376,7 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
                   className="w-full text-left px-4 py-2.5 text-sm hover:bg-slate-100 dark:hover:bg-zinc-700 text-slate-700 dark:text-slate-300 flex items-center space-x-2 border-b border-slate-200 dark:border-zinc-700"
                 >
                   <span>📝</span>
-                  <span>সেটিংস</span>
+                  <span>Settings</span>
                 </button>
 
                 <button
@@ -514,7 +514,7 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
                       className="px-2 py-1 text-xs bg-slate-200 dark:bg-zinc-800 hover:bg-slate-300 dark:hover:bg-zinc-700 rounded transition"
                       title="কপি"
                     >
-                      {copiedIndex === actualIdx ? '✓ কপি হয়েছে' : '📋 কপি'}
+                      {copiedIndex === actualIdx ? '✓ Copied' : 'Copy'}
                     </button>
 
                     {m.role === 'user' && (
