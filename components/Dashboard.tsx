@@ -14,6 +14,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onStartTutor, onGoToTransla
   const [activeUsers, setActiveUsers] = useState(4);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [isAnimatingOut, setIsAnimatingOut] = useState(false);
+  const [activeTab, setActiveTab] = useState('home'); // ন্যাভ ট্র্যাকিংয়ের জন্য
 
   // এনিমেটেড টেক্সট ও কালার কনফিগ
   const infoSlides = [
@@ -30,18 +31,14 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onStartTutor, onGoToTransla
       setActiveUsers(Math.floor(Math.random() * 16));
     }, 8000);
 
-    // টেক্সট এনিমেশন ইন ও আউট পরিবর্তন (প্রতি ৪ সেকেন্ড পরপর)
+    // টেক্সট এনিমেশন ইন ও আউট পরিবর্তন
     const textInterval = setInterval(() => {
-      // ১. প্রথমে আউট এনিমেশন শুরু করুন
       setIsAnimatingOut(true);
-
-      // ২. ৫০০ms অপেক্ষা করুন (এনিমেশন ডিউরেশন duration-500 এর সাথে মিল রেখে)
       setTimeout(() => {
-        // ৩. ৫০০ms পর আউট এনিমেশন স্টেট বন্ধ করুন এবং পরবর্তী টেক্সট ইনডেক্স সেট করুন
         setIsAnimatingOut(false);
         setCurrentSlideIndex((prevIndex) => (prevIndex + 1) % infoSlides.length);
-      }, 500); // ডিউরেশন ৫০০ms
-    }, 4000); // প্রতি ৪ সেকেন্ডে একবার লুপটি চলবে (টোটাল ডিউরেশন)
+      }, 500);
+    }, 4000);
 
     // সার্ভার স্ট্যাটাস চেক
     const serverInterval = setInterval(() => {
@@ -69,7 +66,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onStartTutor, onGoToTransla
   ];
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-700 pb-24 font-['Hind_Siliguri']">
+    <div className="space-y-8 animate-in fade-in duration-700 pb-32 font-['Hind_Siliguri'] relative min-h-screen">
       <header className="flex justify-between items-center pt-2">
         <div className="space-y-1">
           <div className="flex items-start space-x-2">
@@ -92,9 +89,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onStartTutor, onGoToTransla
             </div>
           </div>
           
-          {/* এনিমেটেড টেক্সট কন্টেইনার */}
           <div className="min-h-[16px] overflow-hidden pt-1">
-            {/* key={currentSlideIndex} ব্যবহার করে এনিমেশন রি-ট্রিগার করা হয়েছে */}
             <p 
               key={currentSlideIndex}
               className={`text-[10px] font-bold uppercase tracking-widest transition-all duration-500 ${infoSlides[currentSlideIndex].color} ${isAnimatingOut ? 'animate-out fade-out slide-out-to-top-2' : 'animate-in fade-in slide-in-from-bottom-2'}`}
@@ -112,10 +107,10 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onStartTutor, onGoToTransla
         </button>
       </header>
 
-      {/* Feature Cards */}
+      {/* Main Feature Cards */}
       <div className="grid grid-cols-2 gap-4">
         <button 
-          onClick={onGoToTranslator} 
+          onClick={() => { setActiveTab('translator'); onGoToTranslator(); }} 
           className="p-5 rounded-[2.2rem] bg-slate-900 dark:bg-indigo-600 text-white shadow-xl shadow-indigo-500/20 active:scale-95 transition-all text-left relative overflow-hidden group"
         >
           <div className="absolute -right-4 -top-4 w-20 h-20 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
@@ -124,7 +119,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onStartTutor, onGoToTransla
           <p className="text-[9px] opacity-60 mt-1 font-bold uppercase tracking-tighter">গভীর অনুবাদ বিশ্লেষণ</p>
         </button>
         <button 
-          onClick={onGoToNews} 
+          onClick={() => { setActiveTab('news'); onGoToNews(); }} 
           className="p-5 rounded-[2.2rem] bg-emerald-500 text-white shadow-xl shadow-emerald-500/20 active:scale-95 transition-all text-left relative overflow-hidden group"
         >
           <div className="absolute -right-4 -top-4 w-20 h-20 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
@@ -134,7 +129,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onStartTutor, onGoToTransla
         </button>
       </div>
 
-      {/* Subjects Section */}
+      {/* Subject Grid Section */}
       <div className="space-y-4">
         <div className="flex items-center space-x-3 px-1">
           <h2 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">বিষয় ও কম্পিউটার কোর্স</h2>
@@ -161,10 +156,61 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onStartTutor, onGoToTransla
         </div>
       </div>
 
+      {/* Motivational Footer */}
       <div className="p-6 bg-slate-50 dark:bg-slate-900/50 rounded-[2.2rem] border-2 border-dashed border-slate-200 dark:border-slate-800 text-center animate-pulse">
         <p className="text-[11px] font-black text-slate-500 dark:text-slate-400">
           সাঈদ এআই (Saiyed AI) আপনার পড়াশোনাকে আরও সহজ করতে প্রস্তুত! 🚀 For help 01941652097
         </p>
+      </div>
+
+      {/* 👑 আধুনিক ও আকর্ষণীয় বটম ন্যাভিগেশন বার (Floating iOS Style) */}
+      <div className="fixed bottom-5 left-4 right-4 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200/50 dark:border-slate-800/50 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.15)] px-4 py-2.5 flex justify-around items-center transition-all duration-300">
+        
+        {/* Home Tab */}
+        <button 
+          onClick={() => setActiveTab('home')}
+          className={`flex flex-col items-center space-y-1 py-1 px-3 rounded-2xl transition-all duration-300 active:scale-90 ${activeTab === 'home' ? 'text-emerald-500 font-black scale-105' : 'text-slate-400 dark:text-slate-500 font-medium'}`}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={activeTab === 'home' ? '2.5' : '2'} stroke="currentColor" className="w-5 h-5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21.75h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21.75h7.5" />
+          </svg>
+          <span className="text-[9px] uppercase tracking-wider">Home</span>
+        </button>
+
+        {/* Translator Tab */}
+        <button 
+          onClick={() => { setActiveTab('translator'); onGoToTranslator(); }}
+          className={`flex flex-col items-center space-y-1 py-1 px-3 rounded-2xl transition-all duration-300 active:scale-90 ${activeTab === 'translator' ? 'text-indigo-500 font-black scale-105' : 'text-slate-400 dark:text-slate-500 font-medium'}`}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={activeTab === 'translator' ? '2.5' : '2'} stroke="currentColor" className="w-5 h-5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 21a.75.75 0 0 1-.75-.75V3.75a.75.75 0 0 1 1.5 0v16.5a.75.75 0 0 1-.75.75Z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75h5.25a3 3 0 0 1 3 3v3a3 3 0 0 1-3 3H12M12 6.75H6.75a3 3 0 0 0-3 3v3a3 3 0 0 0 3 3H12" />
+          </svg>
+          <span className="text-[9px] uppercase tracking-wider">Translate</span>
+        </button>
+
+        {/* News Tab */}
+        <button 
+          onClick={() => { setActiveTab('news'); onGoToNews(); }}
+          className={`flex flex-col items-center space-y-1 py-1 px-3 rounded-2xl transition-all duration-300 active:scale-90 ${activeTab === 'news' ? 'text-emerald-500 font-black scale-105' : 'text-slate-400 dark:text-slate-500 font-medium'}`}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={activeTab === 'news' ? '2.5' : '2'} stroke="currentColor" className="w-5 h-5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 0 1-2.25 2.25M16.5 7.5V18a2.25 2.25 0 0 0 2.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 0 0 2.25 2.25h13.5M6 7.5h3v3H6v-3Z" />
+          </svg>
+          <span className="text-[9px] uppercase tracking-wider">News</span>
+        </button>
+
+        {/* History Tab */}
+        <button 
+          onClick={() => { setActiveTab('history'); onGoToHistory(); }}
+          className={`flex flex-col items-center space-y-1 py-1 px-3 rounded-2xl transition-all duration-300 active:scale-90 ${activeTab === 'history' ? 'text-amber-500 font-black scale-105' : 'text-slate-400 dark:text-slate-500 font-medium'}`}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={activeTab === 'history' ? '2.5' : '2'} stroke="currentColor" className="w-5 h-5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+          </svg>
+          <span className="text-[9px] uppercase tracking-wider">History</span>
+        </button>
+
       </div>
     </div>
   );
