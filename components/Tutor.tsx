@@ -449,28 +449,8 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
               <div key={actualIdx} className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'} space-y-2`}>
                 <div className={`${m.role === 'user' ? 'max-w-[85%] bg-emerald-600 text-white p-4 rounded-2xl rounded-br-sm' : 'w-full bg-white dark:bg-zinc-900 border dark:border-zinc-800 p-5 rounded-xl'}`}>
                   {isEditing && m.role === 'user' ? (
-                    <div className="space-y-2">
-                      <textarea
-                        value={editingText}
-                        onChange={(e) => setEditingText(e.target.value)}
-                        className="w-full px-3 py-2 bg-white dark:bg-zinc-800 text-slate-800 dark:text-white rounded outline-none border border-slate-300 dark:border-zinc-700 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
-                        rows={3}
-                        autoFocus
-                      />
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => handleSaveEdit(actualIdx)}
-                          className="px-3 py-1 bg-emerald-600 text-white rounded text-xs font-bold hover:bg-emerald-700 transition"
-                        >
-                          সেভ করুন
-                        </button>
-                        <button
-                          onClick={() => setEditingIndex(null)}
-                          className="px-3 py-1 bg-slate-400 text-white rounded text-xs font-bold hover:bg-slate-500 transition"
-                        >
-                          বাতিল
-                        </button>
-                      </div>
+                    
+                        </div>
                     </div>
                   ) : (
                     <>
