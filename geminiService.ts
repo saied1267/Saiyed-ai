@@ -7,7 +7,8 @@ const getAIInstance = () => {
     process.env.API_KEY,
     process.env.API_KEY_2,
     process.env.API_KEY_3,
-    process.env.API_KEY_4
+    process.env.API_KEY_4,
+    process.env.API_KEY_5
   ].filter(k => k && k.length > 10);
 
   const selectedKey = keys.length > 0 
