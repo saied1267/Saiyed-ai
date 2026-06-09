@@ -68,7 +68,7 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
           let cleanText = streamedText;  
           let suggestions: string[] = [];  
           
-          // স্ক্রিনশটের থার্ড ব্র্যাকেট মিলানোর জন্য ফিক্সড রেজেক্স (Regex)
+          
           const sugMatch = streamedText.match(/\[SUGGESTIONS:\s*(.*?)\]/i); 
           if (sugMatch) {  
             cleanText = streamedText.replace(sugMatch[0], '').trim();  
@@ -160,10 +160,10 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
                         <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>  
                      </div>  
                      <p className="text-[13px] font-black text-emerald-600 tracking-tight uppercase animate-pulse">
-                        {loadingStep === 0 && "Saiyed AI গভীরভাবে বিশ্লেষণ করছে..."}
-                        {loadingStep === 1 && "সাঈদ এআই আপনার জন্য চিন্তা করছে..."}
+                        {loadingStep === 0 && "Saiyed AI গভীরভাবে চিন্তা করছে..."}
+                        {loadingStep === 1 && "সাঈদ এআই গভীরভাবে বিশ্লেষণ করছে..."}
                         {loadingStep === 2 && "প্রয়োজনীয় তথ্য খুঁজে দেখা হচ্ছে..."}
-                        {loadingStep === 3 && "উত্তরটি সাজিয়ে নেওয়া হচ্ছে..."}
+                        {loadingStep === 3 && "শুদ্ধতা যাচাই করে নেওয়া হচ্ছে..."}
                         {loadingStep === 4 && "সাঈদ এআই উত্তর লিখছে..."}
                      </p>  
                    </div>  
