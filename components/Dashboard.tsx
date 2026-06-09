@@ -12,27 +12,38 @@ interface DashboardProps {
 const Dashboard: React.FC<DashboardProps> = ({ user, onStartTutor, onGoToTranslator, onGoToNews, onGoToHistory }) => {
   const [isServerActive, setIsServerActive] = useState(true);
   const [activeUsers, setActiveUsers] = useState(4);
+  const [textIndex, setTextIndex] = useState(0);
+
+  // এনিমেটেড টেক্সট লিস্ট
+  const displayTexts = [
+    `${user.college} • ${user.department}`,
+    "Kaisir Ahamed Saiyed is the CEO of Saiyed AI",
+    "Trainer Of Computer",
+    "Hathazari Government College Accounting Department",
+    "For Feedback 01941652097"
+  ];
 
   useEffect(() => {
     // ইউজার সংখ্যা পরিবর্তন (০ থেকে ১৫ এর মধ্যে)
     const userInterval = setInterval(() => {
-      // ০ থেকে ১৫ এর মধ্যে রেন্ডম নাম্বার
-      const randomCount = Math.floor(Math.random() * (15 - 0 + 1)) + 0;
+      const randomCount = Math.floor(Math.random() * 16);
       setActiveUsers(randomCount);
-    }, 8000); // ৮ সেকেন্ড পরপর পরিবর্তন হবে
+    }, 8000);
 
-    // সার্ভার স্ট্যাটাস পরিবর্তনের লজিক (প্রতি ২০ সেকেন্ডে একবার চেক করবে)
+    // টেক্সট এনিমেশন পরিবর্তন (প্রতি ৪ সেকেন্ড পরপর)
+    const textInterval = setInterval(() => {
+      setTextIndex((prevIndex) => (prevIndex + 1) % displayTexts.length);
+    }, 4000);
+
+    // সার্ভার স্ট্যাটাস চেক
     const serverInterval = setInterval(() => {
       setIsServerActive(false);
-      
-      // ৩ সেকেন্ড ডাউন থাকার পর আবার একটিভ হবে
-      setTimeout(() => {
-        setIsServerActive(true);
-      }, 3000); 
+      setTimeout(() => setIsServerActive(true), 3000); 
     }, 20000);
 
     return () => {
       clearInterval(userInterval);
+      clearInterval(textInterval);
       clearInterval(serverInterval);
     };
   }, []);
@@ -72,9 +83,12 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onStartTutor, onGoToTransla
               </span>
             </div>
           </div>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pt-1">
-            {user.college} • {user.department}
-          </p>
+          {/* এনিমেটেড ডাইনামিক টেক্সট */}
+          <div className="h-4 overflow-hidden">
+            <p key={textIndex} className="text-[10px] font-bold text-slate-400 uppercase tracking-widest animate-in slide-in-from-bottom-2 duration-500">
+              {displayTexts[textIndex]}
+            </p>
+          </div>
         </div>
         <button 
           onClick={onGoToHistory} 
@@ -84,6 +98,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onStartTutor, onGoToTransla
         </button>
       </header>
 
+      {/* Feature Cards */}
       <div className="grid grid-cols-2 gap-4">
         <button 
           onClick={onGoToTranslator} 
@@ -105,6 +120,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onStartTutor, onGoToTransla
         </button>
       </div>
 
+      {/* Subjects Section */}
       <div className="space-y-4">
         <div className="flex items-center space-x-3 px-1">
           <h2 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">বিষয় ও কম্পিউটার কোর্স</h2>
