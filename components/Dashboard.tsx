@@ -14,20 +14,22 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onStartTutor, onGoToTransla
   const [activeUsers, setActiveUsers] = useState(4);
 
   useEffect(() => {
-    // প্রতি ৫ সেকেন্ড পর পর ইউজার সংখ্যা পরিবর্তন
+    // প্রতি ৫ সেকেন্ড পর পর ইউজার সংখ্যা পরিবর্তন (৪ থেকে ২০ এর মধ্যে)
     const userInterval = setInterval(() => {
-      // ৪ থেকে ২০ এর মধ্যে রেন্ডম নাম্বার
       const randomCount = Math.floor(Math.random() * (20 - 4 + 1)) + 4;
       setActiveUsers(randomCount);
-    }, 5000); // ১.৫ সেকেন্ড থেকে বাড়িয়ে ৫ সেকেন্ড (৫০০০ মিলিসেকেন্ড) করা হলো
+    }, 5000);
 
-    // সার্ভার স্ট্যাটাস মাঝে মাঝে ডাউন দেখানোর জন্য (১০ সেকেন্ড পরপর চেক করবে)
+    // সার্ভার স্ট্যাটাস চেক (প্রতি ৮ সেকেন্ড পরপর ৩০% সম্ভাবনায় ডাউন হবে)
     const serverInterval = setInterval(() => {
-      if (Math.random() < 0.10) { // ১০% সম্ভাবনা সার্ভার ডাউন হওয়ার
+      if (Math.random() < 0.30) { // ৩০% সম্ভাবনা যাতে মাঝে মাঝেই ডাউন দেখায়
         setIsServerActive(false);
-        setTimeout(() => setIsServerActive(true), 2500); // ২.৫ সেকেন্ড পর আবার একটিভ হবে
+        // ৩ সেকেন্ড পর আবার স্বয়ংক্রিয়ভাবে একটিভ হয়ে যাবে
+        setTimeout(() => {
+          setIsServerActive(true);
+        }, 3000); 
       }
-    }, 10000);
+    }, 8000);
 
     return () => {
       clearInterval(userInterval);
@@ -82,6 +84,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onStartTutor, onGoToTransla
         </button>
       </header>
 
+      {/* Main Feature Cards */}
       <div className="grid grid-cols-2 gap-4">
         <button 
           onClick={onGoToTranslator} 
@@ -103,6 +106,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onStartTutor, onGoToTransla
         </button>
       </div>
 
+      {/* Subject Grid Section */}
       <div className="space-y-4">
         <div className="flex items-center space-x-3 px-1">
           <h2 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">বিষয় ও কম্পিউটার কোর্স</h2>
@@ -129,6 +133,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onStartTutor, onGoToTransla
         </div>
       </div>
 
+      {/* Motivational Footer */}
       <div className="p-6 bg-slate-50 dark:bg-slate-900/50 rounded-[2.2rem] border-2 border-dashed border-slate-200 dark:border-slate-800 text-center animate-pulse">
         <p className="text-[11px] font-black text-slate-500 dark:text-slate-400">
           সাঈদ এআই (Saiyed AI) আপনার পড়াশোনাকে আরও সহজ করতে প্রস্তুত! 🚀 For help 01941652097
