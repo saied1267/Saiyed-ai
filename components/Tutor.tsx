@@ -339,5 +339,43 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
     </div>
   );
 };
+//ম
+const handleDownloadPDF = (messageText: string) => {
+  // ১. পিডিএফ-এর জন্য একটি কাস্টম ডিজাইন করা HTML ব্লক তৈরি করা
+  const element = document.createElement('div');
+  
+  // এখানে আপনার অ্যাপের Emerald Green থিম এবং বাংলা ফন্ট সেট করা হয়েছে
+  element.innerHTML = `
+    <div style="font-family: 'Hind Siliguri', sans-serif; padding: 40px; color: #1e293b; background-color: #ffffff;">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #10b981; padding-bottom: 15px; margin-bottom: 30px;">
+        <div>
+          <h1 style="color: #059669; margin: 0; font-size: 26px; font-weight: 900;">${subject} — লেকচার নোট</h1>
+          <p style="color: #64748b; margin: 5px 0 0 0; font-size: 13px; font-weight: 700;">Saiyed AI Tutor 🟢</p>
+        </div>
+      </div>
+      <div style="font-size: 16px; line-height: 1.9; white-space: pre-wrap; color: #334155;">
+        ${messageText}
+      </div>
+    </div>
+  `;
+
+  // ২. পিডিএফ তৈরীর জন্য কিছু জরুরি কনফিগারেশন বা অপশন
+  const options = {
+    margin: 15,
+    filename: `${subject}_সাঈদ_এআই_নোট_${Date.now()}.pdf`, // সাবজেক্টের নামে ফাইল সেভ হবে
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true }, // লেখার রেজোলিউশন বা ক্লিয়ারিটি বাড়ানোর জন্য scale: 2
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } // A4 সাইজ পেপার
+  };
+
+  // ৩. উইন্ডো অবজেক্ট থেকে লাইব্রেরিটি কল করে পিডিএফ ডাউনলোড শুরু করা
+  if ((window as any).html2pdf) {
+    (window as any).html2pdf().from(element).set(options).save();
+  } else {
+    alert("পিডিএফ লাইব্রেরিটি লোড হতে পারছে না। দয়া করে ইন্টারনেট কানেকশন চেক করুন।");
+  }
+};
+
+//ম
 
 export default Tutor;
