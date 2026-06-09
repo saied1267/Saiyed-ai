@@ -89,7 +89,7 @@ const Settings: React.FC<SettingsProps> = ({ user, darkMode, setDarkMode, onUpda
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             <div className="bg-slate-50 dark:bg-zinc-900 p-3.5 rounded-2xl border dark:border-zinc-800/60 flex flex-col justify-center">
               <span className="text-[10px] font-bold text-slate-400">ইঞ্জিন মডেল</span>
-              <span className="text-xs font-black text-slate-800 dark:text-zinc-200 mt-0.5">Saiyed Gemini 1.5</span>
+              <span className="text-xs font-black text-slate-800 dark:text-zinc-200 mt-0.5">Saiyed Ai 1.5</span>
             </div>
             <div className="bg-slate-50 dark:bg-zinc-900 p-3.5 rounded-2xl border dark:border-zinc-800/60 flex flex-col justify-center">
               <span className="text-[10px] font-bold text-slate-400">সার্ভার রেসপন্স</span>
