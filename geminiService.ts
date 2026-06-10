@@ -146,7 +146,7 @@ export const getRecentEvents = async (type: 'bn' | 'en') => {
   const ai = getAIInstance();
   const prompt = type === 'bn' ? "বাংলাদেশের সর্বশেষ খবর" : "Latest global news";
   const response = await ai.models.generateContent({
-    model: 'gemini-3-flash',
+    model: 'gemini-3-flash-preview',
     contents: prompt,
     config: { tools: [{ googleSearch: {} }] }
   });
@@ -185,7 +185,7 @@ export const generateMCQs = async (subject: Subject) => {
 export const getStudyPlan = async (topics: string[]): Promise<StudyPlan> => {
   const ai = getAIInstance();
   const response = await ai.models.generateContent({
-    model: 'gemini-3-flash',
+    model: 'gemini-3-flash-preview',
     contents: `Create a study plan for: ${topics.join(', ')}. Return JSON.`,
     config: {
       responseMimeType: "application/json",
