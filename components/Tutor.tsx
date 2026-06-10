@@ -224,14 +224,11 @@ const handleDownloadPDF = async (messageText: string) => {
       return `<p style="font-size: 16px; margin-bottom: 15px; line-height: 1.8; color: #1e293b; font-family: 'Hind Siliguri', sans-serif;">${lineHtml}</p>`;
     }).join('');
 
-    // ফিক্স ১: ফন্ট সাইজ অনেক বড় করা হয়েছে এবং কালার অপাসিটি বাড়ানো হয়েছে
     const watermarkSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600"><text x="300" y="300" fill="rgba(0,0,0,0.09)" font-size="45" font-family="sans-serif" font-weight="700" transform="rotate(-45 300 300)" text-anchor="middle">Kaisir ahamed Saiyed (Saiyed Ai)</text></svg>`;
     
-    // ফিক্স ২: Base64 আবার ব্যবহার করা হয়েছে কারণ এটি html2canvas এ বেশি নির্ভরযোগ্য
     const watermarkBase64 = btoa(unescape(encodeURIComponent(watermarkSvg)));
     const watermarkUrl = `data:image/svg+xml;base64,${watermarkBase64}`;
 
-    // ফিক্স ৩: background-size এবং print-color-adjust যুক্ত করা হয়েছে
     const htmlContent = `
       <div style="padding: 30px; background-color: #ffffff; font-family: 'Hind Siliguri', sans-serif; background-image: url('${watermarkUrl}'); background-repeat: repeat; background-size: 600px 600px; -webkit-print-color-adjust: exact; print-color-adjust: exact; min-height: 100vh;">
         <div style="border-bottom: 3px solid #10b981; padding-bottom: 15px; margin-bottom: 30px; position: relative; z-index: 10;">
@@ -248,13 +245,14 @@ const handleDownloadPDF = async (messageText: string) => {
       margin: 10,
       filename: `${subject}_note_${Date.now()}.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true, allowTaint: true }, // ফিক্স ৪: allowTaint: true করা হয়েছে
+      html2canvas: { scale: 2, useCORS: true, allowTaint: true }, 
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
     win.html2pdf().from(htmlContent).set(opt).save();
     showToast("PDF ডাউনলোড শুরু হয়েছে");
   };
+
   const handleCopyMessage = (text: string, index: number) => {
     navigator.clipboard.writeText(text);
     setCopiedIndex(index);
@@ -273,15 +271,26 @@ const handleDownloadPDF = async (messageText: string) => {
   const handleSend = async (text?: string) => {
     const msgText = text || input;
     if (!msgText.trim() || loading) return;
+    
+    // UI-তে শো করার জন্য নরমাল মেসেজ
     const userMsg: ChatMessage = { role: 'user', text: msgText, timestamp: Date.now() };
     const currentHistory = [...history, userMsg];
     onUpdateHistory(currentHistory);
     setInput('');
     setLoading(true);
+    
     const aiPlaceholder: ChatMessage = { role: 'model', text: '', timestamp: Date.now() };
     onUpdateHistory([...currentHistory, aiPlaceholder]);
+    
     try {
-      await getTutorResponseStream(msgText, { classLevel, group, subject, user }, currentHistory.map(m => ({ role: m.role, parts: [{ text: m.text }] })), (streamedText) => {
+      // এআই কে বিস্তারিত উত্তরের জন্য হিডেন ইনস্ট্রাকশন যুক্ত করা হলো (যাতে বিস্তারিত উত্তর দেয়)
+      const detailedPrompt = msgText + "\n\n[Instruction: অনুগ্রহ করে উত্তরটি খুব বিস্তারিত, তথ্যবহুল, ধাপে ধাপে এবং উদাহরণসহ গুছিয়ে দিন।]";
+
+      await getTutorResponseStream(
+        detailedPrompt, 
+        { classLevel, group, subject, user }, 
+        currentHistory.map(m => ({ role: m.role, parts: [{ text: m.text }] })), 
+        (streamedText) => {
         let cleanText = streamedText;
         let suggestions: string[] = [];
         const sugMatch = streamedText.match(/\[SUGGESTIONS:\s*(.*?)\]/i);
@@ -303,7 +312,7 @@ const handleDownloadPDF = async (messageText: string) => {
         onUpdateHistory([...currentHistory, enhancedMessage]);
       });
     } catch (e) {
-      onUpdateHistory([...currentHistory, { ...aiPlaceholder, text: "⚠️ সার্ভার ডাউন হয়েছে। পরে আবার চেষ্টা করুন।" }]);
+      onUpdateHistory([...currentHistory, { ...aiPlaceholder, text: "⚠️ সার্ভার ডাউন হয়েছে। পরে আবার চেষ্টা করুন।" }]);
       showToast("কিছু ত্রুটি ঘটেছে", "error");
     } finally {
       setLoading(false);
@@ -439,7 +448,9 @@ const handleDownloadPDF = async (messageText: string) => {
 
             return (
               <div key={actualIdx} className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'} space-y-2`}>
-                <div className={`${m.role === 'user' ? 'max-w-[85%] bg-emerald-600 text-white p-4 rounded-2xl rounded-br-sm' : 'w-full bg-white dark:bg-zinc-900 border dark:border-zinc-800 p-5 rounded-xl'}`}>
+                
+                {/* User & AI Message Bubble Design Fix */}
+                <div className={`${m.role === 'user' ? 'max-w-[85%] bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900 px-5 py-3.5 rounded-2xl rounded-br-sm shadow-sm text-[15px]' : 'w-full bg-white dark:bg-zinc-900 border dark:border-zinc-800 p-5 rounded-xl'}`}>
                   {m.role === 'model' && actualIdx === history.length - 1 && loading && !m.text ? (
                     <div className="flex items-center space-x-2 py-3">
                       <div className="flex space-x-1">
@@ -450,7 +461,7 @@ const handleDownloadPDF = async (messageText: string) => {
                       <span className="text-emerald-500 font-bold text-sm">{LOADING_MESSAGES[loadingStep]}</span>
                     </div>
                   ) : (
-                    <div className={`prose dark:prose-invert max-w-none ${m.role === 'user' ? 'text-white' : 'text-slate-800 dark:text-zinc-200'}`}>
+                    <div className={`prose dark:prose-invert max-w-none ${m.role === 'user' ? 'text-white dark:text-slate-900 font-medium' : 'text-slate-800 dark:text-zinc-200'}`}>
                       {renderText(m.text)}
                     </div>
                   )}
@@ -474,7 +485,7 @@ const handleDownloadPDF = async (messageText: string) => {
                 <div className="flex items-center space-x-2 mt-1">
                   <button
                     onClick={() => handleCopyMessage(m.text, actualIdx)}
-                    className={`px-2 py-1 text-xs rounded transition ${m.role === 'user' ? 'bg-emerald-500/20 hover:bg-emerald-500/40 text-emerald-600 dark:text-emerald-300' : 'bg-slate-200 dark:bg-zinc-800 hover:bg-slate-300 dark:hover:bg-zinc-700 text-slate-600 dark:text-slate-300'}`}
+                    className={`px-2 py-1 text-xs rounded transition ${m.role === 'user' ? 'bg-slate-200 dark:bg-zinc-800 hover:bg-slate-300 dark:hover:bg-zinc-700 text-slate-600 dark:text-slate-300' : 'bg-slate-200 dark:bg-zinc-800 hover:bg-slate-300 dark:hover:bg-zinc-700 text-slate-600 dark:text-slate-300'}`}
                     title="কপি"
                   >
                     {copiedIndex === actualIdx ? '✓ Copied' : 'Copy'}
@@ -546,10 +557,11 @@ const handleDownloadPDF = async (messageText: string) => {
             placeholder="আপনার প্রশ্ন লিখুন..."
             className="flex-1 bg-transparent px-3 py-2 outline-none font-medium text-[15px] dark:text-white resize-none"
           />
+          {/* Send Button Design Fix */}
           <button
             onClick={() => handleSend()}
             disabled={!input.trim() || loading}
-            className="p-2.5 bg-emerald-600 text-white rounded-lg disabled:opacity-50 hover:bg-emerald-700 transition"
+            className="p-2.5 bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900 rounded-lg disabled:opacity-50 hover:bg-slate-900 dark:hover:bg-white transition shadow-sm"
           >
             <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
               <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
