@@ -146,7 +146,7 @@ export const getRecentEvents = async (type: 'bn' | 'en') => {
   const ai = getAIInstance();
   const prompt = type === 'bn' ? "বাংলাদেশের সর্বশেষ খবর" : "Latest global news";
   const response = await ai.models.generateContent({
-    model: 'gemini-3-flash-preview',
+    model: 'gemini-3-flash',
     contents: prompt,
     config: { tools: [{ googleSearch: {} }] }
   });
