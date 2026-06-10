@@ -78,7 +78,7 @@ export const getTutorResponseStream = async (
   onChunk: (text: string) => void
 ) => {
   const ai = getAIInstance();
-  const model = 'gemini-3-flash';
+  const model = 'gemini-3-flash-preview';
   
   try {
     const responseStream = await ai.models.generateContentStream({
