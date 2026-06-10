@@ -82,7 +82,7 @@ export const getTutorResponseStream = async (
   
   try {
     const responseStream = await ai.models.generateContentStream({
-      model,
+      model: 'gemini-3-flash-preview',
       contents: [
         ...history, 
         { role: 'user', parts: [{ text: `Subject: ${context.subject}. Level: ${context.classLevel}. Question: ${prompt}` }] }
