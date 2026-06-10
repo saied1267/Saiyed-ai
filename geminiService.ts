@@ -185,7 +185,7 @@ export const generateMCQs = async (subject: Subject) => {
 export const getStudyPlan = async (topics: string[]): Promise<StudyPlan> => {
   const ai = getAIInstance();
   const response = await ai.models.generateContent({
-    model: 'gemini-3-flash-preview',
+    model: 'gemini-3-flash',
     contents: `Create a study plan for: ${topics.join(', ')}. Return JSON.`,
     config: {
       responseMimeType: "application/json",
