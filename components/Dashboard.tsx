@@ -14,7 +14,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onStartTutor, onGoToTransla
   const [activeUsers, setActiveUsers] = useState(4);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [isAnimatingOut, setIsAnimatingOut] = useState(false);
-  const [activeTab, setActiveTab] = useState('home'); // ন্যাভ ট্র্যাকিংয়ের জন্য
+  const [activeTab, setActiveTab] = useState('home'); // ন্যাভ ট্র্যাকিংয়ের জন্য
 
   // এনিমেটেড টেক্সট ও কালার কনফিগ
   const infoSlides = [
@@ -26,9 +26,15 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onStartTutor, onGoToTransla
   ];
 
   useEffect(() => {
-    // ইউজার কাউন্টার (০-১৫ জন)
+    // ইউজার কাউন্টার (০-১৫ জন) - এখন ধীরে ধীরে বাড়বে বা কমবে
     const userInterval = setInterval(() => {
-      setActiveUsers(Math.floor(Math.random() * 16));
+      setActiveUsers((prevUsers) => {
+        // -1, 0, অথবা +1 পরিবর্তন হবে
+        const change = Math.floor(Math.random() * 3) - 1;
+        const newUsers = prevUsers + change;
+        // সংখ্যাটি যেন ০ এর নিচে বা ১৫ এর উপরে না যায়
+        return Math.max(0, Math.min(15, newUsers));
+      });
     }, 8000);
 
     // টেক্সট এনিমেশন ইন ও আউট পরিবর্তন
@@ -163,7 +169,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onStartTutor, onGoToTransla
         </p>
       </div>
 
-      {/* 👑 আধুনিক ও আকর্ষণীয় বটম ন্যাভিগেশন বার (Floating iOS Style) */}
+      {/* 👑 আধুনিক ও আকর্ষণীয় বটম ন্যাভিগেশন বার (Floating iOS Style) */}
       <div className="fixed bottom-5 left-4 right-4 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200/50 dark:border-slate-800/50 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.15)] px-4 py-2.5 flex justify-around items-center transition-all duration-300">
         
         {/* Home Tab */}
