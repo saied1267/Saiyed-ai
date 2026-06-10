@@ -12,29 +12,39 @@ interface DashboardProps {
 const Dashboard: React.FC<DashboardProps> = ({ user, onStartTutor, onGoToTranslator, onGoToNews, onGoToHistory }) => {
   const [isServerActive, setIsServerActive] = useState(true);
   const [activeUsers, setActiveUsers] = useState(4);
-  const [textIndex, setTextIndex] = useState(0);
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+  const [isAnimatingOut, setIsAnimatingOut] = useState(false);
+  const [activeTab, setActiveTab] = useState('home'); // ন্যাভ ট্র্যাকিংয়ের জন্য
 
+  // এনিমেটেড টেক্সট ও কালার কনফিগ
   const infoSlides = [
-    { text: `${user.college} • ${user.department}`, color: 'text-slate-400', animation: 'animate-in slide-in-from-left-4' },
-    { text: "Kaisir Ahamed Saiyed is the CEO of Saiyed AI", color: 'text-emerald-500 font-black', animation: 'animate-in zoom-in-75' },
-    { text: "Trainer Of Computer", color: 'text-indigo-500', animation: 'animate-in slide-in-from-bottom-4' },
-    { text: "Hathazari Government College Accounting Department", color: 'text-amber-500', animation: 'animate-in fade-in zoom-in-95' },
-    { text: "For Feedback 01941652097", color: 'text-rose-500 underline decoration-dashed', animation: 'animate-bounce' }
+    { text: `${user.college} • ${user.department}`, color: 'text-slate-400 dark:text-slate-300' },
+    { text: "Kaisir Ahamed Saiyed is the CEO of Saiyed AI", color: 'text-emerald-500 dark:text-emerald-400 font-black' },
+    { text: "Trainer Of Computer", color: 'text-indigo-500 dark:text-indigo-400 font-extrabold' },
+    { text: "Hathazari Government College Accounting Department", color: 'text-amber-500 dark:text-amber-400' },
+    { text: "For Feedback 01941652097", color: 'text-rose-500 dark:text-rose-400 font-black tracking-normal' }
   ];
 
   useEffect(() => {
+    // ইউজার কাউন্টার (০-১৫ জন)
     const userInterval = setInterval(() => {
       setActiveUsers(Math.floor(Math.random() * 16));
     }, 8000);
 
+    // টেক্সট এনিমেশন ইন ও আউট পরিবর্তন
     const textInterval = setInterval(() => {
-      setTextIndex((prev) => (prev + 1) % infoSlides.length);
-    }, 4500);
+      setIsAnimatingOut(true);
+      setTimeout(() => {
+        setIsAnimatingOut(false);
+        setCurrentSlideIndex((prevIndex) => (prevIndex + 1) % infoSlides.length);
+      }, 500);
+    }, 4000);
 
+    // সার্ভার স্ট্যাটাস চেক
     const serverInterval = setInterval(() => {
       setIsServerActive(false);
-      setTimeout(() => setIsServerActive(true), 3000);
-    }, 25000);
+      setTimeout(() => setIsServerActive(true), 3000); 
+    }, 20000);
 
     return () => {
       clearInterval(userInterval);
@@ -56,88 +66,74 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onStartTutor, onGoToTransla
   ];
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-700 pb-24 font-['Hind_Siliguri']">
-      <header className="px-1 pt-4">
-        <div className="flex justify-between items-start">
-          <div className="space-y-3 flex-1">
-            <div className="flex items-center space-x-3">
-              {/* কাস্টম লোগো ডিজাইন (সার্কিট এবং চিপ থিম) */}
-              <div className="relative flex items-center justify-center w-20 h-20 bg-slate-900 rounded-3xl shadow-lg border border-slate-700 overflow-hidden">
-                <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full text-emerald-500 opacity-20">
-                  <path d="M10,10 L90,10 L90,90 L10,90 Z" fill="none" stroke="currentColor" strokeWidth="1" />
-                  <circle cx="20" cy="20" r="2" fill="currentColor" />
-                  <circle cx="80" cy="20" r="2" fill="currentColor" />
-                  <circle cx="80" cy="80" r="2" fill="currentColor" />
-                  <circle cx="20" cy="80" r="2" fill="currentColor" />
-                  <path d="M20,20 L50,50 L80,20 M80,80 L50,50 L20,80" fill="none" stroke="currentColor" strokeWidth="1" />
-                  <rect x="40" y="40" width="20" height="20" fill="currentColor" rx="2" />
-                </svg>
-                <div className="relative text-center z-10">
-                  <h1 className="text-xl font-black text-white tracking-tighter">Saiyed <span className="text-emerald-500">AI</span></h1>
-                  <p className="text-[10px] font-bold text-slate-400 mt-1">সাঈদ এআই</p>
-                </div>
-              </div>
-              <div className="flex flex-col space-y-1">
-                {isServerActive ? (
-                  <span className="px-2.5 py-0.5 bg-emerald-500/10 text-emerald-500 text-[10px] rounded-full font-black uppercase tracking-widest border border-emerald-500/20 animate-pulse">
-                    Online 🟢
-                  </span>
-                ) : (
-                  <span className="px-2.5 py-0.5 bg-rose-500/10 text-rose-500 text-[10px] rounded-full font-black uppercase tracking-widest border border-rose-500/20 animate-bounce">
-                    Offline 🔴
-                  </span>
-                )}
-                <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 ml-1">
-                  {activeUsers} Students Learning
+    <div className="space-y-8 animate-in fade-in duration-700 pb-32 font-['Hind_Siliguri'] relative min-h-screen">
+      <header className="flex justify-between items-center pt-2">
+        <div className="space-y-1">
+          <div className="flex items-start space-x-2">
+            <h1 className="text-3xl font-black text-slate-900 dark:text-white flex items-center">
+              Saiyed <span className="text-emerald-500 ml-1">AI</span>
+            </h1>
+            <div className="flex flex-col items-start mt-1.5 space-y-0.5">
+              {isServerActive ? (
+                <span className="px-2 py-0.5 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 text-[9px] rounded-full font-black uppercase tracking-tighter animate-pulse">
+                  Server Active 🟢
                 </span>
-              </div>
-            </div>
-
-            <div className="min-h-[24px] flex items-center overflow-hidden">
-              <p 
-                key={textIndex} 
-                className={`text-[11px] uppercase tracking-[0.15em] duration-700 font-bold ${infoSlides[textIndex].color} ${infoSlides[textIndex].animation}`}
-              >
-                {infoSlides[textIndex].text}
-              </p>
+              ) : (
+                <span className="px-2 py-0.5 bg-rose-50 dark:bg-rose-900/30 text-rose-500 text-[9px] rounded-full font-black uppercase tracking-tighter animate-bounce">
+                  Server Down 🔴
+                </span>
+              )}
+              <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 ml-1 uppercase tracking-tight transition-all duration-500">
+                {activeUsers} active user
+              </span>
             </div>
           </div>
           
-          <button 
-            onClick={onGoToHistory} 
-            className="w-12 h-12 bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-2xl flex items-center justify-center text-xl shadow-sm active:scale-90 transition-all"
-          >
-           🗑️
-          </button>
+          <div className="min-h-[16px] overflow-hidden pt-1">
+            <p 
+              key={currentSlideIndex}
+              className={`text-[10px] font-bold uppercase tracking-widest transition-all duration-500 ${infoSlides[currentSlideIndex].color} ${isAnimatingOut ? 'animate-out fade-out slide-out-to-top-2' : 'animate-in fade-in slide-in-from-bottom-2'}`}
+            >
+              {infoSlides[currentSlideIndex].text}
+            </p>
+          </div>
         </div>
+        
+        <button 
+          onClick={onGoToHistory} 
+          className="w-11 h-11 bg-white dark:bg-slate-900 border dark:border-slate-800 rounded-2xl flex items-center justify-center text-xl shadow-sm active:scale-90 transition-all hover:bg-slate-50"
+        >
+         🗑️
+        </button>
       </header>
 
-      {/* Feature Cards */}
+      {/* Main Feature Cards */}
       <div className="grid grid-cols-2 gap-4">
         <button 
-          onClick={onGoToTranslator} 
-          className="p-6 rounded-[2.5rem] bg-indigo-600 dark:bg-indigo-700 text-white shadow-lg shadow-indigo-500/30 active:scale-95 transition-all text-left group overflow-hidden relative"
+          onClick={() => { setActiveTab('translator'); onGoToTranslator(); }} 
+          className="p-5 rounded-[2.2rem] bg-slate-900 dark:bg-indigo-600 text-white shadow-xl shadow-indigo-500/20 active:scale-95 transition-all text-left relative overflow-hidden group"
         >
-          <div className="absolute top-0 right-0 p-4 opacity-20 group-hover:rotate-12 transition-transform">💬</div>
-          <h3 className="font-black text-base">Translator</h3>
-          <p className="text-[10px] font-medium opacity-80 mt-1 uppercase tracking-widest">Analysis Mode</p>
+          <div className="absolute -right-4 -top-4 w-20 h-20 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
+          <div className="text-2xl mb-3">💬🈶</div>
+          <h3 className="font-black text-sm">Translator</h3>
+          <p className="text-[9px] opacity-60 mt-1 font-bold uppercase tracking-tighter">গভীর অনুবাদ বিশ্লেষণ</p>
         </button>
         <button 
-          onClick={onGoToNews} 
-          className="p-6 rounded-[2.5rem] bg-emerald-500 text-white shadow-lg shadow-emerald-500/30 active:scale-95 transition-all text-left group overflow-hidden relative"
+          onClick={() => { setActiveTab('news'); onGoToNews(); }} 
+          className="p-5 rounded-[2.2rem] bg-emerald-500 text-white shadow-xl shadow-emerald-500/20 active:scale-95 transition-all text-left relative overflow-hidden group"
         >
-          <div className="absolute top-0 right-0 p-4 opacity-20 group-hover:rotate-12 transition-transform">📰</div>
-          <h3 className="font-black text-base">Live News</h3>
-          <p className="text-[10px] font-medium opacity-80 mt-1 uppercase tracking-widest">Update Now</p>
+          <div className="absolute -right-4 -top-4 w-20 h-20 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
+          <div className="text-2xl mb-3">📰</div>
+          <h3 className="font-black text-sm">আজকের খবর</h3>
+          <p className="text-[9px] opacity-60 mt-1 font-bold uppercase tracking-tighter">লাইভ আপডেট</p>
         </button>
       </div>
 
-      {/* Subject Grid */}
-      <div className="space-y-5">
-        <div className="flex items-center space-x-4 px-2">
-          <span className="h-2 w-2 bg-emerald-500 rounded-full animate-ping"></span>
-          <h2 className="text-[12px] font-black text-slate-400 uppercase tracking-[0.25em]">Courses & Computer</h2>
-          <div className="h-[1px] bg-gradient-to-r from-slate-200 to-transparent flex-1"></div>
+      {/* Subject Grid Section */}
+      <div className="space-y-4">
+        <div className="flex items-center space-x-3 px-1">
+          <h2 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">বিষয় ও কম্পিউটার কোর্স</h2>
+          <div className="h-px bg-slate-100 dark:bg-slate-800 flex-1"></div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
@@ -145,24 +141,77 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onStartTutor, onGoToTransla
             <button 
               key={i} 
               onClick={() => onStartTutor(ClassLevel.C10, Group.GENERAL, sub.name)}
-              className={`group flex flex-col items-center justify-center p-7 rounded-[2.8rem] border-2 border-transparent shadow-sm transition-all active:scale-[0.9] hover:border-emerald-400/20 ${sub.color}`}
+              className={`group flex flex-col items-center justify-center p-6 rounded-[2.5rem] border shadow-sm transition-all active:scale-[0.92] hover:shadow-md hover:border-emerald-500/30 ${sub.color}`}
             >
-              <div className={`w-16 h-16 ${sub.iconBg} rounded-3xl flex items-center justify-center text-3xl mb-4 transition-transform group-hover:scale-110 shadow-lg`}>
+              <div className={`w-14 h-14 ${sub.iconBg} rounded-[1.5rem] flex items-center justify-center text-3xl mb-4 transform group-hover:rotate-12 group-hover:scale-110 transition-all duration-300 shadow-inner`}>
                 {sub.icon}
               </div>
-              <h4 className="font-black text-[13px] text-slate-700 dark:text-white tracking-tight">{sub.name}</h4>
+              <h4 className={`font-black text-[13px] ${sub.textColor} dark:text-white text-center leading-tight`}>{sub.name}</h4>
+              <div className="mt-3 flex items-center space-x-1 opacity-40 group-hover:opacity-100 transition-opacity">
+                 <span className="text-[8px] font-black uppercase tracking-widest">শিখুন</span>
+                 <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="4"><polyline points="9 18 15 12 9 6"/></svg>
+              </div>
             </button>
           ))}
         </div>
       </div>
 
-      <footer className="p-8 bg-slate-900 rounded-[3rem] text-center space-y-2 border-t-4 border-emerald-500">
-        <p className="text-[11px] font-bold text-emerald-400 uppercase tracking-widest">Saiyed AI Platform</p>
-        <p className="text-[10px] text-slate-400 leading-relaxed font-medium">
-          আপনার ক্যারিয়ার গড়ার বিশ্বস্ত সঙ্গী। সাহায্য পেতে কল করুন <br/> 
-          <span className="text-white font-black">01941652097</span>
+      {/* Motivational Footer */}
+      <div className="p-6 bg-slate-50 dark:bg-slate-900/50 rounded-[2.2rem] border-2 border-dashed border-slate-200 dark:border-slate-800 text-center animate-pulse">
+        <p className="text-[11px] font-black text-slate-500 dark:text-slate-400">
+          সাঈদ এআই (Saiyed AI) আপনার পড়াশোনাকে আরও সহজ করতে প্রস্তুত! 🚀 For help 01941652097
         </p>
-      </footer>
+      </div>
+
+      {/* 👑 আধুনিক ও আকর্ষণীয় বটম ন্যাভিগেশন বার (Floating iOS Style) */}
+      <div className="fixed bottom-5 left-4 right-4 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200/50 dark:border-slate-800/50 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.15)] px-4 py-2.5 flex justify-around items-center transition-all duration-300">
+        
+        {/* Home Tab */}
+        <button 
+          onClick={() => setActiveTab('home')}
+          className={`flex flex-col items-center space-y-1 py-1 px-3 rounded-2xl transition-all duration-300 active:scale-90 ${activeTab === 'home' ? 'text-emerald-500 font-black scale-105' : 'text-slate-400 dark:text-slate-500 font-medium'}`}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={activeTab === 'home' ? '2.5' : '2'} stroke="currentColor" className="w-5 h-5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21.75h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21.75h7.5" />
+          </svg>
+          <span className="text-[9px] uppercase tracking-wider">Home</span>
+        </button>
+
+        {/* Translator Tab */}
+        <button 
+          onClick={() => { setActiveTab('translator'); onGoToTranslator(); }}
+          className={`flex flex-col items-center space-y-1 py-1 px-3 rounded-2xl transition-all duration-300 active:scale-90 ${activeTab === 'translator' ? 'text-indigo-500 font-black scale-105' : 'text-slate-400 dark:text-slate-500 font-medium'}`}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={activeTab === 'translator' ? '2.5' : '2'} stroke="currentColor" className="w-5 h-5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 21a.75.75 0 0 1-.75-.75V3.75a.75.75 0 0 1 1.5 0v16.5a.75.75 0 0 1-.75.75Z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75h5.25a3 3 0 0 1 3 3v3a3 3 0 0 1-3 3H12M12 6.75H6.75a3 3 0 0 0-3 3v3a3 3 0 0 0 3 3H12" />
+          </svg>
+          <span className="text-[9px] uppercase tracking-wider">Translate</span>
+        </button>
+
+        {/* News Tab */}
+        <button 
+          onClick={() => { setActiveTab('news'); onGoToNews(); }}
+          className={`flex flex-col items-center space-y-1 py-1 px-3 rounded-2xl transition-all duration-300 active:scale-90 ${activeTab === 'news' ? 'text-emerald-500 font-black scale-105' : 'text-slate-400 dark:text-slate-500 font-medium'}`}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={activeTab === 'news' ? '2.5' : '2'} stroke="currentColor" className="w-5 h-5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 0 1-2.25 2.25M16.5 7.5V18a2.25 2.25 0 0 0 2.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 0 0 2.25 2.25h13.5M6 7.5h3v3H6v-3Z" />
+          </svg>
+          <span className="text-[9px] uppercase tracking-wider">News</span>
+        </button>
+
+        {/* History Tab */}
+        <button 
+          onClick={() => { setActiveTab('history'); onGoToHistory(); }}
+          className={`flex flex-col items-center space-y-1 py-1 px-3 rounded-2xl transition-all duration-300 active:scale-90 ${activeTab === 'history' ? 'text-amber-500 font-black scale-105' : 'text-slate-400 dark:text-slate-500 font-medium'}`}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={activeTab === 'history' ? '2.5' : '2'} stroke="currentColor" className="w-5 h-5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+          </svg>
+          <span className="text-[9px] uppercase tracking-wider">History</span>
+        </button>
+
+      </div>
     </div>
   );
 };
