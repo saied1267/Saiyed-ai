@@ -70,15 +70,15 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
         @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap');
         .katex { font-size: 1.1em !important; }
         .important-highlight {
-          background: linear-gradient(120deg, #fef3c7 0%, #fde68a 100%);
-          padding: 2px 6px;
+          background-color: #fef08a;
+          padding: 2px 4px;
           border-radius: 3px;
           font-weight: 600;
-          color: #92400e;
+          color: inherit;
         }
         .dark .important-highlight {
-          background: linear-gradient(120deg, #78350f 0%, #92400e 100%);
-          color: #fef3c7;
+          background-color: rgba(253, 224, 71, 0.2);
+          color: #fde047;
         }
       `;
       document.head.appendChild(style);
@@ -92,7 +92,7 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
         setShowHeaderMenu(false);
       }
     };
-    
+
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
@@ -126,7 +126,7 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
     const id = toastIdRef.current++;
     const newToast: Toast = { id, message, type };
     setToasts(prev => [...prev, newToast]);
-    
+
     setTimeout(() => {
       setToasts(prev => prev.filter(t => t.id !== id));
     }, 3000);
@@ -219,13 +219,13 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
       const lineHtml = tokens.map((token) => {
         if (token.startsWith('$$') && token.endsWith('$$')) return win.katex ? win.katex.renderToString(token.slice(2, -2), { displayMode: true }) : token;
         if (token.startsWith('$') && token.endsWith('$')) return win.katex ? win.katex.renderToString(token.slice(1, -1), { displayMode: false }) : token;
-        return token.replace(/\*\*(.*?)\*\*/g, '<span style="background: #fef3c7; color: #92400e; font-weight: 700; padding: 2px 6px; border-radius: 3px;">$1</span>');
+        return token.replace(/\*\*(.*?)\*\*/g, '<span style="background-color: #fef08a; padding: 2px 4px; border-radius: 3px; font-weight: 600;">$1</span>');
       }).join('');
       return `<p style="font-size: 16px; margin-bottom: 15px; line-height: 1.8; color: #1e293b; font-family: 'Hind Siliguri', sans-serif;">${lineHtml}</p>`;
     }).join('');
 
     const watermarkSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600"><text x="300" y="300" fill="rgba(0,0,0,0.09)" font-size="45" font-family="sans-serif" font-weight="700" transform="rotate(-45 300 300)" text-anchor="middle">Kaisir ahamed Saiyed (Saiyed Ai)</text></svg>`;
-    
+
     const watermarkBase64 = btoa(unescape(encodeURIComponent(watermarkSvg)));
     const watermarkUrl = `data:image/svg+xml;base64,${watermarkBase64}`;
 
@@ -271,18 +271,18 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
   const handleSend = async (text?: string) => {
     const msgText = text || input;
     if (!msgText.trim() || loading) return;
-    
+
     const userMsg: ChatMessage = { role: 'user', text: msgText, timestamp: Date.now() };
     const currentHistory = [...history, userMsg];
     onUpdateHistory(currentHistory);
     setInput('');
     setLoading(true);
-    
+
     const aiPlaceholder: ChatMessage = { role: 'model', text: '', timestamp: Date.now() };
     onUpdateHistory([...currentHistory, aiPlaceholder]);
-    
+
     try {
-      const detailedPrompt = msgText + "\n\n[Instruction: অনুগ্রহ করে উত্তরটি খুব বিস্তারিত, তথ্যবহুল, ধাপে ধাপে এবং উদাহরণসহ গুছিয়ে দিন।]";
+      const detailedPrompt = msgText + "\n\n[Instruction: অনুগ্রহ করে উত্তরটি খুব বিস্তারিত, তথ্যবহুল, ধাপে ধাপে এবং উদাহরণসহ গুছিয়ে দিন।]";
 
       await getTutorResponseStream(
         detailedPrompt, 
@@ -296,10 +296,10 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
           cleanText = streamedText.replace(sugMatch[0], '').trim();
           suggestions = sugMatch[1].split(',').map(s => s.trim());
         }
-        
+
         const importantTopics = extractImportantTopics(cleanText);
         const followUpQuestions = extractFollowUpQuestions(cleanText);
-        
+
         const enhancedMessage: any = { 
           ...aiPlaceholder, 
           text: cleanText, 
@@ -446,7 +446,7 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
 
             return (
               <div key={actualIdx} className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'} space-y-2`}>
-                
+
                 {/* User Message Transparent Background & Border */}
                 <div className={`${
                   m.role === 'user' 
