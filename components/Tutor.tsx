@@ -70,15 +70,15 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
         @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap');
         .katex { font-size: 1.1em !important; }
         .important-highlight {
-          background-color: #fef08a;
-          padding: 2px 4px;
-          border-radius: 3px;
-          font-weight: 600;
-          color: inherit;
+          background-color: #ffff00;
+          color: #000000;
+          padding: 0 2px;
+          border-radius: 2px;
+          font-weight: inherit;
         }
         .dark .important-highlight {
-          background-color: rgba(253, 224, 71, 0.2);
-          color: #fde047;
+          background-color: rgba(255, 255, 0, 0.3);
+          color: inherit;
         }
       `;
       document.head.appendChild(style);
@@ -219,7 +219,7 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
       const lineHtml = tokens.map((token) => {
         if (token.startsWith('$$') && token.endsWith('$$')) return win.katex ? win.katex.renderToString(token.slice(2, -2), { displayMode: true }) : token;
         if (token.startsWith('$') && token.endsWith('$')) return win.katex ? win.katex.renderToString(token.slice(1, -1), { displayMode: false }) : token;
-        return token.replace(/\*\*(.*?)\*\*/g, '<span style="background-color: #fef08a; padding: 2px 4px; border-radius: 3px; font-weight: 600;">$1</span>');
+        return token.replace(/\*\*(.*?)\*\*/g, '<span style="background-color: #ffff00; color: #000; padding: 0 2px; border-radius: 2px;">$1</span>');
       }).join('');
       return `<p style="font-size: 16px; margin-bottom: 15px; line-height: 1.8; color: #1e293b; font-family: 'Hind Siliguri', sans-serif;">${lineHtml}</p>`;
     }).join('');
@@ -440,7 +440,6 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
 
           {/* Chat Messages */}
           {history.map((m, actualIdx) => {
-            const hasImportantTopics = (m as any).importantTopics && (m as any).importantTopics.length > 0;
             const followUpQuestions = (m as any).followUpQuestions || [];
             const aiSuggestions = (m as any).suggestions || [];
 
@@ -468,20 +467,6 @@ const Tutor: React.FC<TutorProps> = ({ user, subject, history, onUpdateHistory, 
                     </div>
                   )}
                 </div>
-
-                {/* Important Topics Highlight */}
-                {m.role === 'model' && hasImportantTopics && (
-                  <div className="w-full bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-3 animate-in slide-in-from-bottom-2 mt-2">
-                    <p className="text-xs font-bold text-amber-900 dark:text-amber-200 mb-2">⭐ গুরুত্বপূর্ণ বিষয়গুলো:</p>
-                    <div className="flex flex-wrap gap-2">
-                      {(m as any).importantTopics.map((topic: string, idx: number) => (
-                        <span key={idx} className="text-xs bg-amber-200 dark:bg-amber-900 text-amber-900 dark:text-amber-100 px-3 py-1 rounded-full font-semibold shadow-sm">
-                          {topic}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
 
                 {/* Message Actions (Copy / PDF) */}
                 <div className="flex items-center space-x-2 mt-1">
